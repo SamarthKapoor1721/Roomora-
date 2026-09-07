@@ -1,0 +1,126 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply font-sans text-[0.875rem] text-ink-900 antialiased;
+    background-color: #f7f7f2; /* barely-warm off-white so white cards still separate */
+  }
+
+  /* consistent, visible focus for keyboard users */
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-500/40 ring-offset-1 ring-offset-white;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* ---- buttons: three clear tiers ---- */
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium
+           transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-md {
+    @apply h-9 px-3.5;
+  }
+  .btn-sm {
+    @apply inline-flex h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-medium
+           transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn btn-md bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-700;
+  }
+  .btn-secondary {
+    @apply btn btn-md border border-slate-300 bg-white text-ink-700 hover:bg-slate-50 hover:border-slate-400;
+  }
+  .btn-ghost {
+    @apply btn btn-md text-ink-700 hover:bg-slate-200/70;
+  }
+  .btn-danger {
+    @apply btn btn-md bg-rose-600 text-white hover:bg-rose-700;
+  }
+  .btn-danger-quiet {
+    @apply btn btn-md border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100;
+  }
+
+  /* ---- surfaces ---- */
+  /* .card is padded by default (the common case). Use .card.card-flush to opt out. */
+  .card {
+    @apply rounded-xl border border-slate-200 bg-white p-5 shadow-card;
+  }
+  .card-flush {
+    @apply p-0;
+  }
+  .card-pad {
+    /* no-op: kept for existing call sites that pass it explicitly */
+  }
+  .badge {
+    @apply inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-ink-600;
+  }
+
+  /* ---- form controls ---- */
+  .field-label,
+  .label {
+    @apply mb-1 block text-xs font-medium text-ink-700;
+  }
+  .field-hint {
+    @apply mt-1 text-xs text-ink-500;
+  }
+  .input {
+    @apply h-9 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-ink-900
+           placeholder:text-ink-400 transition-colors
+           focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500/20;
+  }
+  textarea.input {
+    @apply h-auto py-2 leading-relaxed;
+  }
+  select.input {
+    @apply pr-8;
+  }
+  /* no browser number spinners anywhere */
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type='number'] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  /* ---- table ---- */
+  .th {
+    @apply whitespace-nowrap px-3 py-2 text-left text-2xs font-semibold uppercase tracking-wide text-ink-500;
+  }
+  .td {
+    @apply whitespace-nowrap px-3 py-2.5 text-sm text-ink-700;
+  }
+
+  /* subtle top hairline used to separate page header from content */
+  .hairline {
+    @apply border-b border-slate-200;
+  }
+}

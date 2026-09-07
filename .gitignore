@@ -1,0 +1,147 @@
+# ─────────────────────────────────────────────────────────────
+#  Roomora — .gitignore
+# ─────────────────────────────────────────────────────────────
+
+# ── Dependencies ──────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.js
+jspm_packages/
+bower_components/
+
+# Python virtual environments
+venv/
+.venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+.Python
+pip-log.txt
+pip-wheel-metadata/
+
+# ── Environment / secrets ─────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.env
+!*.env.example
+# service-specific
+backend/.env
+ai-service/.env
+frontend/.env
+# key material
+*.pem
+*.key
+*.p12
+*.pfx
+secrets.json
+
+# ── Build output ──────────────────────────────────────────────
+dist/
+build/
+out/
+.next/
+.nuxt/
+.svelte-kit/
+.turbo/
+*.tsbuildinfo
+frontend/dist/
+backend/dist/
+
+# ── Prisma / database ─────────────────────────────────────────
+# migrations ARE committed; ignore local sqlite files & generated client
+backend/prisma/*.db
+backend/prisma/*.db-journal
+backend/prisma/dev.db*
+prisma/generated/
+.prisma/
+
+# ── Local Postgres data (if bind-mounted) ─────────────────────
+pgdata/
+postgres-data/
+*.sql.bak
+
+# ── Uploaded files (keep the folder, ignore its contents) ─────
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# ── Logs & runtime ────────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.pid
+*.seed
+*.pid.lock
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# ── Testing / coverage ────────────────────────────────────────
+coverage/
+*.lcov
+.nyc_output/
+.pytest_cache/
+htmlcov/
+.tox/
+.cache/
+test-results/
+playwright-report/
+.vitest/
+
+# ── Caches ────────────────────────────────────────────────────
+.eslintcache
+.stylelintcache
+.parcel-cache/
+*.tgz
+.npm/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# ── Editors / IDEs ────────────────────────────────────────────
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# ── OS cruft ──────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# ── Office / document temp files ──────────────────────────────
+~$*.docx
+~$*.xlsx
+~$*.pptx
+.~lock.*#
+
+# ── Misc project artifacts ────────────────────────────────────
+tmp/
+temp/
+scratch/
+*.local
+
+# Docker / compose overrides (keep the base file)
+docker-compose.override.yml
+docker-compose.*.local.yml

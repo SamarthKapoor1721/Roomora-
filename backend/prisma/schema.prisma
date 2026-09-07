@@ -1,0 +1,676 @@
+// Smart Rental Management System — Prisma schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Role {
+  OWNER
+  TENANT
+  STAFF
+}
+
+enum StaffType {
+  MAINTENANCE
+  CLEANING
+  GENERAL
+}
+
+enum RoomStatus {
+  AVAILABLE
+  OCCUPIED
+  FULL
+  INACTIVE
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  DOCS_PENDING
+  UNDER_AI_REVIEW
+  AI_COMPLETE
+  OWNER_REVIEW
+  APPROVED
+  REJECTED
+  WITHDRAWN
+}
+
+enum DocumentType {
+  ID_PROOF
+  ADDRESS_PROOF
+  INCOME_PROOF
+  EMPLOYMENT_LETTER
+  BANK_STATEMENT
+  PHOTO
+  OTHER
+}
+
+enum DocVerificationStatus {
+  PENDING
+  VERIFIED
+  INCONSISTENT
+  UNREADABLE
+  FAILED
+}
+
+enum AiResultSource {
+  NVIDIA_AI
+  RULE_BASED_FALLBACK
+}
+
+enum LeaseStatus {
+  ACTIVE
+  EXPIRED
+  TERMINATED
+  PENDING
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  OVERDUE
+  WAIVED
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  UPI
+  CARD
+  OTHER
+}
+
+enum MaintenanceStatus {
+  OPEN
+  ASSIGNED
+  IN_PROGRESS
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum CleaningStatus {
+  SCHEDULED
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  MISSED
+}
+
+enum CleaningFrequency {
+  DAILY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  ONE_TIME
+}
+
+enum WarningType {
+  RENT_UPCOMING
+  RENT_OVERDUE
+  REPEATED_LATE_PAYMENT
+  LEASE_EXPIRY
+  MISSING_DOCUMENTS
+  MAINTENANCE_DELAY
+  CLEANING_DELAY
+  MANUAL
+}
+
+enum WarningSeverity {
+  INFO
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum WarningStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  RESOLVED
+  DISMISSED
+}
+
+enum NotificationType {
+  APPLICATION_UPDATE
+  PAYMENT_REMINDER
+  MAINTENANCE_UPDATE
+  CLEANING_UPDATE
+  WARNING
+  LEASE_UPDATE
+  TASK_ASSIGNED
+  GENERAL
+}
+
+// ---------------------------------------------------------------------------
+// Users & auth
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  fullName     String
+  phone        String?
+  role         Role
+  isActive     Boolean   @default(true)
+  staffType    StaffType?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Owner relations
+  properties       Property[]        @relation("OwnerProperties")
+  ownedStaff       StaffProfile[]    @relation("StaffOwner")
+
+  // Tenant relations
+  applications     Application[]     @relation("TenantApplications")
+  tenancies        RoomAssignment[]  @relation("TenantAssignments")
+  leases           Lease[]           @relation("TenantLeases")
+  payments         Payment[]         @relation("TenantPayments")
+  maintenanceReqs  MaintenanceRequest[] @relation("TenantMaintenance")
+
+  // Staff relations
+  staffProfile        StaffProfile?
+  assignedMaintenance MaintenanceRequest[] @relation("StaffMaintenance")
+  assignedCleaning    CleaningTask[]       @relation("StaffCleaning")
+
+  // Common
+  refreshTokens   RefreshToken[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+  warningsIssued  Warning[]        @relation("WarningIssuedBy")
+  warningsAbout   Warning[]        @relation("WarningTenant")
+  aiConversations AiConversation[]
+
+  @@index([role])
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+  userAgent String?
+  ip        String?
+
+  @@index([userId])
+}
+
+model StaffProfile {
+  id         String    @id @default(cuid())
+  userId     String    @unique
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ownerId    String
+  owner      User      @relation("StaffOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  staffType  StaffType
+  skills     String[]  @default([])
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([ownerId])
+}
+
+// ---------------------------------------------------------------------------
+// Properties & rooms
+// ---------------------------------------------------------------------------
+
+model Property {
+  id            String   @id @default(cuid())
+  ownerId       String
+  owner         User     @relation("OwnerProperties", fields: [ownerId], references: [id], onDelete: Cascade)
+  name          String
+  addressLine1  String
+  addressLine2  String?
+  city          String
+  state         String?
+  postalCode    String?
+  country       String   @default("India")
+  description   String?
+  foodEnabled   Boolean  @default(false)
+  foodCharge    Decimal  @default(0) @db.Decimal(10, 2)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  rooms         Room[]
+  cleaningTasks CleaningTask[]
+
+  @@index([ownerId])
+}
+
+model Room {
+  id                String     @id @default(cuid())
+  propertyId        String
+  property          Property   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  name              String     // e.g. "Room 101"
+  floor             String?
+  description       String?
+  monthlyRent       Decimal    @db.Decimal(10, 2)
+  securityDeposit   Decimal    @default(0) @db.Decimal(10, 2)
+  capacity          Int        @default(1)   // total beds
+  roommatesLimit    Int        @default(1)   // max co-tenants sharing
+  occupantCount     Int        @default(0)
+  status            RoomStatus @default(AVAILABLE)
+  applicationsOpen  Boolean    @default(false)
+  foodEnabled       Boolean    @default(false) // room-level override; effective = property.foodEnabled || room.foodEnabled
+  foodCharge        Decimal    @default(0) @db.Decimal(10, 2)
+  amenities         String[]   @default([])
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  applications  Application[]
+  assignments   RoomAssignment[]
+  leases        Lease[]
+  maintenance   MaintenanceRequest[]
+  cleaningTasks CleaningTask[]
+
+  @@index([propertyId])
+  @@index([applicationsOpen])
+}
+
+model RoomAssignment {
+  id         String    @id @default(cuid())
+  roomId     String
+  room       Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  tenantId   String
+  tenant     User      @relation("TenantAssignments", fields: [tenantId], references: [id], onDelete: Cascade)
+  applicationId String? @unique
+  application Application? @relation(fields: [applicationId], references: [id])
+  startDate  DateTime  @default(now())
+  endDate    DateTime?
+  isActive   Boolean   @default(true)
+  foodOptIn  Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([roomId, tenantId, isActive])
+  @@index([tenantId])
+  @@index([roomId])
+}
+
+// ---------------------------------------------------------------------------
+// Applications, documents, AI results
+// ---------------------------------------------------------------------------
+
+model Application {
+  id             String            @id @default(cuid())
+  roomId         String
+  room           Room              @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  tenantId       String
+  tenant         User              @relation("TenantApplications", fields: [tenantId], references: [id], onDelete: Cascade)
+  status         ApplicationStatus @default(SUBMITTED)
+
+  // Applicant-provided info (used for AI eligibility)
+  monthlyIncome     Decimal?  @db.Decimal(12, 2)
+  employmentStatus  String?
+  employerName      String?
+  currentAddress    String?
+  moveInDate        DateTime?
+  occupants         Int       @default(1)
+  hasPets           Boolean   @default(false)
+  smoker            Boolean   @default(false)
+  notes             String?
+  foodOptIn         Boolean   @default(false)
+
+  submittedAt    DateTime?
+  decidedAt      DateTime?
+  decidedById    String?
+  decisionReason String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  documents      ApplicationDocument[]
+  eligibility    EligibilityAssessment?
+  docVerification DocVerificationResult?
+  summary        ApplicationSummary?
+  assignment     RoomAssignment?
+
+  @@index([tenantId])
+  @@index([roomId])
+  @@index([status])
+}
+
+model ApplicationDocument {
+  id             String       @id @default(cuid())
+  applicationId  String
+  application    Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  type           DocumentType
+  originalName   String
+  storedName     String
+  mimeType       String
+  sizeBytes      Int
+  path           String
+  checksum       String?
+  verification   DocVerificationStatus @default(PENDING)
+  extractedData  Json?
+  notes          String?
+  uploadedAt     DateTime     @default(now())
+
+  @@index([applicationId])
+}
+
+model EligibilityAssessment {
+  id             String        @id @default(cuid())
+  applicationId  String        @unique
+  application    Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  source         AiResultSource
+  // For NVIDIA_AI: advisory score. For RULE_BASED_FALLBACK: criteria-match %.
+  score          Int           // 0-100
+  scoreLabel     String        // "Advisory score" | "Criteria Match"
+  recommendation String        // e.g. "REVIEW", "STRONG", "WEAK" — advisory only
+  reasons        String[]      @default([])
+  warnings       String[]      @default([])
+  missingRequirements String[]  @default([])
+  rawResponse    Json?
+  model          String?
+  createdAt      DateTime      @default(now())
+}
+
+model DocVerificationResult {
+  id             String        @id @default(cuid())
+  applicationId  String        @unique
+  application    Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  source         AiResultSource
+  overallStatus  DocVerificationStatus
+  consistencyScore Int         // 0-100
+  extractedFields Json?        // merged extracted fields across docs
+  inconsistencies String[]     @default([])
+  missingDocuments String[]    @default([])
+  notes          String?
+  rawResponse    Json?
+  model          String?
+  createdAt      DateTime      @default(now())
+}
+
+model ApplicationSummary {
+  id            String       @id @default(cuid())
+  applicationId String       @unique
+  application   Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  source        AiResultSource
+  summary       String
+  highlights    String[]     @default([])
+  concerns      String[]     @default([])
+  model         String?
+  createdAt     DateTime     @default(now())
+}
+
+// ---------------------------------------------------------------------------
+// Leases, rent, payments
+// ---------------------------------------------------------------------------
+
+model Lease {
+  id             String      @id @default(cuid())
+  roomId         String
+  room           Room        @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  tenantId       String
+  tenant         User        @relation("TenantLeases", fields: [tenantId], references: [id], onDelete: Cascade)
+  startDate      DateTime
+  endDate        DateTime
+  monthlyRent    Decimal     @db.Decimal(10, 2)
+  foodCharge     Decimal     @default(0) @db.Decimal(10, 2)
+  securityDeposit Decimal    @default(0) @db.Decimal(10, 2)
+  rentDueDay     Int         @default(1) // day of month
+  status         LeaseStatus @default(ACTIVE)
+  terms          String?
+  documentPath   String?
+  aiSummary      String?
+  aiSummarySource AiResultSource?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  payments       Payment[]
+
+  @@index([tenantId])
+  @@index([roomId])
+  @@index([status])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  leaseId       String
+  lease         Lease         @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+  tenantId      String
+  tenant        User          @relation("TenantPayments", fields: [tenantId], references: [id], onDelete: Cascade)
+  periodMonth   Int           // 1-12
+  periodYear    Int
+  rentAmount    Decimal       @db.Decimal(10, 2)
+  foodAmount    Decimal       @default(0) @db.Decimal(10, 2)
+  otherAmount   Decimal       @default(0) @db.Decimal(10, 2)
+  totalAmount   Decimal       @db.Decimal(10, 2)
+  amountPaid    Decimal       @default(0) @db.Decimal(10, 2)
+  dueDate       DateTime
+  paidDate      DateTime?
+  daysLate      Int           @default(0)
+  status        PaymentStatus @default(PENDING)
+  method        PaymentMethod?
+  reference     String?
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@unique([leaseId, periodYear, periodMonth])
+  @@index([tenantId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+// ---------------------------------------------------------------------------
+// Maintenance & cleaning
+// ---------------------------------------------------------------------------
+
+model MaintenanceRequest {
+  id            String            @id @default(cuid())
+  roomId        String
+  room          Room              @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  tenantId      String
+  tenant        User              @relation("TenantMaintenance", fields: [tenantId], references: [id], onDelete: Cascade)
+  title         String
+  description   String
+  category      String?           // AI-suggested
+  priority      Priority          @default(MEDIUM) // AI-suggested, owner can override
+  aiClassification Json?
+  aiSource      AiResultSource?
+  status        MaintenanceStatus @default(OPEN)
+  assignedStaffId String?
+  assignedStaff   User?           @relation("StaffMaintenance", fields: [assignedStaffId], references: [id])
+  assignedAt    DateTime?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  resolutionNotes String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  photos        MaintenancePhoto[]
+  notes         MaintenanceNote[]
+
+  @@index([roomId])
+  @@index([tenantId])
+  @@index([assignedStaffId])
+  @@index([status])
+}
+
+model MaintenancePhoto {
+  id          String   @id @default(cuid())
+  requestId   String
+  request     MaintenanceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  kind        String   // "ISSUE" | "BEFORE" | "AFTER"
+  originalName String
+  storedName  String
+  path        String
+  mimeType    String
+  sizeBytes   Int
+  uploadedById String
+  uploadedAt  DateTime @default(now())
+
+  @@index([requestId])
+}
+
+model MaintenanceNote {
+  id          String   @id @default(cuid())
+  requestId   String
+  request     MaintenanceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  authorId    String
+  body        String
+  createdAt   DateTime @default(now())
+
+  @@index([requestId])
+}
+
+model CleaningTask {
+  id            String            @id @default(cuid())
+  propertyId    String
+  property      Property          @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  roomId        String?
+  room          Room?             @relation(fields: [roomId], references: [id])
+  title         String
+  description   String?
+  frequency     CleaningFrequency @default(ONE_TIME)
+  scheduledFor  DateTime
+  status        CleaningStatus    @default(SCHEDULED)
+  priority      Priority          @default(MEDIUM)
+  assignedStaffId String?
+  assignedStaff   User?           @relation("StaffCleaning", fields: [assignedStaffId], references: [id])
+  assignedAt    DateTime?
+  startedAt     DateTime?
+  completedAt   DateTime?
+  notes         String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  photos        CleaningPhoto[]
+
+  @@index([propertyId])
+  @@index([assignedStaffId])
+  @@index([status])
+  @@index([scheduledFor])
+}
+
+model CleaningPhoto {
+  id          String   @id @default(cuid())
+  taskId      String
+  task        CleaningTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  kind        String   // "BEFORE" | "AFTER"
+  originalName String
+  storedName  String
+  path        String
+  mimeType    String
+  sizeBytes   Int
+  uploadedById String
+  uploadedAt  DateTime @default(now())
+
+  @@index([taskId])
+}
+
+// ---------------------------------------------------------------------------
+// Warnings & notifications
+// ---------------------------------------------------------------------------
+
+model Warning {
+  id          String          @id @default(cuid())
+  tenantId    String?
+  tenant      User?           @relation("WarningTenant", fields: [tenantId], references: [id], onDelete: Cascade)
+  issuedById  String?
+  issuedBy    User?           @relation("WarningIssuedBy", fields: [issuedById], references: [id])
+  type        WarningType
+  severity    WarningSeverity @default(MEDIUM)
+  status      WarningStatus   @default(ACTIVE)
+  title       String
+  message     String
+  // de-dupe key so automatic scanners don't create duplicates
+  dedupeKey   String?         @unique
+  relatedType String?         // "PAYMENT" | "LEASE" | "APPLICATION" | "MAINTENANCE" | "CLEANING"
+  relatedId   String?
+  autoGenerated Boolean       @default(false)
+  acknowledgedAt DateTime?
+  resolvedAt  DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([tenantId])
+  @@index([status])
+  @@index([type])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  body      String
+  readAt    DateTime?
+  relatedType String?
+  relatedId String?
+  createdAt DateTime         @default(now())
+
+  @@index([userId])
+  @@index([readAt])
+}
+
+// ---------------------------------------------------------------------------
+// Audit log & AI assistant
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actor      User?    @relation(fields: [actorId], references: [id])
+  action     String   // e.g. "application.approve"
+  entityType String
+  entityId   String?
+  ip         String?
+  userAgent  String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([actorId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model AiConversation {
+  id        String   @id @default(cuid())
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  title     String   @default("New conversation")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages  AiMessage[]
+
+  @@index([ownerId])
+}
+
+model AiMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  conversation   AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String   // "user" | "assistant" | "system"
+  content        String
+  source         AiResultSource?
+  usedTools      Json?    // which data queries were run
+  createdAt      DateTime @default(now())
+
+  @@index([conversationId])
+}

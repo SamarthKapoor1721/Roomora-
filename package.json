@@ -1,0 +1,26 @@
+{
+  "name": "smart-rental-management-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Smart Rental Management System - full-stack rental platform with AI-assisted tenant screening",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "start": "bash scripts/start.sh",
+    "start:reset": "bash scripts/start.sh --reset",
+    "dev": "concurrently -n backend,frontend,ai -c blue,green,magenta \"npm:dev:backend\" \"npm:dev:frontend\" \"npm:dev:ai\"",
+    "dev:backend": "npm --workspace backend run dev",
+    "dev:frontend": "npm --workspace frontend run dev",
+    "dev:ai": "cd ai-service && (test -d .venv || python3 -m venv .venv) && ./.venv/bin/python -m uvicorn app.main:app --reload --port 8001",
+    "build": "npm --workspace backend run build && npm --workspace frontend run build",
+    "db:generate": "npm --workspace backend run db:generate",
+    "db:migrate": "npm --workspace backend run db:migrate",
+    "db:seed": "npm --workspace backend run db:seed",
+    "test": "npm --workspace backend run test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
