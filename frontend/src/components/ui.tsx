@@ -228,9 +228,8 @@ export function StatLine({ label, value, tone = 'default' }: { label: string; va
 }
 
 /* ------------------------------------------------------------------ *
- * Status — a leading tone dot + a crisp label. No pill, no ring, no  *
- * all-caps: the dot carries the state, the text just names it. Three *
- * tones (live / warn / rest / done) drive the dot colour.            *
+ * Status — one solid, well-spaced pill per row. A tone dot inside a   *
+ * soft-tinted capsule with a matching hairline. Never all-caps.       *
  * ------------------------------------------------------------------ */
 
 type StatusTone = 'positive' | 'progress' | 'warning' | 'critical' | 'neutral';
@@ -240,14 +239,14 @@ const TONE_DOT: Record<StatusTone, string> = {
   progress: 'bg-violet-500',
   warning: 'bg-amber-500',
   critical: 'bg-rose-500',
-  neutral: 'bg-slate-300',
+  neutral: 'bg-slate-400',
 };
-const TONE_TEXT: Record<StatusTone, string> = {
-  positive: 'text-emerald-700',
-  progress: 'text-violet-700',
-  warning: 'text-amber-700',
-  critical: 'text-rose-700',
-  neutral: 'text-ink-500',
+const TONE_PILL: Record<StatusTone, string> = {
+  positive: 'bg-emerald-50 text-emerald-800 ring-emerald-600/15',
+  progress: 'bg-violet-50 text-violet-800 ring-violet-600/15',
+  warning: 'bg-amber-50 text-amber-800 ring-amber-600/15',
+  critical: 'bg-rose-50 text-rose-800 ring-rose-600/15',
+  neutral: 'bg-slate-50 text-ink-600 ring-slate-500/15',
 };
 
 const STATUS_TONE: Record<string, StatusTone> = {
@@ -267,10 +266,6 @@ const STATUS_TONE: Record<string, StatusTone> = {
   LOW: 'neutral', MEDIUM: 'warning', HIGH: 'warning', URGENT: 'critical', CRITICAL: 'critical', INFO: 'neutral',
 };
 
-/**
- * A status marker: a small tone dot (which pulses for a "live" state) and a
- * lowercase label with a tighter tracking. Deliberately not a pill.
- */
 /** "DOCS_PENDING" -> "Docs pending", but keep AI as an acronym. */
 function humanizeStatus(value: string): string {
   return value
@@ -281,18 +276,41 @@ function humanizeStatus(value: string): string {
     .join(' ');
 }
 
+/**
+ * The single status pill for a row: a tinted capsule, a tone dot (pulsing
+ * for a live state), and a sentence-case label. Use exactly one per item.
+ */
 export function StatusPill({ value }: { value: string }) {
   const tone = STATUS_TONE[value] ?? 'neutral';
   const live = tone === 'critical' || value === 'IN_PROGRESS' || value === 'ACTIVE';
   return (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium tracking-[0.01em] text-ink-700">
-      <span className="relative flex h-2 w-2 shrink-0 items-center justify-center">
+    <span
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${TONE_PILL[tone]}`}
+    >
+      <span className="relative flex h-1.5 w-1.5 shrink-0">
         {live && (
-          <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${TONE_DOT[tone]}`} />
+          <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${TONE_DOT[tone]}`} />
         )}
         <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${TONE_DOT[tone]}`} />
       </span>
-      <span className={TONE_TEXT[tone]}>{humanizeStatus(value)}</span>
+      {humanizeStatus(value)}
+    </span>
+  );
+}
+
+/**
+ * A compact priority marker for the title area — a coloured triangle/flag
+ * glyph + label, only shown when it's worth flagging (MEDIUM and up).
+ */
+export function PriorityFlag({ value }: { value: string }) {
+  const tone = STATUS_TONE[value] ?? 'neutral';
+  if (tone === 'neutral') return null; // LOW / unknown: not worth the ink
+  const color =
+    tone === 'critical' ? 'text-rose-600' : tone === 'warning' ? 'text-amber-600' : 'text-ink-500';
+  return (
+    <span className={`inline-flex items-center gap-1 text-xs font-medium ${color}`}>
+      <Icon name="alert" size={12} />
+      {humanizeStatus(value)}
     </span>
   );
 }

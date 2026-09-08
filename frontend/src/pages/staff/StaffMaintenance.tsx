@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../lib/api';
-import { Badge, EmptyState, ErrorBanner, PageHeader, Spinner, date } from '../../components/ui';
+import { Badge, EmptyState, ErrorBanner, PageHeader, PriorityFlag, Spinner, date } from '../../components/ui';
 
 function Tabs({ tab, setTab }: { tab: 'active' | 'completed'; setTab: (t: 'active' | 'completed') => void }) {
   return (
@@ -104,17 +104,17 @@ export default function StaffMaintenance() {
         <div key={r.id} className="card">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <p className="font-semibold">{r.title}</p>
-              <p className="text-xs text-slate-400">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-semibold">{r.title}</p>
+                <PriorityFlag value={r.priority} />
+                {r.category && <span className="badge">{r.category}</span>}
+              </div>
+              <p className="mt-0.5 text-xs text-slate-400">
                 {r.room.property.name} / {r.room.name} — {r.room.property.addressLine1}, {r.room.property.city}
               </p>
               <p className="text-xs text-slate-400">Tenant: {r.tenant.fullName} {r.tenant.phone && `· ${r.tenant.phone}`} · {date(r.createdAt)}</p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge>{r.priority}</Badge>
-              {r.category && <span className="badge bg-slate-100 text-slate-600">{r.category}</span>}
-              <Badge>{r.status}</Badge>
-            </div>
+            <Badge>{r.status}</Badge>
           </div>
 
           <button className="mt-2 text-sm text-brand-600" onClick={() => setExpand(expand === r.id ? null : r.id)}>

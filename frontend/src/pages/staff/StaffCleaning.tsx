@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../lib/api';
-import { Badge, EmptyState, ErrorBanner, PageHeader, Spinner, date } from '../../components/ui';
+import { Badge, EmptyState, ErrorBanner, PageHeader, PriorityFlag, Spinner, date } from '../../components/ui';
 
 function Tabs({ tab, setTab }: { tab: 'active' | 'completed'; setTab: (t: 'active' | 'completed') => void }) {
   return (
@@ -94,16 +94,16 @@ export default function StaffCleaning() {
         <div key={t.id} className="card">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <p className="font-semibold">{t.title}</p>
-              <p className="text-xs text-slate-400">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-semibold">{t.title}</p>
+                <PriorityFlag value={t.priority} />
+              </div>
+              <p className="mt-0.5 text-xs text-slate-400">
                 {t.property.name}{t.room ? ` / ${t.room.name}` : ''} — {t.property.addressLine1}, {t.property.city}
               </p>
               <p className="text-xs text-slate-400">{t.frequency} · scheduled {date(t.scheduledFor)}</p>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge>{t.priority}</Badge>
-              <Badge>{t.status}</Badge>
-            </div>
+            <Badge>{t.status}</Badge>
           </div>
 
           <button className="mt-2 text-sm text-brand-600" onClick={() => setExpand(expand === t.id ? null : t.id)}>

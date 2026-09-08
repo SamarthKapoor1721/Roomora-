@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
-import { AiSourceTag, Badge, Chip, EmptyState, ErrorBanner, FilterSelect, PageHeader, Spinner, date } from '../../components/ui';
+import { AiSourceTag, Badge, Chip, EmptyState, ErrorBanner, FilterSelect, PageHeader, PriorityFlag, Spinner, date } from '../../components/ui';
 
 const STATUS_OPTIONS = ['OPEN', 'ASSIGNED', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED'];
 
@@ -80,17 +80,15 @@ export default function OwnerMaintenance() {
         <div key={r.id} className="card">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-ink-900">{r.title}</p>
-              <p className="text-xs text-ink-500">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-semibold text-ink-900">{r.title}</p>
+                <PriorityFlag value={r.priority} />
+              </div>
+              <p className="mt-0.5 text-xs text-ink-500">
                 {r.room.property.name} · {r.room.name} · by {r.tenant.fullName} · {date(r.createdAt)}
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge>{r.priority}</Badge>
-              {r.category && <Chip>{r.category}</Chip>}
-              <AiSourceTag source={r.aiSource} />
-              <Badge>{r.status}</Badge>
-            </div>
+            <Badge>{r.status}</Badge>
           </div>
 
           <button
@@ -103,6 +101,10 @@ export default function OwnerMaintenance() {
 
           {expand === r.id && (
             <div className="mt-3 space-y-3 rounded-lg bg-slate-50 p-4 text-sm">
+              <div className="flex flex-wrap items-center gap-2">
+                {r.category && <Chip>{r.category}</Chip>}
+                <AiSourceTag source={r.aiSource} />
+              </div>
               <p className="text-ink-600">{r.description}</p>
               {r.photos.length > 0 && (
                 <div className="flex flex-wrap gap-2">

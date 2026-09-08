@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
-import { Badge, ConfirmDialog, EmptyState, ErrorBanner, PageHeader, Spinner, date } from '../../components/ui';
+import { Badge, ConfirmDialog, EmptyState, ErrorBanner, PageHeader, PriorityFlag, Spinner, date } from '../../components/ui';
 
 interface Task {
   id: string;
@@ -83,13 +83,15 @@ export default function OwnerCleaning() {
       {data?.map((t) => (
         <div key={t.id} className="card flex flex-wrap items-center justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-ink-900">{t.title}</p>
-            <p className="text-xs text-ink-500">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm font-semibold text-ink-900">{t.title}</p>
+              <PriorityFlag value={t.priority} />
+            </div>
+            <p className="mt-0.5 text-xs text-ink-500">
               {t.property.name}
               {t.room ? ` · ${t.room.name}` : ''} · {t.frequency.toLowerCase()} · scheduled {date(t.scheduledFor)}
             </p>
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-              <Badge>{t.priority}</Badge>
               <Badge>{t.status}</Badge>
               {t.photos.map((p) => (
                 <a
