@@ -42,7 +42,7 @@ export default function Register() {
           <span className="font-display text-lg font-semibold text-ink-900">Roomora</span>
           <p className="mt-1 text-sm text-ink-500">Create your account</p>
         </div>
-        <form onSubmit={submit} className="space-y-4">
+        <form onSubmit={submit} className="card card-pad space-y-4">
           {error && <ErrorBanner message={error} />}
           <Field label="Full name">
             <input

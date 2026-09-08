@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
 import {
+  Card,
   EmptyState,
   ErrorBanner,
   PageHeader,
@@ -74,8 +75,10 @@ export default function TenantDashboard() {
           {rentDue && (
             <Section>
               <div
-                className={`flex flex-wrap items-center justify-between gap-4 border-l-2 py-2 pl-4 ${
-                  rentDue.status === 'OVERDUE' ? 'border-l-rose-400' : 'border-l-brand-500'
+                className={`flex flex-wrap items-center justify-between gap-4 rounded-xl border p-5 ${
+                  rentDue.status === 'OVERDUE'
+                    ? 'border-rose-200 bg-rose-50'
+                    : 'border-brand-200 bg-brand-50'
                 }`}
               >
                 <div>
@@ -98,10 +101,10 @@ export default function TenantDashboard() {
             </Section>
           )}
 
-          <div className="grid gap-x-10 gap-y-8 lg:grid-cols-3">
+          <div className="grid gap-4 lg:grid-cols-3">
             {/* Tenancy */}
-            <div className="lg:col-span-2">
-              <div className="mb-3 flex items-center gap-2 border-b border-slate-200 pb-1.5">
+            <Card className="lg:col-span-2">
+              <div className="mb-3 flex items-center gap-2">
                 <Icon name="key" size={16} className="text-ink-400" />
                 <h3 className="text-sm font-semibold text-ink-900">My tenancy</h3>
               </div>
@@ -124,19 +127,16 @@ export default function TenantDashboard() {
                 />
               </div>
               {data.lease && (
-                <Link
-                  to="/tenant/payments"
-                  className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:text-brand-700"
-                >
+                <Link to="/tenant/payments" className="btn-secondary btn-sm mt-4">
                   Payment history
                   <Icon name="chevronRight" size={13} />
                 </Link>
               )}
-            </div>
+            </Card>
 
             {/* Roommates */}
-            <div>
-              <div className="mb-3 flex items-center gap-2 border-b border-slate-200 pb-1.5">
+            <Card>
+              <div className="mb-3 flex items-center gap-2">
                 <Icon name="users" size={16} className="text-ink-400" />
                 <h3 className="text-sm font-semibold text-ink-900">Roommates</h3>
               </div>
@@ -157,7 +157,7 @@ export default function TenantDashboard() {
               ) : (
                 <p className="text-sm text-ink-400">You have the room to yourself.</p>
               )}
-            </div>
+            </Card>
           </div>
 
           {/* Quick links */}
@@ -202,7 +202,7 @@ function QuickLink({
   return (
     <Link
       to={to}
-      className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:border-slate-300"
+      className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-card transition-shadow hover:shadow-pop"
     >
       <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-600">
         <Icon name={icon} size={18} />

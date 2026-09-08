@@ -66,9 +66,9 @@ export default function OwnerStaff() {
           hint="Add maintenance and cleaning staff so you can assign work to them."
         />
       ) : (
-        <div className="grid gap-x-10 gap-y-6 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           {data?.map((s) => (
-            <div key={s.id} className="border-b border-slate-100 pb-6">
+            <div key={s.id} className="card">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-ink-600">
@@ -137,7 +137,7 @@ function StaffForm({ onSubmit, pending, error }: { onSubmit: (b: unknown) => voi
   });
   return (
     <form
-      className="space-y-3 border-l-2 border-brand-200 py-1 pl-4"
+      className="card space-y-3"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit({

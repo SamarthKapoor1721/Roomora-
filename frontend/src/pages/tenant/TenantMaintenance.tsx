@@ -74,39 +74,39 @@ export default function TenantMaintenance() {
         </div>
       )}
 
-      <div>
+      <div className="space-y-2.5">
       {data?.length === 0 && (
         <EmptyState icon="wrench" title="No maintenance requests" hint="Raise one if something in your room needs fixing." />
       )}
       {data?.map((r) => (
-        <div key={r.id} className="row">
+        <div key={r.id} className="card">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <p className="text-sm font-semibold text-ink-900">{r.title}</p>
-              <p className="text-xs text-ink-500">{r.room.name} · {date(r.createdAt)} {r.assignedStaff && `· ${r.assignedStaff.fullName}`}</p>
+              <p className="font-semibold">{r.title}</p>
+              <p className="text-xs text-slate-400">{r.room.name} · {date(r.createdAt)} {r.assignedStaff && `· ${r.assignedStaff.fullName}`}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Badge>{r.priority}</Badge>
-              {r.category && <span className="badge">{r.category}</span>}
+              {r.category && <span className="badge bg-slate-100 text-slate-600">{r.category}</span>}
               <AiSourceTag source={r.aiSource} />
               <Badge>{r.status}</Badge>
             </div>
           </div>
-          <button className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:text-brand-700" onClick={() => setExpand(expand === r.id ? null : r.id)}>
+          <button className="mt-2 text-sm text-brand-600" onClick={() => setExpand(expand === r.id ? null : r.id)}>
             {expand === r.id ? 'Hide' : 'Details'}
           </button>
           {expand === r.id && (
-            <div className="mt-3 space-y-3 border-l-2 border-slate-200 py-1 pl-4 text-sm">
-              <p className="text-ink-600">{r.description}</p>
+            <div className="mt-3 space-y-3 rounded bg-slate-50 p-3 text-sm">
+              <p className="text-slate-600">{r.description}</p>
               {r.photos.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {r.photos.map((p) => (
-                    <a key={p.id} href={`/uploads/${p.path}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-0.5 text-2xs font-medium text-ink-600 hover:border-brand-400">{p.kind}</a>
+                    <a key={p.id} href={`/uploads/${p.path}`} target="_blank" rel="noreferrer" className="badge bg-white text-slate-500">{p.kind}</a>
                   ))}
                 </div>
               )}
               {r.notes && r.notes.length > 0 && (
-                <ul className="space-y-1 text-xs text-ink-500">
+                <ul className="space-y-1 text-xs text-slate-500">
                   {r.notes.map((n) => <li key={n.id}>{date(n.createdAt)}: {n.body}</li>)}
                 </ul>
               )}
@@ -130,7 +130,7 @@ function RaiseForm({ onSubmit, pending, error }: { onSubmit: (b: { title: string
   const [f, setF] = useState({ title: '', description: '' });
   return (
     <form
-      className="space-y-3 border-l-2 border-brand-200 py-1 pl-4"
+      className="card space-y-3"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit(f);
@@ -139,7 +139,7 @@ function RaiseForm({ onSubmit, pending, error }: { onSubmit: (b: { title: string
       {error != null && <ErrorBanner message={apiErrorMessage(error)} />}
       <input className="input" placeholder="Short title" value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} required />
       <textarea className="input" rows={3} placeholder="Describe the issue in detail" value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} required />
-      <p className="text-xs text-ink-500">AI will suggest a category and priority. You can add photos after submitting.</p>
+      <p className="text-xs text-slate-400">AI will suggest a category and priority. You can add photos after submitting.</p>
       <button className="btn-primary" disabled={pending}>Submit request</button>
     </form>
   );

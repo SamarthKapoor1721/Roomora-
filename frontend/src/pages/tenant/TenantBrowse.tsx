@@ -50,7 +50,7 @@ export default function TenantBrowse() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {data?.map((r) => (
-            <div key={r.id} className="flex flex-col rounded-lg border border-slate-200 bg-white p-4">
+            <div key={r.id} className="flex flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-card">
               <p className="text-sm font-semibold text-ink-900">{r.property.name}</p>
               <p className="text-xs text-ink-500">
                 {r.name} · {r.property.addressLine1}, {r.property.city}
@@ -117,7 +117,7 @@ function ApplyModal({ room, onClose, onApplied }: { room: Room; onClose: () => v
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" role="dialog" aria-modal="true">
       <form
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-pop"
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white shadow-pop"
         onSubmit={(e) => {
           e.preventDefault();
           m.mutate();
@@ -185,7 +185,7 @@ function ApplyModal({ room, onClose, onApplied }: { room: Room; onClose: () => v
             </label>
           </div>
           {room.food.foodEnabled && (
-            <label className="flex items-start gap-2 border-l-2 border-slate-200 py-1 pl-3 text-sm text-ink-700">
+            <label className="flex items-start gap-2 rounded-lg bg-slate-50 p-3 text-sm text-ink-700">
               <input
                 type="checkbox"
                 className="mt-0.5"

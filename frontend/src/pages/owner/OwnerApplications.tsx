@@ -56,12 +56,12 @@ export default function OwnerApplications() {
           hint="Applications show up here once a tenant applies and submits for screening."
         />
       ) : (
-        <div>
+        <div className="space-y-2.5">
           {data?.map((a) => (
             <Link
               key={a.id}
               to={`/owner/applications/${a.id}`}
-              className="row -mx-2 flex flex-wrap items-center justify-between gap-3 rounded px-2 transition-colors hover:bg-slate-50"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-card transition-shadow hover:shadow-pop"
             >
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-ink-900">

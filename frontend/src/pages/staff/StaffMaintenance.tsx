@@ -11,7 +11,7 @@ function Tabs({ tab, setTab }: { tab: 'active' | 'completed'; setTab: (t: 'activ
           key={t}
           onClick={() => setTab(t)}
           className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
-            tab === t ? 'bg-brand-600 text-white' : 'text-ink-600 hover:bg-slate-50'
+            tab === t ? 'bg-brand-500 text-white' : 'text-ink-600 hover:bg-slate-50'
           }`}
         >
           {t}
@@ -92,7 +92,7 @@ export default function StaffMaintenance() {
         actions={<Tabs tab={tab} setTab={setTab} />}
       />
 
-      <div>
+      <div className="space-y-2.5">
       {data?.length === 0 && (
         <EmptyState
           icon={tab === 'active' ? 'wrench' : 'check'}
@@ -101,41 +101,41 @@ export default function StaffMaintenance() {
         />
       )}
       {data?.map((r) => (
-        <div key={r.id} className="row">
+        <div key={r.id} className="card">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <p className="text-sm font-semibold text-ink-900">{r.title}</p>
-              <p className="text-xs text-ink-500">
+              <p className="font-semibold">{r.title}</p>
+              <p className="text-xs text-slate-400">
                 {r.room.property.name} / {r.room.name} — {r.room.property.addressLine1}, {r.room.property.city}
               </p>
-              <p className="text-xs text-ink-500">Tenant: {r.tenant.fullName} {r.tenant.phone && `· ${r.tenant.phone}`} · {date(r.createdAt)}</p>
+              <p className="text-xs text-slate-400">Tenant: {r.tenant.fullName} {r.tenant.phone && `· ${r.tenant.phone}`} · {date(r.createdAt)}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Badge>{r.priority}</Badge>
-              {r.category && <span className="badge">{r.category}</span>}
+              {r.category && <span className="badge bg-slate-100 text-slate-600">{r.category}</span>}
               <Badge>{r.status}</Badge>
             </div>
           </div>
 
-          <button className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:text-brand-700" onClick={() => setExpand(expand === r.id ? null : r.id)}>
+          <button className="mt-2 text-sm text-brand-600" onClick={() => setExpand(expand === r.id ? null : r.id)}>
             {expand === r.id ? 'Hide' : 'Open task'}
           </button>
 
           {expand === r.id && (
-            <div className="mt-3 space-y-3 border-l-2 border-slate-200 py-1 pl-4 text-sm">
-              <p className="text-ink-600">{r.description}</p>
+            <div className="mt-3 space-y-3 rounded bg-slate-50 p-3 text-sm">
+              <p className="text-slate-600">{r.description}</p>
 
               <div className="flex flex-wrap gap-2">
                 {r.photos.map((p) => (
-                  <a key={p.id} href={`/uploads/${p.path}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-0.5 text-2xs font-medium text-ink-600 hover:border-brand-400">{p.kind}</a>
+                  <a key={p.id} href={`/uploads/${p.path}`} target="_blank" rel="noreferrer" className="badge bg-white text-slate-500">{p.kind}</a>
                 ))}
-                {r.photos.length === 0 && <span className="text-xs text-ink-400">No photos yet</span>}
+                {r.photos.length === 0 && <span className="text-xs text-slate-400">No photos yet</span>}
               </div>
 
               {r.status !== 'COMPLETED' && (
                 <>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs text-ink-400">Update status:</span>
+                    <span className="text-xs text-slate-400">Update status:</span>
                     {(NEXT_STATUS[r.status] ?? []).map((s) => (
                       <button key={s} className="btn-ghost" onClick={() => setStatus.mutate({ id: r.id, status: s })} disabled={setStatus.isPending}>
                         {s.replaceAll('_', ' ')}
@@ -159,7 +159,7 @@ export default function StaffMaintenance() {
               )}
 
               {r.notes.length > 0 && (
-                <ul className="space-y-1 text-xs text-ink-500">
+                <ul className="space-y-1 text-xs text-slate-500">
                   {r.notes.map((n) => <li key={n.id}>{date(n.createdAt)}: {n.body}</li>)}
                 </ul>
               )}

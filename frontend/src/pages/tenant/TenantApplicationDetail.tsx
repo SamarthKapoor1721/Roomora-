@@ -100,7 +100,7 @@ export default function TenantApplicationDetail() {
                   state === 'done'
                     ? 'bg-emerald-50 text-emerald-700'
                     : state === 'current'
-                      ? 'bg-brand-600 text-white'
+                      ? 'bg-brand-500 text-white'
                       : 'bg-slate-100 text-ink-400'
                 }`}
               >
@@ -201,7 +201,7 @@ export default function TenantApplicationDetail() {
 
       {(elig || docv) && (
         <Section title="AI screening" description="Advisory only — the owner reviews these and makes the final decision.">
-          <div className="space-y-4 border-l-2 border-slate-200 py-1 pl-4">
+          <Card className="space-y-4">
             {elig && (
               <div>
                 <div className="flex items-center gap-2">
@@ -228,18 +228,18 @@ export default function TenantApplicationDetail() {
                 <AiSourceTag source={docv.source} />
               </p>
             )}
-          </div>
+          </Card>
         </Section>
       )}
 
       {data.status === 'APPROVED' && data.assignment && (
-        <div className="flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+        <div className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
           <Icon name="check" size={16} className="mt-0.5" />
           Approved — you've been assigned to this room. See your dashboard for lease and rent details.
         </div>
       )}
       {data.status === 'REJECTED' && (
-        <div className="flex items-start gap-2 rounded-lg border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+        <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
           <Icon name="x" size={16} className="mt-0.5" />
           This application was not approved.
           {data.decisionReason && ` Reason: ${data.decisionReason}`}

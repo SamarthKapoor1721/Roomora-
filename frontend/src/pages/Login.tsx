@@ -117,7 +117,7 @@ export default function Login() {
             </Link>
           </p>
 
-          <div className="mt-6 border-t border-slate-200 pt-5">
+          <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4">
             <p className="mb-2 text-2xs font-semibold uppercase tracking-wide text-ink-400">
               Demo accounts · password Password123
             </p>
