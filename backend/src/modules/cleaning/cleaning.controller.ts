@@ -21,6 +21,11 @@ export const cleaningController = {
     await audit({ action: 'cleaning.owner_update', entityType: 'CleaningTask', entityId: req.params.id, req, metadata: req.body });
     ok(res, task);
   }),
+  remove: asyncHandler(async (req: Request, res: Response) => {
+    await cleaningService.remove(req.user!.id, req.params.id);
+    await audit({ action: 'cleaning.delete', entityType: 'CleaningTask', entityId: req.params.id, req });
+    ok(res, { success: true });
+  }),
   listForOwner: asyncHandler(async (req: Request, res: Response) => {
     const { items, meta } = await cleaningService.listForOwner(req.user!.id, req.query as never);
     paginated(res, items, meta);

@@ -14,7 +14,6 @@ import OwnerMaintenance from './pages/owner/OwnerMaintenance';
 import OwnerCleaning from './pages/owner/OwnerCleaning';
 import OwnerStaff from './pages/owner/OwnerStaff';
 import OwnerWarnings from './pages/owner/OwnerWarnings';
-import OwnerAssistant from './pages/owner/OwnerAssistant';
 import TenantDashboard from './pages/tenant/TenantDashboard';
 import TenantBrowse from './pages/tenant/TenantBrowse';
 import TenantApplications from './pages/tenant/TenantApplications';
@@ -59,7 +58,6 @@ export default function App() {
         <Route path="/owner/cleaning" element={<Protected roles={['OWNER']}><OwnerCleaning /></Protected>} />
         <Route path="/owner/staff" element={<Protected roles={['OWNER']}><OwnerStaff /></Protected>} />
         <Route path="/owner/warnings" element={<Protected roles={['OWNER']}><OwnerWarnings /></Protected>} />
-        <Route path="/owner/assistant" element={<Protected roles={['OWNER']}><OwnerAssistant /></Protected>} />
 
         {/* Tenant */}
         <Route path="/tenant" element={<Protected roles={['TENANT']}><TenantDashboard /></Protected>} />

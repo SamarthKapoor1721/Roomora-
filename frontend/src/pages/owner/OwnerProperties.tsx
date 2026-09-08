@@ -1,8 +1,17 @@
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
-import { Badge, EmptyState, ErrorBanner, NumberInput, PageHeader, Spinner, money } from '../../components/ui';
+import {
+  Badge,
+  ConfirmDialog,
+  EmptyState,
+  ErrorBanner,
+  NumberInput,
+  PageHeader,
+  Spinner,
+  money,
+} from '../../components/ui';
 import { useApiMutation } from '../../lib/hooks';
 
 interface Property {
@@ -53,6 +62,29 @@ export default function OwnerProperties() {
     (b) => `/owner/rooms/${b.id}/applications`,
     [['owner', 'rooms', selected]],
   );
+
+  const [confirm, setConfirm] = useState<
+    | { kind: 'property'; id: string; name: string }
+    | { kind: 'room'; id: string; name: string }
+    | null
+  >(null);
+
+  const del = useMutation({
+    mutationFn: async () => {
+      if (!confirm) return;
+      const url =
+        confirm.kind === 'property'
+          ? `/owner/properties/${confirm.id}`
+          : `/owner/rooms/${confirm.id}`;
+      await api.delete(url);
+    },
+    onSuccess: () => {
+      if (confirm?.kind === 'property' && selected === confirm.id) setSelected(null);
+      setConfirm(null);
+      qc.invalidateQueries({ queryKey: ['owner', 'properties'] });
+      qc.invalidateQueries({ queryKey: ['owner', 'rooms', selected] });
+    },
+  });
 
   if (props.isLoading) return <Spinner />;
   if (props.error) return <ErrorBanner message={apiErrorMessage(props.error)} />;
@@ -130,11 +162,25 @@ export default function OwnerProperties() {
 
       {selected && (
         <div className="card">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-semibold">Rooms</h2>
-            <button className="btn-ghost" onClick={() => setShowRoomForm((v) => !v)}>
-              {showRoomForm ? 'Cancel' : 'Add room'}
-            </button>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="font-semibold">
+              Rooms in {props.data?.find((p) => p.id === selected)?.name}
+            </h2>
+            <div className="flex items-center gap-2">
+              <button className="btn-secondary btn-sm" onClick={() => setShowRoomForm((v) => !v)}>
+                {showRoomForm ? 'Cancel' : 'Add room'}
+              </button>
+              <button
+                className="btn-danger-quiet btn-sm"
+                onClick={() => {
+                  const p = props.data?.find((x) => x.id === selected);
+                  if (p) setConfirm({ kind: 'property', id: p.id, name: p.name });
+                }}
+              >
+                <Icon name="x" size={13} />
+                Deactivate property
+              </button>
+            </div>
           </div>
           {showRoomForm && (
             <RoomForm
@@ -151,42 +197,91 @@ export default function OwnerProperties() {
           ) : rooms.data?.length === 0 ? (
             <EmptyState title="No rooms in this property" />
           ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-left text-xs uppercase text-slate-400">
-                  <th className="py-2">Room</th>
-                  <th>Rent</th>
-                  <th>Capacity</th>
-                  <th>Occupied</th>
-                  <th>Status</th>
-                  <th>Applications</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rooms.data?.map((r) => (
-                  <tr key={r.id} className="border-b last:border-0">
-                    <td className="py-2 font-medium">{r.name}</td>
-                    <td>{money(r.monthlyRent)}{Number(r.foodCharge) > 0 && r.foodEnabled ? ` +${money(r.foodCharge)} food` : ''}</td>
-                    <td>{r.capacity} (max {r.roommatesLimit} roommates)</td>
-                    <td>{r.occupantCount}</td>
-                    <td><Badge>{r.status}</Badge></td>
-                    <td>
-                      <button
-                        className={`badge ${r.applicationsOpen ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}
-                        onClick={() => toggleApps.mutate({ id: r.id, open: !r.applicationsOpen })}
-                        disabled={toggleApps.isPending}
-                      >
-                        {r.applicationsOpen ? 'Open — click to close' : 'Closed — click to open'}
-                      </button>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 text-left">
+                    <th className="th">Room</th>
+                    <th className="th">Rent</th>
+                    <th className="th">Capacity</th>
+                    <th className="th">Occupied</th>
+                    <th className="th">Status</th>
+                    <th className="th">Applications</th>
+                    <th className="th" />
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {rooms.data?.map((r) => (
+                    <tr key={r.id} className="hover:bg-slate-50/70">
+                      <td className="td font-medium text-ink-900">{r.name}</td>
+                      <td className="td">
+                        {money(r.monthlyRent)}
+                        {Number(r.foodCharge) > 0 && r.foodEnabled ? ` +${money(r.foodCharge)} food` : ''}
+                      </td>
+                      <td className="td">
+                        {r.capacity} <span className="text-ink-400">(max {r.roommatesLimit})</span>
+                      </td>
+                      <td className="td">{r.occupantCount}</td>
+                      <td className="td">
+                        <Badge>{r.status}</Badge>
+                      </td>
+                      <td className="td">
+                        <button
+                          className={`rounded-md px-2 py-0.5 text-2xs font-semibold uppercase tracking-wide ${
+                            r.applicationsOpen
+                              ? 'bg-emerald-50 text-emerald-700'
+                              : 'bg-slate-100 text-ink-500'
+                          }`}
+                          onClick={() => toggleApps.mutate({ id: r.id, open: !r.applicationsOpen })}
+                          disabled={toggleApps.isPending}
+                        >
+                          {r.applicationsOpen ? 'Open · close' : 'Closed · open'}
+                        </button>
+                      </td>
+                      <td className="td text-right">
+                        <button
+                          className="btn-ghost btn-sm text-rose-600"
+                          onClick={() => setConfirm({ kind: 'room', id: r.id, name: r.name })}
+                          title={r.occupantCount > 0 ? 'Room has occupants — free the beds first' : 'Deactivate room'}
+                        >
+                          <Icon name="x" size={13} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
           {Boolean(toggleApps.error) && <div className="mt-2"><ErrorBanner message={apiErrorMessage(toggleApps.error)} /></div>}
         </div>
       )}
+
+      <ConfirmDialog
+        open={!!confirm}
+        title={confirm?.kind === 'property' ? 'Deactivate this property?' : 'Deactivate this room?'}
+        message={
+          confirm?.kind === 'property' ? (
+            <>
+              <b>{confirm.name}</b> and all its rooms will be hidden and closed to applications.
+              Existing tenancies and history are kept. You can’t undo this from the app.
+            </>
+          ) : (
+            <>
+              <b>{confirm?.name}</b> will be set inactive and removed from listings. This is blocked
+              if the room still has occupants.
+            </>
+          )
+        }
+        confirmLabel="Deactivate"
+        busy={del.isPending}
+        error={del.error ? apiErrorMessage(del.error) : null}
+        onConfirm={() => del.mutate()}
+        onCancel={() => {
+          setConfirm(null);
+          del.reset();
+        }}
+      />
     </div>
   );
 }

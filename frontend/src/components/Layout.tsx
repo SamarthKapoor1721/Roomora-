@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { Icon, type IconName } from './Icon';
+import AssistantWidget from './AssistantWidget';
 
 type NavItem = { to: string; label: string; icon: IconName; end?: boolean };
 
@@ -18,7 +19,6 @@ const NAV: Record<string, NavItem[]> = {
     { to: '/owner/cleaning', label: 'Cleaning', icon: 'broom' },
     { to: '/owner/staff', label: 'Staff', icon: 'users' },
     { to: '/owner/warnings', label: 'Warnings', icon: 'alert' },
-    { to: '/owner/assistant', label: 'AI assistant', icon: 'sparkles' },
   ],
   TENANT: [
     { to: '/tenant', label: 'Dashboard', icon: 'home', end: true },
@@ -178,6 +178,8 @@ export default function Layout() {
       <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         <Outlet />
       </main>
+
+      {user?.role === 'OWNER' && <AssistantWidget />}
     </div>
   );
 }

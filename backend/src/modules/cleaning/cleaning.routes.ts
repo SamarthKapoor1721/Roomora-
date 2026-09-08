@@ -23,6 +23,7 @@ ownerCleaningRoutes.get('/', validate({ query: listQuery }), cleaningController.
 ownerCleaningRoutes.get('/:id', validate({ params: idParam }), cleaningController.getForOwner);
 ownerCleaningRoutes.post('/:id/assign', validate({ params: idParam, body: assignSchema }), cleaningController.assign);
 ownerCleaningRoutes.patch('/:id', validate({ params: idParam, body: ownerUpdateSchema }), cleaningController.ownerUpdate);
+ownerCleaningRoutes.delete('/:id', validate({ params: idParam }), cleaningController.remove);
 
 export const staffCleaningRoutes = Router();
 staffCleaningRoutes.use(authenticate, authorize('STAFF'));

@@ -3,6 +3,77 @@ import { Link } from 'react-router-dom';
 import { Icon, type IconName } from './Icon';
 
 /* ------------------------------------------------------------------ *
+ * Confirm dialog — for destructive actions (delete / deactivate)      *
+ * ------------------------------------------------------------------ */
+
+export function ConfirmDialog({
+  open,
+  title,
+  message,
+  confirmLabel = 'Delete',
+  danger = true,
+  busy = false,
+  error,
+  onConfirm,
+  onCancel,
+}: {
+  open: boolean;
+  title: string;
+  message: ReactNode;
+  confirmLabel?: string;
+  danger?: boolean;
+  busy?: boolean;
+  error?: string | null;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  if (!open) return null;
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 p-4"
+      role="dialog"
+      aria-modal="true"
+      onClick={onCancel}
+    >
+      <div className="w-full max-w-sm rounded-xl bg-white shadow-pop" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5">
+          <div className="flex items-start gap-3">
+            <span
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+                danger ? 'bg-rose-50 text-rose-600' : 'bg-amber-50 text-amber-600'
+              }`}
+            >
+              <Icon name="alert" size={18} />
+            </span>
+            <div>
+              <h2 className="font-display text-base font-semibold text-ink-900">{title}</h2>
+              <p className="mt-1 text-sm text-ink-500">{message}</p>
+            </div>
+          </div>
+          {error && (
+            <div className="mt-3">
+              <ErrorBanner message={error} />
+            </div>
+          )}
+        </div>
+        <div className="flex justify-end gap-2 border-t border-slate-200 bg-slate-50 p-3">
+          <button className="btn-secondary btn-sm" onClick={onCancel} disabled={busy}>
+            Cancel
+          </button>
+          <button
+            className={`btn-sm ${danger ? 'bg-rose-600 text-white hover:bg-rose-700' : 'bg-brand-600 text-white hover:bg-brand-700'}`}
+            onClick={onConfirm}
+            disabled={busy}
+          >
+            {busy ? 'Working…' : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ *
  * Page scaffolding — gives every screen a clear header and sections   *
  * ------------------------------------------------------------------ */
 

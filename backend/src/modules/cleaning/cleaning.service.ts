@@ -90,6 +90,15 @@ export const cleaningService = {
     return prisma.cleaningTask.update({ where: { id }, data: input as never });
   },
 
+  /** Permanently delete a cleaning task. Blocked once work has started. */
+  async remove(ownerId: string, id: string) {
+    const task = await ownerTaskOrThrow(ownerId, id);
+    if (task.status === 'IN_PROGRESS') {
+      throw conflict('Cannot delete a task that is in progress');
+    }
+    await prisma.cleaningTask.delete({ where: { id } });
+  },
+
   async listForOwner(ownerId: string, query: Record<string, unknown>) {
     const { skip, take, page, pageSize } = parsePage(query);
     const where: Prisma.CleaningTaskWhereInput = { property: { ownerId } };

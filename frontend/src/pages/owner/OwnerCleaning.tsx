@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
-import { Badge, EmptyState, ErrorBanner, PageHeader, Spinner, date } from '../../components/ui';
+import { Badge, ConfirmDialog, EmptyState, ErrorBanner, PageHeader, Spinner, date } from '../../components/ui';
 
 interface Task {
   id: string;
@@ -42,6 +42,14 @@ export default function OwnerCleaning() {
     mutationFn: async (b: unknown) => (await api.post('/owner/cleaning', b)).data,
     onSuccess: () => {
       setShowForm(false);
+      qc.invalidateQueries({ queryKey: ['owner', 'cleaning'] });
+    },
+  });
+  const [toDelete, setToDelete] = useState<Task | null>(null);
+  const del = useMutation({
+    mutationFn: async (id: string) => (await api.delete(`/owner/cleaning/${id}`)).data,
+    onSuccess: () => {
+      setToDelete(null);
       qc.invalidateQueries({ queryKey: ['owner', 'cleaning'] });
     },
   });
@@ -97,22 +105,51 @@ export default function OwnerCleaning() {
               ))}
             </div>
           </div>
-          <select
-            className="input w-48 shrink-0"
-            value={t.assignedStaff?.id ?? ''}
-            onChange={(e) => e.target.value && assign.mutate({ id: t.id, staffId: e.target.value })}
-          >
-            <option value="">{t.assignedStaff ? t.assignedStaff.fullName : 'Assign staff…'}</option>
-            {staff.data?.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.fullName}
-              </option>
-            ))}
-          </select>
+          <div className="flex shrink-0 items-center gap-2">
+            <select
+              className="input w-48"
+              value={t.assignedStaff?.id ?? ''}
+              onChange={(e) => e.target.value && assign.mutate({ id: t.id, staffId: e.target.value })}
+            >
+              <option value="">{t.assignedStaff ? t.assignedStaff.fullName : 'Assign staff…'}</option>
+              {staff.data?.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.fullName}
+                </option>
+              ))}
+            </select>
+            <button
+              className="btn-ghost btn-sm text-rose-600"
+              onClick={() => setToDelete(t)}
+              title={t.status === 'IN_PROGRESS' ? 'Cannot delete a task in progress' : 'Delete task'}
+              aria-label="Delete task"
+            >
+              <Icon name="x" size={14} />
+            </button>
+          </div>
         </div>
       ))}
       {assign.error && <ErrorBanner message={apiErrorMessage(assign.error)} />}
       </div>
+
+      <ConfirmDialog
+        open={!!toDelete}
+        title="Delete this cleaning task?"
+        message={
+          <>
+            <b>{toDelete?.title}</b> will be permanently removed. Blocked if the task is already in
+            progress.
+          </>
+        }
+        confirmLabel="Delete task"
+        busy={del.isPending}
+        error={del.error ? apiErrorMessage(del.error) : null}
+        onConfirm={() => toDelete && del.mutate(toDelete.id)}
+        onCancel={() => {
+          setToDelete(null);
+          del.reset();
+        }}
+      />
     </div>
   );
 }
