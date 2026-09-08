@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
-import { AiSourceTag, Badge, Chip, EmptyState, ErrorBanner, FilterSelect, PageHeader, PriorityFlag, Spinner, date } from '../../components/ui';
+import { Badge, Chip, EmptyState, ErrorBanner, FilterSelect, PageHeader, PriorityFlag, Spinner, date } from '../../components/ui';
 
 const STATUS_OPTIONS = ['OPEN', 'ASSIGNED', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED'];
 
@@ -13,7 +13,6 @@ interface Req {
   category: string | null;
   priority: string;
   status: string;
-  aiSource: string | null;
   createdAt: string;
   room: { name: string; property: { name: string } };
   tenant: { fullName: string };
@@ -101,10 +100,11 @@ export default function OwnerMaintenance() {
 
           {expand === r.id && (
             <div className="mt-3 space-y-3 rounded-lg bg-slate-50 p-4 text-sm">
-              <div className="flex flex-wrap items-center gap-2">
-                {r.category && <Chip>{r.category}</Chip>}
-                <AiSourceTag source={r.aiSource} />
-              </div>
+              {r.category && (
+                <div>
+                  <Chip>{r.category}</Chip>
+                </div>
+              )}
               <p className="text-ink-600">{r.description}</p>
               {r.photos.length > 0 && (
                 <div className="flex flex-wrap gap-2">

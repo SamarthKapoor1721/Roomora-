@@ -452,27 +452,6 @@ export function Chip({ children }: { children: ReactNode }) {
   );
 }
 
-/** Which engine produced an AI result. Always shown next to AI output. */
-export function AiSourceTag({ source }: { source?: string | null }) {
-  if (!source) return null;
-  const nvidia = source === 'NVIDIA_AI';
-  return (
-    <span
-      className={`inline-flex items-center gap-1 text-2xs font-semibold tracking-[0.03em] ${
-        nvidia ? 'text-emerald-700' : 'text-amber-700'
-      }`}
-      title="Which engine produced this result"
-    >
-      <span className={`inline-flex h-4 w-4 items-center justify-center rounded-[4px] ${
-        nvidia ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
-      }`}>
-        <Icon name="sparkles" size={10} />
-      </span>
-      {nvidia ? 'NVIDIA AI' : 'Rule-based'}
-    </span>
-  );
-}
-
 /* ------------------------------------------------------------------ *
  * Forms                                                              *
  * ------------------------------------------------------------------ */

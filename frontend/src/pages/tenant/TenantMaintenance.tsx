@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
-import { AiSourceTag, Badge, EmptyState, ErrorBanner, PageHeader, PriorityFlag, Spinner, date } from '../../components/ui';
+import { Badge, EmptyState, ErrorBanner, PageHeader, PriorityFlag, Spinner, date } from '../../components/ui';
 
 interface Req {
   id: string;
@@ -11,7 +11,6 @@ interface Req {
   category: string | null;
   priority: string;
   status: string;
-  aiSource: string | null;
   createdAt: string;
   room: { name: string };
   assignedStaff: { fullName: string } | null;
@@ -95,10 +94,11 @@ export default function TenantMaintenance() {
           </button>
           {expand === r.id && (
             <div className="mt-3 space-y-3 rounded bg-slate-50 p-3 text-sm">
-              <div className="flex flex-wrap items-center gap-2">
-                {r.category && <span className="badge">{r.category}</span>}
-                <AiSourceTag source={r.aiSource} />
-              </div>
+              {r.category && (
+                <div>
+                  <span className="badge">{r.category}</span>
+                </div>
+              )}
               <p className="text-slate-600">{r.description}</p>
               {r.photos.length > 0 && (
                 <div className="flex flex-wrap gap-2">

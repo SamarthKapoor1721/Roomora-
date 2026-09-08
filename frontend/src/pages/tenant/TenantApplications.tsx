@@ -1,14 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../lib/api';
-import { AiSourceTag, Badge, EmptyState, ErrorBanner, PageHeader, Skeleton, date } from '../../components/ui';
+import { Badge, EmptyState, ErrorBanner, PageHeader, Skeleton, date } from '../../components/ui';
 
 interface AppRow {
   id: string;
   status: string;
   createdAt: string;
   room: { name: string; property: { name: string; city: string } };
-  eligibility?: { score: number; scoreLabel: string; source: string } | null;
+  eligibility?: { score: number; scoreLabel: string } | null;
   _count: { documents: number };
 }
 
@@ -60,7 +60,6 @@ export default function TenantApplications() {
                     {a.eligibility.scoreLabel}: {a.eligibility.score}%
                   </span>
                 )}
-                {a.eligibility && <AiSourceTag source={a.eligibility.source} />}
                 <Badge>{a.status}</Badge>
               </div>
             </Link>

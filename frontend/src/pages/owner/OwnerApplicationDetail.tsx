@@ -4,7 +4,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
 import {
-  AiSourceTag,
   Badge,
   Card,
   ErrorBanner,
@@ -128,9 +127,8 @@ export default function OwnerApplicationDetail() {
       <Section title="AI screening" description="Advisory only — these results never approve or reject anyone.">
         <div className="grid gap-4 lg:grid-cols-2">
           <Card>
-            <div className="mb-3 flex items-center justify-between">
+            <div className="mb-3">
               <h3 className="text-sm font-semibold text-ink-900">Eligibility</h3>
-              {elig && <AiSourceTag source={elig.source} />}
             </div>
             {!elig ? (
               <p className="text-sm text-ink-400">Not screened yet.</p>
@@ -150,9 +148,8 @@ export default function OwnerApplicationDetail() {
           </Card>
 
           <Card>
-            <div className="mb-3 flex items-center justify-between">
+            <div className="mb-3">
               <h3 className="text-sm font-semibold text-ink-900">Document verification</h3>
-              {docv && <AiSourceTag source={docv.source} />}
             </div>
             {!docv ? (
               <p className="text-sm text-ink-400">Not screened yet.</p>
@@ -172,9 +169,8 @@ export default function OwnerApplicationDetail() {
 
         {summary && (
           <Card className="mt-4">
-            <div className="mb-2 flex items-center justify-between">
+            <div className="mb-2">
               <h3 className="text-sm font-semibold text-ink-900">Summary</h3>
-              <AiSourceTag source={summary.source} />
             </div>
             <p className="text-sm text-ink-700">{summary.summary}</p>
             <div className="mt-3 grid gap-4 md:grid-cols-2">

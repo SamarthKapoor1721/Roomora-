@@ -4,7 +4,6 @@ import { useParams } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
 import {
-  AiSourceTag,
   Badge,
   Card,
   ErrorBanner,
@@ -207,7 +206,6 @@ export default function TenantApplicationDetail() {
                 <div className="flex items-center gap-2">
                   <span className="font-display text-2xl font-semibold text-violet-700">{elig.score}%</span>
                   <span className="text-xs text-ink-500">{elig.scoreLabel}</span>
-                  <AiSourceTag source={elig.source} />
                 </div>
                 {elig.warnings?.length > 0 && (
                   <ul className="mt-2 space-y-1 text-sm text-amber-600">
@@ -225,7 +223,6 @@ export default function TenantApplicationDetail() {
               <p className="flex flex-wrap items-center gap-2 text-sm text-ink-700">
                 Documents: <Badge>{docv.overallStatus}</Badge>
                 <span className="text-ink-500">consistency {docv.consistencyScore}%</span>
-                <AiSourceTag source={docv.source} />
               </p>
             )}
           </Card>

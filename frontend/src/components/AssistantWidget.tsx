@@ -2,12 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../lib/api';
 import { Icon } from './Icon';
-import { AiSourceTag, ErrorBanner } from './ui';
+import { ErrorBanner } from './ui';
 
 interface Msg {
   role: 'user' | 'assistant';
   content: string;
-  source?: string;
 }
 
 const SUGGESTIONS = [
@@ -33,7 +32,7 @@ export default function AssistantWidget() {
       (await api.post('/owner/assistant/ask', { question, conversationId: convo.current })).data.data,
     onSuccess: (data) => {
       convo.current = data.conversationId;
-      setMessages((m) => [...m, { role: 'assistant', content: data.message.content, source: data.source }]);
+      setMessages((m) => [...m, { role: 'assistant', content: data.message.content }]);
     },
   });
 
@@ -107,11 +106,6 @@ export default function AssistantWidget() {
                 >
                   {m.content}
                 </div>
-                {m.role === 'assistant' && m.source && (
-                  <div className="mt-1">
-                    <AiSourceTag source={m.source} />
-                  </div>
-                )}
               </div>
             ))}
             {ask.isPending && (

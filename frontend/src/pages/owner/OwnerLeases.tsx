@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
-import { AiSourceTag, Badge, EmptyState, ErrorBanner, PageHeader, Spinner, money, date } from '../../components/ui';
+import { Badge, EmptyState, ErrorBanner, PageHeader, Spinner, money, date } from '../../components/ui';
 
 interface LeaseRow {
   id: string;
@@ -14,7 +14,6 @@ interface LeaseRow {
   tenant: { fullName: string; email: string };
   room: { name: string; property: { name: string } };
   aiSummary?: string | null;
-  aiSummarySource?: string | null;
 }
 
 export default function OwnerLeases() {
@@ -90,9 +89,8 @@ export default function OwnerLeases() {
               </div>
               {open === l.id && l.aiSummary && (
                 <div className="mt-3 rounded-lg bg-slate-50 p-3">
-                  <div className="mb-1 flex items-center gap-2">
+                  <div className="mb-1">
                     <span className="text-xs font-semibold text-ink-700">AI lease summary</span>
-                    <AiSourceTag source={l.aiSummarySource} />
                   </div>
                   <p className="text-sm text-ink-600">{l.aiSummary}</p>
                 </div>

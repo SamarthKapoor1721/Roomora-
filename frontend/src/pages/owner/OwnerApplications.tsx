@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../lib/api';
-import { AiSourceTag, Badge, EmptyState, ErrorBanner, FilterSelect, PageHeader, Skeleton, date } from '../../components/ui';
+import { Badge, EmptyState, ErrorBanner, FilterSelect, PageHeader, Skeleton, date } from '../../components/ui';
 
 interface AppRow {
   id: string;
@@ -10,8 +10,8 @@ interface AppRow {
   createdAt: string;
   tenant: { fullName: string; email: string };
   room: { name: string; property: { name: string } };
-  eligibility?: { score: number; scoreLabel: string; recommendation: string; source: string } | null;
-  docVerification?: { overallStatus: string; consistencyScore: number; source: string } | null;
+  eligibility?: { score: number; scoreLabel: string; recommendation: string } | null;
+  docVerification?: { overallStatus: string; consistencyScore: number } | null;
   _count: { documents: number };
 }
 
@@ -85,7 +85,6 @@ export default function OwnerApplications() {
                     {a.eligibility.scoreLabel}: {a.eligibility.score}%
                   </span>
                 )}
-                {a.eligibility && <AiSourceTag source={a.eligibility.source} />}
                 <Badge>{a.status}</Badge>
               </div>
             </Link>

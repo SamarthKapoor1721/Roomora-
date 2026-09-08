@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
 import {
-  AiSourceTag,
   Card,
   EmptyState,
   ErrorBanner,
@@ -35,7 +34,7 @@ interface Dashboard {
 }
 
 interface Insights {
-  ai: { source: string; insights: string[]; risks: string[]; opportunities: string[] };
+  ai: { insights: string[]; risks: string[]; opportunities: string[] };
 }
 
 export default function OwnerDashboard() {
@@ -186,7 +185,6 @@ export default function OwnerDashboard() {
           <Section
             title="AI insights"
             description="What the data says, what to watch, and where the openings are."
-            actions={insights && <AiSourceTag source={insights.ai.source} />}
           >
             {insightsLoading || !insights ? (
               <div className="grid gap-4 lg:grid-cols-3">
