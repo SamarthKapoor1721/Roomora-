@@ -66,13 +66,6 @@ export default function Layout() {
     enabled: !!user,
   });
 
-  const { data: aiStatus } = useQuery({
-    queryKey: ['ai-status'],
-    queryFn: async () => (await api.get('/ai/status')).data.data as { nvidiaConfigured: boolean },
-    enabled: !!user,
-    staleTime: 60_000,
-  });
-
   const roleLabel = { OWNER: 'Property owner', TENANT: 'Tenant', STAFF: 'Staff' }[
     user?.role ?? 'TENANT'
   ];
@@ -100,20 +93,6 @@ export default function Layout() {
           </div>
 
           <div className="ml-auto flex items-center gap-2.5">
-            {aiStatus && (
-              <span
-                className={`hidden items-center gap-1 rounded-full px-2 py-1 text-2xs font-semibold uppercase tracking-wide ring-1 ring-inset sm:inline-flex ${
-                  aiStatus.nvidiaConfigured
-                    ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
-                    : 'bg-amber-50 text-amber-700 ring-amber-600/20'
-                }`}
-                title="Active AI engine"
-              >
-                <Icon name="sparkles" size={11} />
-                {aiStatus.nvidiaConfigured ? 'NVIDIA' : 'Rule-based'}
-              </span>
-            )}
-
             <span className="relative inline-flex" title={`${unread ?? 0} unread notifications`}>
               <Icon name="bell" size={19} className="text-ink-500" />
               {!!unread && (
