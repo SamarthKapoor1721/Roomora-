@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../lib/api';
-import { AiSourceTag, Badge, EmptyState, ErrorBanner, PageHeader, Skeleton, date } from '../../components/ui';
+import { AiSourceTag, Badge, EmptyState, ErrorBanner, FilterSelect, PageHeader, Skeleton, date } from '../../components/ui';
 
 interface AppRow {
   id: string;
@@ -15,15 +15,16 @@ interface AppRow {
   _count: { documents: number };
 }
 
-const statuses = ['', 'OWNER_REVIEW', 'UNDER_AI_REVIEW', 'DOCS_PENDING', 'APPROVED', 'REJECTED'];
+const STATUS_OPTIONS = ['OWNER_REVIEW', 'UNDER_AI_REVIEW', 'DOCS_PENDING', 'APPROVED', 'REJECTED'];
 
 export default function OwnerApplications() {
-  const [status, setStatus] = useState('');
+  const [statuses, setStatuses] = useState<Set<string>>(new Set());
   const { data, isLoading, error } = useQuery({
-    queryKey: ['owner', 'applications', status],
-    queryFn: async () =>
-      (await api.get(`/owner/applications${status ? `?status=${status}` : ''}`)).data.data as AppRow[],
+    queryKey: ['owner', 'applications'],
+    queryFn: async () => (await api.get('/owner/applications')).data.data as AppRow[],
   });
+
+  const rows = (data ?? []).filter((a) => statuses.size === 0 || statuses.has(a.status));
 
   return (
     <div>
@@ -31,13 +32,15 @@ export default function OwnerApplications() {
         title="Applications"
         description="Tenant applications for your rooms. Open one to see the AI screening and make your decision."
         actions={
-          <select className="input w-52" value={status} onChange={(e) => setStatus(e.target.value)}>
-            {statuses.map((s) => (
-              <option key={s} value={s}>
-                {s ? s.replaceAll('_', ' ') : 'All statuses'}
-              </option>
-            ))}
-          </select>
+          <FilterSelect
+            label="Status"
+            options={STATUS_OPTIONS.map((v) => ({
+              value: v,
+              count: (data ?? []).filter((a) => a.status === v).length,
+            }))}
+            selected={statuses}
+            onChange={setStatuses}
+          />
         }
       />
 
@@ -49,15 +52,19 @@ export default function OwnerApplications() {
         </div>
       ) : error ? (
         <ErrorBanner message={apiErrorMessage(error)} />
-      ) : data?.length === 0 ? (
+      ) : rows.length === 0 ? (
         <EmptyState
           icon="inbox"
-          title="No applications yet"
-          hint="Applications show up here once a tenant applies and submits for screening."
+          title={statuses.size ? 'No applications match this filter' : 'No applications yet'}
+          hint={
+            statuses.size
+              ? 'Try removing a status from the filter.'
+              : 'Applications show up here once a tenant applies and submits for screening.'
+          }
         />
       ) : (
         <div className="space-y-2.5">
-          {data?.map((a) => (
+          {rows.map((a) => (
             <Link
               key={a.id}
               to={`/owner/applications/${a.id}`}

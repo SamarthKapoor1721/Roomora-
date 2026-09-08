@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
-import { AiSourceTag, Badge, Chip, EmptyState, ErrorBanner, PageHeader, Spinner, date } from '../../components/ui';
+import { AiSourceTag, Badge, Chip, EmptyState, ErrorBanner, FilterSelect, PageHeader, Spinner, date } from '../../components/ui';
+
+const STATUS_OPTIONS = ['OPEN', 'ASSIGNED', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED'];
 
 interface Req {
   id: string;
@@ -22,12 +24,12 @@ interface Req {
 
 export default function OwnerMaintenance() {
   const qc = useQueryClient();
-  const [status, setStatus] = useState('');
+  const [statuses, setStatuses] = useState<Set<string>>(new Set());
   const [expand, setExpand] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['owner', 'maintenance', status],
-    queryFn: async () => (await api.get(`/owner/maintenance${status ? `?status=${status}` : ''}`)).data.data as Req[],
+    queryKey: ['owner', 'maintenance'],
+    queryFn: async () => (await api.get('/owner/maintenance')).data.data as Req[],
   });
   const staff = useQuery({
     queryKey: ['owner', 'staff', 'maint'],
@@ -46,27 +48,35 @@ export default function OwnerMaintenance() {
   if (isLoading) return <Spinner />;
   if (error) return <ErrorBanner message={apiErrorMessage(error)} />;
 
+  const rows = (data ?? []).filter((r) => statuses.size === 0 || statuses.has(r.status));
+
   return (
     <div>
       <PageHeader
         title="Maintenance"
         description="Requests raised by tenants. AI suggests a category and priority — assign staff and track them through."
         actions={
-          <select className="input w-52" value={status} onChange={(e) => setStatus(e.target.value)}>
-            {['', 'OPEN', 'ASSIGNED', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED'].map((s) => (
-              <option key={s} value={s}>
-                {s ? s.replaceAll('_', ' ') : 'All statuses'}
-              </option>
-            ))}
-          </select>
+          <FilterSelect
+            label="Status"
+            options={STATUS_OPTIONS.map((v) => ({
+              value: v,
+              count: (data ?? []).filter((r) => r.status === v).length,
+            }))}
+            selected={statuses}
+            onChange={setStatuses}
+          />
         }
       />
       <div className="space-y-2.5">
 
-      {data?.length === 0 && (
-        <EmptyState icon="wrench" title="No maintenance requests" hint="Requests raised by tenants appear here." />
+      {rows.length === 0 && (
+        <EmptyState
+          icon="wrench"
+          title={statuses.size ? 'No requests match this filter' : 'No maintenance requests'}
+          hint={statuses.size ? 'Try removing a status from the filter.' : 'Requests raised by tenants appear here.'}
+        />
       )}
-      {data?.map((r) => (
+      {rows.map((r) => (
         <div key={r.id} className="card">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">

@@ -300,6 +300,127 @@ export function StatusPill({ value }: { value: string }) {
 /** Back-compat alias — prefer <StatusPill>. */
 export const Badge = ({ children }: { children: string }) => <StatusPill value={children} />;
 
+/* ------------------------------------------------------------------ *
+ * FilterSelect — a dropdown that filters a list by one or more values *
+ * ------------------------------------------------------------------ */
+
+export interface FilterOption {
+  value: string;
+  label?: string;
+  count?: number;
+}
+
+/**
+ * A compact filter dropdown. `selected` is a Set of chosen values; an empty
+ * Set means "all". Click toggles a value; the trigger summarises the state
+ * ("All" / one label / "N selected"). Closes on outside-click or Escape.
+ */
+export function FilterSelect({
+  label = 'Filter',
+  options,
+  selected,
+  onChange,
+  align = 'right',
+}: {
+  label?: string;
+  options: FilterOption[];
+  selected: Set<string>;
+  onChange: (next: Set<string>) => void;
+  align?: 'left' | 'right';
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const toggle = (v: string) => {
+    const next = new Set(selected);
+    next.has(v) ? next.delete(v) : next.add(v);
+    onChange(next);
+  };
+
+  const labelFor = (o: FilterOption) =>
+    o.label ?? o.value.replaceAll('_', ' ').toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
+  const summary =
+    selected.size === 0
+      ? 'All'
+      : selected.size === 1
+        ? labelFor(options.find((o) => selected.has(o.value)) ?? { value: [...selected][0] })
+        : `${selected.size} selected`;
+
+  return (
+    <div ref={rootRef} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className={`inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors ${
+          selected.size
+            ? 'border-brand-300 bg-brand-50 text-brand-700'
+            : 'border-slate-300 bg-white text-ink-700 hover:border-slate-400'
+        }`}
+      >
+        <Icon name="filter" size={14} className={selected.size ? 'text-brand-600' : 'text-ink-400'} />
+        <span className="text-ink-400">{label}:</span>
+        <span className="capitalize">{summary}</span>
+        <Icon name={open ? 'chevronUp' : 'chevronDown'} size={13} className="text-ink-400" />
+      </button>
+
+      {open && (
+        <div
+          className={`absolute z-40 mt-1.5 w-56 overflow-hidden rounded-xl border border-slate-200 bg-white py-1 shadow-pop ${
+            align === 'right' ? 'right-0' : 'left-0'
+          }`}
+        >
+          <button
+            type="button"
+            onClick={() => onChange(new Set())}
+            className="flex w-full items-center justify-between px-3 py-1.5 text-left text-sm text-ink-600 hover:bg-slate-50"
+          >
+            <span className="font-medium">All</span>
+            {selected.size === 0 && <Icon name="check" size={14} className="text-brand-600" />}
+          </button>
+          <div className="my-1 border-t border-slate-100" />
+          {options.map((o) => {
+            const on = selected.has(o.value);
+            return (
+              <button
+                key={o.value}
+                type="button"
+                onClick={() => toggle(o.value)}
+                className="flex w-full items-center gap-2.5 px-3 py-1.5 text-left text-sm hover:bg-slate-50"
+              >
+                <span
+                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border transition-colors ${
+                    on ? 'border-brand-500 bg-brand-500 text-white' : 'border-slate-300 bg-white'
+                  }`}
+                >
+                  {on && <Icon name="check" size={11} />}
+                </span>
+                <span className="flex-1 capitalize text-ink-700">{labelFor(o)}</span>
+                {o.count != null && (
+                  <span className="text-xs tabular-nums text-ink-400">{o.count}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /**
  * Neutral label chip (categories, tags) — not a status. A hairline-outlined
  * tag with a leading hash, so it reads as metadata rather than a button.

@@ -7,6 +7,7 @@ import {
   EmptyState,
   ErrorBanner,
   Field,
+  FilterSelect,
   MetricCard,
   NumberInput,
   PageHeader,
@@ -31,17 +32,17 @@ interface PaymentRow {
   lease: { room: { name: string } };
 }
 
-const FILTERS = ['', 'OVERDUE', 'PENDING', 'PARTIAL', 'PAID', 'WAIVED'];
+const STATUS_OPTIONS = ['OVERDUE', 'PENDING', 'PARTIAL', 'PAID', 'WAIVED'];
 
 export default function OwnerPayments() {
   const qc = useQueryClient();
-  const [status, setStatus] = useState('');
+  const [statuses, setStatuses] = useState<Set<string>>(new Set());
   const [recordFor, setRecordFor] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['owner', 'payments', status],
+    queryKey: ['owner', 'payments'],
     queryFn: async () =>
-      (await api.get(`/owner/payments${status ? `?status=${status}` : ''}`)).data as {
+      (await api.get('/owner/payments')).data as {
         data: PaymentRow[];
         summary: { billed: number; collected: number; outstanding: number };
       },
@@ -59,6 +60,17 @@ export default function OwnerPayments() {
       qc.invalidateQueries({ queryKey: ['owner', 'payments'] });
     },
   });
+
+  const rows = (data?.data ?? []).filter((p) => statuses.size === 0 || statuses.has(p.status));
+  const view = rows.reduce(
+    (acc, p) => {
+      acc.billed += Number(p.totalAmount);
+      acc.collected += Number(p.amountPaid);
+      acc.outstanding += Number(p.totalAmount) - Number(p.amountPaid);
+      return acc;
+    },
+    { billed: 0, collected: 0, outstanding: 0 },
+  );
 
   return (
     <div>
@@ -88,14 +100,14 @@ export default function OwnerPayments() {
         </div>
       ) : (
         <>
-          <Section title="This view">
+          <Section title={statuses.size ? 'Filtered view' : 'This view'}>
             <div className="grid gap-4 sm:grid-cols-3">
-              <MetricCard label="Billed" value={money(data.summary.billed)} icon="wallet" />
-              <MetricCard label="Collected" value={money(data.summary.collected)} tone="positive" icon="check" />
+              <MetricCard label="Billed" value={money(view.billed)} icon="wallet" />
+              <MetricCard label="Collected" value={money(view.collected)} tone="positive" icon="check" />
               <MetricCard
                 label="Outstanding"
-                value={money(data.summary.outstanding)}
-                tone={data.summary.outstanding ? 'critical' : 'positive'}
+                value={money(view.outstanding)}
+                tone={view.outstanding ? 'critical' : 'positive'}
                 icon="alert"
               />
             </div>
@@ -104,28 +116,28 @@ export default function OwnerPayments() {
           <Section
             title="Invoices"
             actions={
-              <div className="flex gap-1.5">
-                {FILTERS.map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setStatus(f)}
-                    className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                      status === f ? 'bg-brand-500 text-white' : 'bg-white text-ink-600 ring-1 ring-slate-200 hover:bg-slate-50'
-                    }`}
-                  >
-                    {f || 'All'}
-                  </button>
-                ))}
-              </div>
+              <FilterSelect
+                label="Status"
+                options={STATUS_OPTIONS.map((v) => ({
+                  value: v,
+                  count: data.data.filter((p) => p.status === v).length,
+                }))}
+                selected={statuses}
+                onChange={setStatuses}
+              />
             }
           >
             {error ? (
               <ErrorBanner message={apiErrorMessage(error)} />
-            ) : data.data.length === 0 ? (
+            ) : rows.length === 0 ? (
               <EmptyState
                 icon="wallet"
-                title="No invoices here"
-                hint="Generate this month's rent to create invoices for every active lease."
+                title={statuses.size ? 'No invoices match this filter' : 'No invoices here'}
+                hint={
+                  statuses.size
+                    ? 'Try removing a status from the filter.'
+                    : "Generate this month's rent to create invoices for every active lease."
+                }
               />
             ) : (
               <TableWrap>
@@ -143,7 +155,7 @@ export default function OwnerPayments() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {data.data.map((p) => {
+                  {rows.map((p) => {
                     const outstanding = Number(p.totalAmount) - Number(p.amountPaid);
                     return (
                       <Fragment key={p.id}>
