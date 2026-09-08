@@ -23,23 +23,31 @@ type Blob = {
 };
 
 const LEFT: Blob[] = [
-  { icon: 'home', top: '3%', size: 44, drift: 13, spin: 64, delay: 0, opacity: 0.4 },
-  { icon: 'building', top: '19%', size: 34, drift: 17, spin: 82, delay: 2.5, opacity: 0.3 },
-  { icon: 'key', top: '35%', size: 30, drift: 11, spin: 46, delay: 1, opacity: 0.34 },
-  { icon: 'home', top: '51%', size: 38, drift: 15, spin: 72, delay: 3.5, opacity: 0.28 },
-  { icon: 'building', top: '67%', size: 32, drift: 19, spin: 90, delay: 1.8, opacity: 0.32 },
-  { icon: 'key', top: '83%', size: 28, drift: 10, spin: 40, delay: 4.5, opacity: 0.28 },
-  { icon: 'home', top: '95%', size: 32, drift: 14, spin: 58, delay: 2.2, opacity: 0.3 },
+  { icon: 'home', top: '1%', size: 42, drift: 13, spin: 64, delay: 0, opacity: 0.4 },
+  { icon: 'mapPin', top: '11%', size: 26, drift: 9, spin: 38, delay: 1.4, opacity: 0.3 },
+  { icon: 'building', top: '20%', size: 36, drift: 17, spin: 82, delay: 2.5, opacity: 0.32 },
+  { icon: 'key', top: '30%', size: 28, drift: 11, spin: 46, delay: 1, opacity: 0.34 },
+  { icon: 'bed', top: '39%', size: 32, drift: 14, spin: 56, delay: 3.2, opacity: 0.3 },
+  { icon: 'home', top: '49%', size: 38, drift: 15, spin: 72, delay: 3.5, opacity: 0.28 },
+  { icon: 'sofa', top: '59%', size: 34, drift: 16, spin: 66, delay: 0.6, opacity: 0.3 },
+  { icon: 'building', top: '69%', size: 30, drift: 19, spin: 90, delay: 1.8, opacity: 0.32 },
+  { icon: 'door', top: '79%', size: 28, drift: 12, spin: 50, delay: 2.8, opacity: 0.3 },
+  { icon: 'plant', top: '89%', size: 30, drift: 13, spin: 58, delay: 4.5, opacity: 0.3 },
+  { icon: 'key', top: '98%', size: 24, drift: 10, spin: 40, delay: 2.2, opacity: 0.28 },
 ];
 
 const RIGHT: Blob[] = [
-  { icon: 'building', top: '5%', size: 40, drift: 16, spin: 76, delay: 1.5, opacity: 0.34 },
-  { icon: 'key', top: '21%', size: 28, drift: 12, spin: 52, delay: 0, opacity: 0.3 },
-  { icon: 'home', top: '37%', size: 44, drift: 14, spin: 66, delay: 2, opacity: 0.4 },
-  { icon: 'building', top: '53%', size: 32, drift: 18, spin: 92, delay: 4, opacity: 0.28 },
-  { icon: 'home', top: '69%', size: 36, drift: 15, spin: 70, delay: 0.8, opacity: 0.32 },
-  { icon: 'key', top: '85%', size: 28, drift: 11, spin: 44, delay: 3, opacity: 0.28 },
-  { icon: 'building', top: '96%', size: 30, drift: 13, spin: 60, delay: 1.2, opacity: 0.3 },
+  { icon: 'building', top: '2%', size: 40, drift: 16, spin: 76, delay: 1.5, opacity: 0.36 },
+  { icon: 'plant', top: '12%', size: 28, drift: 12, spin: 54, delay: 0, opacity: 0.3 },
+  { icon: 'home', top: '22%', size: 44, drift: 14, spin: 66, delay: 2, opacity: 0.4 },
+  { icon: 'lamp', top: '32%', size: 26, drift: 10, spin: 42, delay: 3.4, opacity: 0.3 },
+  { icon: 'door', top: '41%', size: 30, drift: 13, spin: 52, delay: 1.1, opacity: 0.3 },
+  { icon: 'building', top: '51%', size: 32, drift: 18, spin: 92, delay: 4, opacity: 0.3 },
+  { icon: 'bed', top: '61%', size: 34, drift: 15, spin: 60, delay: 0.8, opacity: 0.3 },
+  { icon: 'home', top: '71%', size: 36, drift: 15, spin: 70, delay: 2.6, opacity: 0.32 },
+  { icon: 'fence', top: '81%', size: 30, drift: 17, spin: 78, delay: 1.9, opacity: 0.3 },
+  { icon: 'key', top: '90%', size: 26, drift: 11, spin: 44, delay: 3, opacity: 0.28 },
+  { icon: 'mapPin', top: '98%', size: 24, drift: 9, spin: 36, delay: 0.4, opacity: 0.3 },
 ];
 
 function Column({ side, blobs }: { side: 'left' | 'right'; blobs: Blob[] }) {

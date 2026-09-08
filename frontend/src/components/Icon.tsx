@@ -40,6 +40,14 @@ const PATHS: Record<string, string> = {
   // AI assistant — bot head with a sparkle (matches the Roomora assistant mark)
   bot:
     'M12 2v3M7 6h7a3 3 0 0 1 3 3v3.5M6 18a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3M6 18h6M6 18a3 3 0 0 0 0 0M9 12h.01M13 12h.01M19 14l1.2 3.2L23.5 18l-3.3 1.2L19 22l-1.2-2.8L14.5 18l3.3-.8L19 14Z',
+  // ── extra property-themed glyphs, used by the decorative gutters ──
+  bed: 'M2 4v16M2 8h18a2 2 0 0 1 2 2v10M2 17h20M6 8V6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2',
+  door: 'M13 4h3a2 2 0 0 1 2 2v14M2 20h20M13 20V4a1 1 0 0 0-1.25-.97L6.75 4.28A1 1 0 0 0 6 5.25V20M11 12h.01',
+  lamp: 'M8 2h8l4 10H4L8 2ZM12 12v8M8 22h8',
+  sofa: 'M20 9V7a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v2M4 9a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2 2 2 0 0 0-2 2v2H6v-2a2 2 0 0 0-2-2ZM6 18v2M18 18v2',
+  plant: 'M12 22v-8M12 14c0-3 2-5 5-5 0 3-2 5-5 5ZM12 14c0-4-3-6-6-6 0 4 3 6 6 6ZM9 22h6',
+  mapPin: 'M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0ZM12 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z',
+  fence: 'M4 4 3 8v13h4V8L6 4H4ZM18 4l-1 4v13h4V8l-1-4h-2ZM11 4l-1 4v13h4V8l-1-4h-2M3 12h18M3 16h18',
 };
 
 interface IconProps extends SVGProps<SVGSVGElement> {
