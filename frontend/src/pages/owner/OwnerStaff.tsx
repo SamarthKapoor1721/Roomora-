@@ -97,14 +97,13 @@ export default function OwnerStaff() {
                   {s.openMaintenance} open maintenance · {s.openCleaning} open cleaning
                 </span>
                 <div className="flex items-center gap-2">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-2xs font-semibold uppercase tracking-wide ring-1 ring-inset ${
-                      s.isActive
-                        ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20'
-                        : 'bg-slate-100 text-ink-500 ring-slate-500/20'
-                    }`}
-                  >
-                    {s.isActive ? 'Active' : 'Inactive'}
+                  <span className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-700">
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${s.isActive ? 'bg-emerald-500' : 'bg-slate-300'}`}
+                    />
+                    <span className={s.isActive ? 'text-emerald-700' : 'text-ink-500'}>
+                      {s.isActive ? 'Active' : 'Inactive'}
+                    </span>
                   </span>
                   {s.isActive && (
                     <button

@@ -109,8 +109,9 @@
   .card-pad {
     /* no-op: kept for existing call sites that pass it explicitly */
   }
+  /* a hairline metadata tag — matches <Chip> */
   .badge {
-    @apply inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-ink-600;
+    @apply inline-flex items-center rounded-[3px] border border-slate-200 bg-white px-1.5 py-0.5 text-2xs font-medium text-ink-500;
   }
 
   /* ---- form controls ---- */

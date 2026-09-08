@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
-import { AiSourceTag, EmptyState, ErrorBanner, PageHeader, Spinner, money, date } from '../../components/ui';
+import { AiSourceTag, Badge, EmptyState, ErrorBanner, PageHeader, Spinner, money, date } from '../../components/ui';
 
 interface LeaseRow {
   id: string;
@@ -37,13 +37,6 @@ export default function OwnerLeases() {
   if (isLoading) return <Spinner label="Loading leases…" />;
   if (error) return <ErrorBanner message={apiErrorMessage(error)} />;
 
-  const leaseStatus: Record<string, string> = {
-    ACTIVE: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
-    EXPIRED: 'bg-slate-100 text-ink-600 ring-slate-500/20',
-    TERMINATED: 'bg-rose-50 text-rose-700 ring-rose-600/20',
-    PENDING: 'bg-amber-50 text-amber-700 ring-amber-600/20',
-  };
-
   return (
     <div>
       <PageHeader
@@ -73,13 +66,7 @@ export default function OwnerLeases() {
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-2xs font-semibold uppercase tracking-wide ring-1 ring-inset ${
-                      leaseStatus[l.status] ?? leaseStatus.EXPIRED
-                    }`}
-                  >
-                    {l.status}
-                  </span>
+                  <Badge>{l.status}</Badge>
                   <button
                     className="btn-secondary btn-sm"
                     onClick={() => {

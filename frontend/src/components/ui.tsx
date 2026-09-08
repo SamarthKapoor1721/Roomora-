@@ -228,57 +228,71 @@ export function StatLine({ label, value, tone = 'default' }: { label: string; va
 }
 
 /* ------------------------------------------------------------------ *
- * Status — colour + icon + text, never colour alone                  *
+ * Status — a leading tone dot + a crisp label. No pill, no ring, no  *
+ * all-caps: the dot carries the state, the text just names it. Three *
+ * tones (live / warn / rest / done) drive the dot colour.            *
  * ------------------------------------------------------------------ */
 
-const STATUS: Record<string, { cls: string; icon?: IconName }> = {
-  // payments
-  PAID: { cls: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20', icon: 'check' },
-  PENDING: { cls: 'bg-slate-100 text-ink-600 ring-slate-500/20', icon: 'clock' },
-  PARTIAL: { cls: 'bg-amber-50 text-amber-700 ring-amber-600/20', icon: 'clock' },
-  OVERDUE: { cls: 'bg-rose-50 text-rose-700 ring-rose-600/20', icon: 'alert' },
-  WAIVED: { cls: 'bg-slate-100 text-ink-500 ring-slate-500/20' },
-  // applications
-  APPROVED: { cls: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20', icon: 'check' },
-  REJECTED: { cls: 'bg-rose-50 text-rose-700 ring-rose-600/20', icon: 'x' },
-  WITHDRAWN: { cls: 'bg-slate-100 text-ink-500 ring-slate-500/20' },
-  DRAFT: { cls: 'bg-slate-100 text-ink-600 ring-slate-500/20' },
-  SUBMITTED: { cls: 'bg-slate-100 text-ink-600 ring-slate-500/20' },
-  DOCS_PENDING: { cls: 'bg-amber-50 text-amber-700 ring-amber-600/20', icon: 'file' },
-  UNDER_AI_REVIEW: { cls: 'bg-violet-50 text-violet-700 ring-violet-600/20', icon: 'sparkles' },
-  AI_COMPLETE: { cls: 'bg-violet-50 text-violet-700 ring-violet-600/20', icon: 'sparkles' },
-  OWNER_REVIEW: { cls: 'bg-brand-50 text-brand-700 ring-brand-600/20', icon: 'clock' },
-  // tasks
-  OPEN: { cls: 'bg-amber-50 text-amber-700 ring-amber-600/20' },
-  ASSIGNED: { cls: 'bg-brand-50 text-brand-700 ring-brand-600/20' },
-  IN_PROGRESS: { cls: 'bg-violet-50 text-violet-700 ring-violet-600/20' },
-  ON_HOLD: { cls: 'bg-slate-100 text-ink-600 ring-slate-500/20' },
-  COMPLETED: { cls: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20', icon: 'check' },
-  CANCELLED: { cls: 'bg-slate-100 text-ink-500 ring-slate-500/20' },
-  SCHEDULED: { cls: 'bg-slate-100 text-ink-600 ring-slate-500/20', icon: 'calendar' },
-  MISSED: { cls: 'bg-rose-50 text-rose-700 ring-rose-600/20', icon: 'alert' },
-  // warnings
-  ACTIVE: { cls: 'bg-rose-50 text-rose-700 ring-rose-600/20', icon: 'alert' },
-  ACKNOWLEDGED: { cls: 'bg-amber-50 text-amber-700 ring-amber-600/20' },
-  RESOLVED: { cls: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20', icon: 'check' },
-  DISMISSED: { cls: 'bg-slate-100 text-ink-500 ring-slate-500/20' },
-  // priority
-  LOW: { cls: 'bg-slate-100 text-ink-600 ring-slate-500/20' },
-  MEDIUM: { cls: 'bg-amber-50 text-amber-700 ring-amber-600/20' },
-  HIGH: { cls: 'bg-orange-50 text-orange-700 ring-orange-600/20' },
-  URGENT: { cls: 'bg-rose-50 text-rose-700 ring-rose-600/20', icon: 'alert' },
-  CRITICAL: { cls: 'bg-rose-50 text-rose-700 ring-rose-600/20', icon: 'alert' },
-  INFO: { cls: 'bg-slate-100 text-ink-600 ring-slate-500/20' },
+type StatusTone = 'positive' | 'progress' | 'warning' | 'critical' | 'neutral';
+
+const TONE_DOT: Record<StatusTone, string> = {
+  positive: 'bg-emerald-500',
+  progress: 'bg-violet-500',
+  warning: 'bg-amber-500',
+  critical: 'bg-rose-500',
+  neutral: 'bg-slate-300',
+};
+const TONE_TEXT: Record<StatusTone, string> = {
+  positive: 'text-emerald-700',
+  progress: 'text-violet-700',
+  warning: 'text-amber-700',
+  critical: 'text-rose-700',
+  neutral: 'text-ink-500',
 };
 
+const STATUS_TONE: Record<string, StatusTone> = {
+  // payments
+  PAID: 'positive', PENDING: 'neutral', PARTIAL: 'warning', OVERDUE: 'critical', WAIVED: 'neutral',
+  // applications
+  APPROVED: 'positive', REJECTED: 'critical', WITHDRAWN: 'neutral', DRAFT: 'neutral', SUBMITTED: 'neutral',
+  DOCS_PENDING: 'warning', UNDER_AI_REVIEW: 'progress', AI_COMPLETE: 'progress', OWNER_REVIEW: 'progress',
+  // tasks
+  OPEN: 'warning', ASSIGNED: 'progress', IN_PROGRESS: 'progress', ON_HOLD: 'neutral',
+  COMPLETED: 'positive', CANCELLED: 'neutral', SCHEDULED: 'neutral', MISSED: 'critical',
+  // leases
+  EXPIRED: 'neutral', TERMINATED: 'critical',
+  // warnings
+  ACTIVE: 'critical', ACKNOWLEDGED: 'warning', RESOLVED: 'positive', DISMISSED: 'neutral',
+  // priority
+  LOW: 'neutral', MEDIUM: 'warning', HIGH: 'warning', URGENT: 'critical', CRITICAL: 'critical', INFO: 'neutral',
+};
+
+/**
+ * A status marker: a small tone dot (which pulses for a "live" state) and a
+ * lowercase label with a tighter tracking. Deliberately not a pill.
+ */
+/** "DOCS_PENDING" -> "Docs pending", but keep AI as an acronym. */
+function humanizeStatus(value: string): string {
+  return value
+    .split('_')
+    .map((w, i) =>
+      w === 'AI' ? 'AI' : i === 0 ? w[0] + w.slice(1).toLowerCase() : w.toLowerCase(),
+    )
+    .join(' ');
+}
+
 export function StatusPill({ value }: { value: string }) {
-  const s = STATUS[value] ?? { cls: 'bg-slate-100 text-ink-600 ring-slate-500/20' };
+  const tone = STATUS_TONE[value] ?? 'neutral';
+  const live = tone === 'critical' || value === 'IN_PROGRESS' || value === 'ACTIVE';
   return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-2xs font-semibold uppercase tracking-wide ring-1 ring-inset ${s.cls}`}
-    >
-      {s.icon && <Icon name={s.icon} size={11} />}
-      {value.replaceAll('_', ' ')}
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium tracking-[0.01em] text-ink-700">
+      <span className="relative flex h-2 w-2 shrink-0 items-center justify-center">
+        {live && (
+          <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${TONE_DOT[tone]}`} />
+        )}
+        <span className={`relative inline-flex h-1.5 w-1.5 rounded-full ${TONE_DOT[tone]}`} />
+      </span>
+      <span className={TONE_TEXT[tone]}>{humanizeStatus(value)}</span>
     </span>
   );
 }
@@ -286,10 +300,14 @@ export function StatusPill({ value }: { value: string }) {
 /** Back-compat alias — prefer <StatusPill>. */
 export const Badge = ({ children }: { children: string }) => <StatusPill value={children} />;
 
-/** Neutral label chip (categories, tags) — not a status. */
+/**
+ * Neutral label chip (categories, tags) — not a status. A hairline-outlined
+ * tag with a leading hash, so it reads as metadata rather than a button.
+ */
 export function Chip({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-2xs font-medium text-ink-600">
+    <span className="inline-flex items-center gap-0.5 rounded-[3px] border border-slate-200 bg-white px-1.5 py-0.5 text-2xs font-medium text-ink-500">
+      <span className="text-ink-300">#</span>
       {children}
     </span>
   );
@@ -301,13 +319,17 @@ export function AiSourceTag({ source }: { source?: string | null }) {
   const nvidia = source === 'NVIDIA_AI';
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-2xs font-semibold uppercase tracking-wide ring-1 ring-inset ${
-        nvidia ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20' : 'bg-amber-50 text-amber-700 ring-amber-600/20'
+      className={`inline-flex items-center gap-1 text-2xs font-semibold tracking-[0.03em] ${
+        nvidia ? 'text-emerald-700' : 'text-amber-700'
       }`}
       title="Which engine produced this result"
     >
-      <Icon name="sparkles" size={11} />
-      {nvidia ? 'NVIDIA AI' : 'Rule-Based'}
+      <span className={`inline-flex h-4 w-4 items-center justify-center rounded-[4px] ${
+        nvidia ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
+      }`}>
+        <Icon name="sparkles" size={10} />
+      </span>
+      {nvidia ? 'NVIDIA AI' : 'Rule-based'}
     </span>
   );
 }
