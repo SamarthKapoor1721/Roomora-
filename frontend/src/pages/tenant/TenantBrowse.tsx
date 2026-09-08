@@ -3,7 +3,13 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
-import { Chip, EmptyState, ErrorBanner, Field, NumberInput, PageHeader, Skeleton, money } from '../../components/ui';
+import { Chip, EmptyState, ErrorBanner, Field, ImageGallery, NumberInput, PageHeader, Skeleton, money } from '../../components/ui';
+
+interface Img {
+  id: string;
+  url: string;
+  name?: string;
+}
 
 interface Room {
   id: string;
@@ -15,7 +21,13 @@ interface Room {
   spotsAvailable: number;
   amenities: string[];
   food: { foodEnabled: boolean; foodCharge: number };
-  property: { name: string; city: string; addressLine1: string };
+  images: Img[];
+  property: { name: string; city: string; addressLine1: string; images: Img[] };
+}
+
+/** Room photos first, falling back to the building's photos. */
+function roomPhotos(r: Room): Img[] {
+  return r.images.length > 0 ? r.images : r.property.images;
 }
 
 export default function TenantBrowse() {
@@ -49,11 +61,22 @@ export default function TenantBrowse() {
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {data?.map((r) => (
-            <div key={r.id} className="flex flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-card">
+          {data?.map((r) => {
+            const photos = roomPhotos(r);
+            return (
+            <div key={r.id} className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-card">
+              {photos.length > 0 ? (
+                <img src={photos[0].url} alt="" className="h-40 w-full object-cover" />
+              ) : (
+                <div className="flex h-40 w-full items-center justify-center bg-slate-50 text-ink-300">
+                  <Icon name="building" size={28} />
+                </div>
+              )}
+              <div className="flex flex-1 flex-col p-5">
               <p className="text-sm font-semibold text-ink-900">{r.property.name}</p>
               <p className="text-xs text-ink-500">
                 {r.name} · {r.property.addressLine1}, {r.property.city}
+                {photos.length > 1 && ` · ${photos.length} photos`}
               </p>
               <p className="mt-3 font-display text-2xl font-semibold text-ink-900">
                 {money(r.monthlyRent)}
@@ -85,8 +108,10 @@ export default function TenantBrowse() {
               <button className="btn-primary mt-4 w-full" onClick={() => setApplyFor(r)}>
                 Apply for this room
               </button>
+              </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -136,6 +161,9 @@ function ApplyModal({ room, onClose, onApplied }: { room: Room; onClose: () => v
         </div>
 
         <div className="space-y-4 p-5">
+          {roomPhotos(room).length > 0 && (
+            <ImageGallery images={roomPhotos(room)} size="lg" />
+          )}
           <p className="text-xs text-ink-500">
             Step 1 of 3. After applying you'll upload your documents, then submit for AI screening.
           </p>

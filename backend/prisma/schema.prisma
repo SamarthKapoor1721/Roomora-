@@ -254,8 +254,24 @@ model Property {
 
   rooms         Room[]
   cleaningTasks CleaningTask[]
+  images        PropertyImage[]
 
   @@index([ownerId])
+}
+
+model PropertyImage {
+  id          String   @id @default(cuid())
+  propertyId  String
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  originalName String
+  storedName  String
+  path        String
+  mimeType    String
+  sizeBytes   Int
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([propertyId])
 }
 
 model Room {
@@ -283,9 +299,25 @@ model Room {
   leases        Lease[]
   maintenance   MaintenanceRequest[]
   cleaningTasks CleaningTask[]
+  images        RoomImage[]
 
   @@index([propertyId])
   @@index([applicationsOpen])
+}
+
+model RoomImage {
+  id          String   @id @default(cuid())
+  roomId      String
+  room        Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  originalName String
+  storedName  String
+  path        String
+  mimeType    String
+  sizeBytes   Int
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([roomId])
 }
 
 model RoomAssignment {

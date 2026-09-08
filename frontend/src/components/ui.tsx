@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon, type IconName } from './Icon';
 
@@ -377,6 +377,138 @@ export function NumberInput({
       }}
       className={`input tabular-nums ${className}`}
     />
+  );
+}
+
+/**
+ * Multi-image picker with thumbnail previews. Holds `File[]` in the parent;
+ * the caller appends them to a FormData on submit. Rejects non-images and
+ * anything over `maxMB`. Shows a remove button per thumbnail.
+ */
+export function ImagePicker({
+  files,
+  onChange,
+  label = 'Photos',
+  hint = 'JPG, PNG or WebP · up to 10 images',
+  max = 10,
+  maxMB = 8,
+}: {
+  files: File[];
+  onChange: (files: File[]) => void;
+  label?: string;
+  hint?: string;
+  max?: number;
+  maxMB?: number;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [urls, setUrls] = useState<string[]>([]);
+
+  useEffect(() => {
+    const next = files.map((f) => URL.createObjectURL(f));
+    setUrls(next);
+    return () => next.forEach((u) => URL.revokeObjectURL(u));
+  }, [files]);
+
+  const add = (list: FileList | null) => {
+    if (!list) return;
+    setError(null);
+    const incoming = Array.from(list);
+    const bad = incoming.find((f) => !f.type.startsWith('image/'));
+    if (bad) return setError(`"${bad.name}" is not an image`);
+    const tooBig = incoming.find((f) => f.size > maxMB * 1024 * 1024);
+    if (tooBig) return setError(`"${tooBig.name}" is larger than ${maxMB} MB`);
+    const merged = [...files, ...incoming].slice(0, max);
+    if (files.length + incoming.length > max) setError(`Only the first ${max} images are kept`);
+    onChange(merged);
+    if (inputRef.current) inputRef.current.value = '';
+  };
+
+  return (
+    <div>
+      <span className="field-label">{label}</span>
+      <div className="mt-1 flex flex-wrap gap-2">
+        {urls.map((u, i) => (
+          <div key={i} className="relative h-20 w-20 overflow-hidden rounded-lg border border-slate-200">
+            <img src={u} alt="" className="h-full w-full object-cover" />
+            <button
+              type="button"
+              onClick={() => onChange(files.filter((_, j) => j !== i))}
+              className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-slate-900/60 text-white hover:bg-slate-900"
+              aria-label="Remove image"
+            >
+              <Icon name="x" size={12} />
+            </button>
+          </div>
+        ))}
+        {files.length < max && (
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            className="flex h-20 w-20 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-slate-300 text-ink-400 transition-colors hover:border-brand-400 hover:text-brand-600"
+          >
+            <Icon name="plus" size={18} />
+            <span className="text-2xs font-medium">Add</span>
+          </button>
+        )}
+      </div>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        multiple
+        className="hidden"
+        onChange={(e) => add(e.target.files)}
+      />
+      {error ? (
+        <p className="field-hint text-rose-600">{error}</p>
+      ) : (
+        <p className="field-hint">{hint}</p>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Read-only gallery for images already stored on a property/room. `images`
+ * is the API shape `{ id, url, name }[]`. Compact strip by default; pass
+ * `size="lg"` for a browse hero.
+ */
+export function ImageGallery({
+  images,
+  size = 'sm',
+  className = '',
+}: {
+  images: { id: string; url: string; name?: string }[];
+  size?: 'sm' | 'lg';
+  className?: string;
+}) {
+  const [active, setActive] = useState(0);
+  if (images.length === 0) return null;
+  const box = size === 'lg' ? 'h-48 sm:h-60' : 'h-24';
+  const current = images[Math.min(active, images.length - 1)];
+  return (
+    <div className={className}>
+      <div className={`overflow-hidden rounded-lg border border-slate-200 bg-slate-50 ${box}`}>
+        <img src={current.url} alt={current.name ?? ''} className="h-full w-full object-cover" />
+      </div>
+      {images.length > 1 && (
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
+          {images.map((img, i) => (
+            <button
+              key={img.id}
+              type="button"
+              onClick={() => setActive(i)}
+              className={`h-10 w-10 overflow-hidden rounded-md border transition-colors ${
+                i === active ? 'border-brand-500 ring-1 ring-brand-500/30' : 'border-slate-200 hover:border-slate-300'
+              }`}
+            >
+              <img src={img.url} alt="" className="h-full w-full object-cover" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 

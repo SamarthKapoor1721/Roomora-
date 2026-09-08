@@ -43,3 +43,8 @@ export const browseRoomsQuery = z.object({
 });
 
 export const idParam = z.object({ id: z.string().min(1) });
+
+export const imageParam = z.object({
+  id: z.string().min(1),
+  imageId: z.string().min(1),
+});

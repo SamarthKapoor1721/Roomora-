@@ -7,6 +7,7 @@ import {
   ConfirmDialog,
   EmptyState,
   ErrorBanner,
+  ImagePicker,
   NumberInput,
   PageHeader,
   Spinner,
@@ -25,6 +26,13 @@ interface Property {
   totalCapacity: number;
   totalOccupants: number;
   openForApplications: number;
+  images?: Img[];
+}
+
+interface Img {
+  id: string;
+  url: string;
+  name?: string;
 }
 
 interface Room {
@@ -38,6 +46,7 @@ interface Room {
   applicationsOpen: boolean;
   foodEnabled: boolean;
   foodCharge: string;
+  images?: Img[];
 }
 
 export default function OwnerProperties() {
@@ -126,19 +135,33 @@ export default function OwnerProperties() {
                 : 'border-slate-200 hover:border-slate-300'
             }`}
           >
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-ink-900">{p.name}</p>
-                <p className="truncate text-xs text-ink-500">
-                  {p.addressLine1}, {p.city}
-                </p>
-              </div>
-              {p.foodEnabled && (
-                <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                  <Icon name="check" size={11} />
-                  Food {money(p.foodCharge)}
-                </span>
+            <div className="flex items-start gap-3">
+              {p.images && p.images.length > 0 && (
+                <img
+                  src={p.images[0].url}
+                  alt=""
+                  className="h-14 w-14 shrink-0 rounded-lg border border-slate-200 object-cover"
+                />
               )}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-ink-900">{p.name}</p>
+                    <p className="truncate text-xs text-ink-500">
+                      {p.addressLine1}, {p.city}
+                    </p>
+                  </div>
+                  {p.foodEnabled && (
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                      <Icon name="check" size={11} />
+                      Food {money(p.foodCharge)}
+                    </span>
+                  )}
+                </div>
+                {p.images && p.images.length > 1 && (
+                  <p className="mt-0.5 text-2xs text-ink-400">{p.images.length} photos</p>
+                )}
+              </div>
             </div>
             <div className="mt-4 flex divide-x divide-slate-100 rounded-lg bg-slate-50 text-center text-sm">
               <div className="flex-1 py-2">
@@ -213,7 +236,27 @@ export default function OwnerProperties() {
                 <tbody className="divide-y divide-slate-100">
                   {rooms.data?.map((r) => (
                     <tr key={r.id} className="hover:bg-slate-50/70">
-                      <td className="td font-medium text-ink-900">{r.name}</td>
+                      <td className="td font-medium text-ink-900">
+                        <div className="flex items-center gap-2">
+                          {r.images && r.images.length > 0 ? (
+                            <img
+                              src={r.images[0].url}
+                              alt=""
+                              className="h-8 w-8 shrink-0 rounded-md border border-slate-200 object-cover"
+                            />
+                          ) : (
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-100 text-ink-300">
+                              <Icon name="camera" size={13} />
+                            </span>
+                          )}
+                          <span>
+                            {r.name}
+                            {r.images && r.images.length > 1 && (
+                              <span className="ml-1 text-2xs font-normal text-ink-400">+{r.images.length - 1}</span>
+                            )}
+                          </span>
+                        </div>
+                      </td>
                       <td className="td">
                         {money(r.monthlyRent)}
                         {Number(r.foodCharge) > 0 && r.foodEnabled ? ` +${money(r.foodCharge)} food` : ''}
@@ -288,13 +331,22 @@ export default function OwnerProperties() {
 
 function PropertyForm({ onDone }: { onDone: () => void }) {
   const [f, setF] = useState({ name: '', addressLine1: '', city: '', foodEnabled: false, foodCharge: 0 });
-  const m = useApiMutation('post', () => '/owner/properties');
+  const [images, setImages] = useState<File[]>([]);
+  const m = useMutation({
+    mutationFn: async () => {
+      const fd = new FormData();
+      fd.append('data', JSON.stringify(f));
+      images.forEach((img) => fd.append('images', img));
+      return (await api.post('/owner/properties', fd)).data;
+    },
+    onSuccess: onDone,
+  });
   return (
     <form
       className="card space-y-3"
       onSubmit={(e) => {
         e.preventDefault();
-        m.mutate(f, { onSuccess: onDone });
+        m.mutate();
       }}
     >
       <h3 className="font-semibold">New property</h3>
@@ -317,7 +369,13 @@ function PropertyForm({ onDone }: { onDone: () => void }) {
           min={0}
         />
       )}
-      <button className="btn-primary" disabled={m.isPending}>Create</button>
+      <ImagePicker
+        label="Building photos"
+        hint="Show the exterior, common areas, entrance — up to 10 images"
+        files={images}
+        onChange={setImages}
+      />
+      <button className="btn-primary" disabled={m.isPending}>{m.isPending ? 'Creating…' : 'Create'}</button>
     </form>
   );
 }
@@ -332,13 +390,22 @@ function RoomForm({ propertyId, onDone }: { propertyId: string; onDone: () => vo
     foodEnabled: false,
     foodCharge: 0,
   });
-  const m = useApiMutation('post', () => '/owner/rooms');
+  const [images, setImages] = useState<File[]>([]);
+  const m = useMutation({
+    mutationFn: async () => {
+      const fd = new FormData();
+      fd.append('data', JSON.stringify({ ...f, propertyId }));
+      images.forEach((img) => fd.append('images', img));
+      return (await api.post('/owner/rooms', fd)).data;
+    },
+    onSuccess: onDone,
+  });
   return (
     <form
       className="mb-4 space-y-3 rounded-lg bg-slate-50 p-4"
       onSubmit={(e) => {
         e.preventDefault();
-        m.mutate({ ...f, propertyId }, { onSuccess: onDone });
+        m.mutate();
       }}
     >
       {Boolean(m.error) && <ErrorBanner message={apiErrorMessage(m.error)} />}
@@ -377,7 +444,13 @@ function RoomForm({ propertyId, onDone }: { propertyId: string; onDone: () => vo
           min={0}
         />
       )}
-      <button className="btn-primary" disabled={m.isPending}>Add room</button>
+      <ImagePicker
+        label="Room photos"
+        hint="Show the beds, storage, window, attached bath — up to 10 images"
+        files={images}
+        onChange={setImages}
+      />
+      <button className="btn-primary" disabled={m.isPending}>{m.isPending ? 'Adding…' : 'Add room'}</button>
     </form>
   );
 }

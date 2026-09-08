@@ -1,8 +1,14 @@
 import type { Prisma } from '@prisma/client';
 import { ownerPropertyOrThrow, ownerRoomOrThrow } from '../../lib/access';
 import { badRequest, conflict } from '../../lib/errors';
+import { publicImage } from '../../lib/images';
 import { prisma } from '../../lib/prisma';
 import { parsePage } from '../../lib/pagination';
+
+const imageSelect = {
+  select: { id: true, path: true, originalName: true, sortOrder: true },
+  orderBy: { sortOrder: 'asc' },
+} satisfies Prisma.Room$imagesArgs;
 
 /** Effective food availability: property-level OR room-level enables it. */
 export function effectiveFood(room: { foodEnabled: boolean; foodCharge: unknown }, property: { foodEnabled: boolean; foodCharge: unknown }) {
@@ -20,6 +26,8 @@ function deriveStatus(occupantCount: number, capacity: number, current: string):
 }
 
 export const roomsService = {
+  assertOwner: ownerRoomOrThrow,
+
   async create(ownerId: string, input: Record<string, unknown>) {
     await ownerPropertyOrThrow(ownerId, input.propertyId as string);
     if ((input.roommatesLimit as number) > (input.capacity as number)) {
@@ -43,13 +51,17 @@ export const roomsService = {
         orderBy: [{ propertyId: 'asc' }, { name: 'asc' }],
         include: {
           property: { select: { id: true, name: true, city: true, foodEnabled: true, foodCharge: true } },
+          images: imageSelect,
           _count: { select: { applications: true, assignments: { where: { isActive: true } } } },
         },
       }),
       prisma.room.count({ where }),
     ]);
 
-    return { items, meta: { page, pageSize, total } };
+    return {
+      items: items.map((r) => ({ ...r, images: r.images.map(publicImage) })),
+      meta: { page, pageSize, total },
+    };
   },
 
   async get(ownerId: string, id: string) {
@@ -58,6 +70,7 @@ export const roomsService = {
       where: { id },
       include: {
         property: true,
+        images: imageSelect,
         assignments: {
           where: { isActive: true },
           include: { tenant: { select: { id: true, fullName: true, email: true, phone: true } } },
@@ -74,7 +87,7 @@ export const roomsService = {
       },
     }).then((r) => {
       if (!r) return r;
-      return { ...r, effectiveFood: effectiveFood(room, room.property) };
+      return { ...r, images: r.images.map(publicImage), effectiveFood: effectiveFood(room, room.property) };
     });
   },
 
@@ -139,7 +152,14 @@ export const roomsService = {
         take,
         orderBy: { updatedAt: 'desc' },
         include: {
-          property: { select: { id: true, name: true, city: true, state: true, addressLine1: true, foodEnabled: true, foodCharge: true } },
+          images: imageSelect,
+          property: {
+            select: {
+              id: true, name: true, city: true, state: true, addressLine1: true,
+              foodEnabled: true, foodCharge: true,
+              images: imageSelect,
+            },
+          },
         },
       }),
       prisma.room.count({ where }),
@@ -159,7 +179,12 @@ export const roomsService = {
         spotsAvailable: Math.max(0, r.capacity - r.occupantCount),
         amenities: r.amenities,
         food,
-        property: { id: r.property.id, name: r.property.name, city: r.property.city, state: r.property.state, addressLine1: r.property.addressLine1 },
+        images: r.images.map(publicImage),
+        property: {
+          id: r.property.id, name: r.property.name, city: r.property.city,
+          state: r.property.state, addressLine1: r.property.addressLine1,
+          images: r.property.images.map(publicImage),
+        },
       };
     });
     if (query.foodEnabled) {
@@ -172,7 +197,7 @@ export const roomsService = {
   async browseOne(id: string) {
     const room = await prisma.room.findFirst({
       where: { id, applicationsOpen: true, property: { isActive: true } },
-      include: { property: true },
+      include: { images: imageSelect, property: { include: { images: imageSelect } } },
     });
     if (!room) return null;
     return {
@@ -187,12 +212,14 @@ export const roomsService = {
       spotsAvailable: Math.max(0, room.capacity - room.occupantCount),
       amenities: room.amenities,
       food: effectiveFood(room, room.property),
+      images: room.images.map(publicImage),
       property: {
         id: room.property.id,
         name: room.property.name,
         addressLine1: room.property.addressLine1,
         city: room.property.city,
         state: room.property.state,
+        images: room.property.images.map(publicImage),
       },
     };
   },
