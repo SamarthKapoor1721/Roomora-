@@ -5,6 +5,7 @@ import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { Icon, type IconName } from './Icon';
 import AssistantWidget from './AssistantWidget';
+import GutterDecor from './GutterDecor';
 
 type NavItem = { to: string; label: string; icon: IconName; end?: boolean };
 
@@ -175,7 +176,9 @@ export default function Layout() {
         )}
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+      <GutterDecor />
+
+      <main className="relative z-10 mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
         <Outlet />
       </main>
 
