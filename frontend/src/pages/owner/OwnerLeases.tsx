@@ -1,8 +1,19 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
-import { AiSourceTag, EmptyState, ErrorBanner, PageHeader, Spinner, money, date } from '../../components/ui';
+import {
+  AiSourceTag,
+  EmptyState,
+  ErrorBanner,
+  PageHeader,
+  RailFilters,
+  RailStats,
+  Spinner,
+  SplitLayout,
+  money,
+  date,
+} from '../../components/ui';
 
 interface LeaseRow {
   id: string;
@@ -17,9 +28,12 @@ interface LeaseRow {
   aiSummarySource?: string | null;
 }
 
+type Filter = 'ALL' | 'ACTIVE' | 'EXPIRED' | 'TERMINATED';
+
 export default function OwnerLeases() {
   const qc = useQueryClient();
   const [open, setOpen] = useState<string | null>(null);
+  const [filter, setFilter] = useState<Filter>('ALL');
   const { data, isLoading, error } = useQuery({
     queryKey: ['owner', 'leases'],
     queryFn: async () => (await api.get('/owner/leases')).data.data as LeaseRow[],
@@ -34,15 +48,28 @@ export default function OwnerLeases() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['owner', 'leases'] }),
   });
 
-  if (isLoading) return <Spinner label="Loading leases…" />;
-  if (error) return <ErrorBanner message={apiErrorMessage(error)} />;
-
   const leaseStatus: Record<string, string> = {
     ACTIVE: 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
     EXPIRED: 'bg-slate-100 text-ink-600 ring-slate-500/20',
     TERMINATED: 'bg-rose-50 text-rose-700 ring-rose-600/20',
     PENDING: 'bg-amber-50 text-amber-700 ring-amber-600/20',
   };
+
+  const stats = useMemo(() => {
+    const s = { ALL: 0, ACTIVE: 0, EXPIRED: 0, TERMINATED: 0 } as Record<Filter, number>;
+    let monthly = 0;
+    (data ?? []).forEach((l) => {
+      s.ALL += 1;
+      if (l.status in s) s[l.status as Filter] += 1;
+      if (l.status === 'ACTIVE') monthly += Number(l.monthlyRent) + Number(l.foodCharge);
+    });
+    return { s, monthly };
+  }, [data]);
+
+  const rows = (data ?? []).filter((l) => filter === 'ALL' || l.status === filter);
+
+  if (isLoading) return <Spinner label="Loading leases…" />;
+  if (error) return <ErrorBanner message={apiErrorMessage(error)} />;
 
   return (
     <div>
@@ -58,8 +85,32 @@ export default function OwnerLeases() {
           hint="A lease is created automatically when you approve an application."
         />
       ) : (
+        <SplitLayout
+          aside={
+            <>
+              <RailFilters
+                title="Status"
+                value={filter}
+                onChange={setFilter}
+                options={[
+                  { value: 'ALL', label: 'All', count: stats.s.ALL },
+                  { value: 'ACTIVE', label: 'Active', count: stats.s.ACTIVE },
+                  { value: 'EXPIRED', label: 'Expired', count: stats.s.EXPIRED },
+                  { value: 'TERMINATED', label: 'Terminated', count: stats.s.TERMINATED },
+                ]}
+              />
+              <RailStats
+                title="Active leases"
+                rows={[
+                  { label: 'Count', value: stats.s.ACTIVE },
+                  { label: 'Monthly rent roll', value: money(stats.monthly), tone: 'positive' },
+                ]}
+              />
+            </>
+          }
+        >
         <div className="space-y-3">
-          {data?.map((l) => (
+          {rows.map((l) => (
             <div key={l.id} className="card">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -112,10 +163,14 @@ export default function OwnerLeases() {
               )}
             </div>
           ))}
+          {rows.length === 0 && (
+            <EmptyState icon="file" title="No leases with this status" />
+          )}
           {(summarize.error || terminate.error) && (
             <ErrorBanner message={apiErrorMessage(summarize.error ?? terminate.error)} />
           )}
         </div>
+        </SplitLayout>
       )}
     </div>
   );

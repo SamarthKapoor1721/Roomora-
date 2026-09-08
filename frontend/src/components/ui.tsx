@@ -117,6 +117,101 @@ export function PageHeader({
   );
 }
 
+/**
+ * Two-column page body: a sticky left rail (filters, counts, quick facts) and
+ * the main content on the right. Collapses to one column below lg.
+ */
+export function SplitLayout({
+  aside,
+  children,
+}: {
+  aside: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div className="grid gap-6 lg:grid-cols-[16rem_minmax(0,1fr)]">
+      <aside className="lg:sticky lg:top-24 lg:self-start">
+        <div className="space-y-4">{aside}</div>
+      </aside>
+      <div className="min-w-0">{children}</div>
+    </div>
+  );
+}
+
+/** A labelled group of counts for the left rail. */
+export function RailStats({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: { label: string; value: ReactNode; tone?: 'default' | 'positive' | 'warning' | 'critical' }[];
+}) {
+  return (
+    <div className="card">
+      <p className="mb-2 text-2xs font-semibold uppercase tracking-wide text-ink-400">{title}</p>
+      <div className="divide-y divide-slate-100">
+        {rows.map((r) => (
+          <div key={r.label} className="flex items-baseline justify-between py-1.5">
+            <span className="text-sm text-ink-500">{r.label}</span>
+            <span
+              className={`text-sm font-semibold ${
+                r.tone === 'critical'
+                  ? 'text-rose-600'
+                  : r.tone === 'warning'
+                    ? 'text-amber-600'
+                    : r.tone === 'positive'
+                      ? 'text-emerald-600'
+                      : 'text-ink-900'
+              }`}
+            >
+              {r.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** A vertical list of filter buttons for the left rail. */
+export function RailFilters<T extends string>({
+  title = 'Filter',
+  value,
+  onChange,
+  options,
+}: {
+  title?: string;
+  value: T;
+  onChange: (v: T) => void;
+  options: { value: T; label: string; count?: number }[];
+}) {
+  return (
+    <div className="card">
+      <p className="mb-2 text-2xs font-semibold uppercase tracking-wide text-ink-400">{title}</p>
+      <div className="space-y-0.5">
+        {options.map((o) => (
+          <button
+            key={o.value}
+            onClick={() => onChange(o.value)}
+            className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors ${
+              value === o.value ? 'bg-brand-600 text-white' : 'text-ink-700 hover:bg-slate-100'
+            }`}
+          >
+            {o.label}
+            {o.count != null && (
+              <span
+                className={`text-xs ${value === o.value ? 'text-brand-100' : 'text-ink-400'}`}
+              >
+                {o.count}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function Section({
   title,
   description,

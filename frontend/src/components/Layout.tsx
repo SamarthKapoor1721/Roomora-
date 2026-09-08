@@ -69,7 +69,7 @@ export default function Layout() {
       {/* ── Top navbar ─────────────────────────────────────────── */}
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
         {/* row 1: brand + account */}
-        <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-3 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-500 text-sm font-bold text-white">
               R
@@ -132,7 +132,7 @@ export default function Layout() {
 
         {/* row 2: horizontal nav (desktop) */}
         <nav className="hidden border-t border-slate-100 md:block">
-          <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-3 py-1.5 sm:px-5 lg:px-7">
+          <div className="mx-auto flex max-w-[1400px] gap-1 overflow-x-auto px-3 py-1.5 sm:px-5 lg:px-7">
             {items.map((n) => (
               <NavLink key={n.to} to={n.to} end={n.end} className={navLinkClass}>
                 {({ isActive }) => (
@@ -175,7 +175,7 @@ export default function Layout() {
         )}
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+      <main className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
         <Outlet />
       </main>
 

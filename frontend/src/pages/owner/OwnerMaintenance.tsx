@@ -1,8 +1,20 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
-import { AiSourceTag, Badge, Chip, EmptyState, ErrorBanner, PageHeader, Spinner, date } from '../../components/ui';
+import {
+  AiSourceTag,
+  Badge,
+  Chip,
+  EmptyState,
+  ErrorBanner,
+  PageHeader,
+  RailFilters,
+  RailStats,
+  Spinner,
+  SplitLayout,
+  date,
+} from '../../components/ui';
 
 interface Req {
   id: string;
@@ -20,14 +32,17 @@ interface Req {
   _count: { notes: number };
 }
 
+const STATUSES = ['', 'OPEN', 'ASSIGNED', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED'];
+
 export default function OwnerMaintenance() {
   const qc = useQueryClient();
   const [status, setStatus] = useState('');
   const [expand, setExpand] = useState<string | null>(null);
 
+  // fetch all once; filter client-side so the rail can show counts
   const { data, isLoading, error } = useQuery({
-    queryKey: ['owner', 'maintenance', status],
-    queryFn: async () => (await api.get(`/owner/maintenance${status ? `?status=${status}` : ''}`)).data.data as Req[],
+    queryKey: ['owner', 'maintenance'],
+    queryFn: async () => (await api.get('/owner/maintenance')).data.data as Req[],
   });
   const staff = useQuery({
     queryKey: ['owner', 'staff', 'maint'],
@@ -43,6 +58,24 @@ export default function OwnerMaintenance() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['owner', 'maintenance'] }),
   });
 
+  const counts = useMemo(() => {
+    const c: Record<string, number> = { '': 0 };
+    STATUSES.slice(1).forEach((s) => (c[s] = 0));
+    let openCount = 0;
+    const byPriority: Record<string, number> = { URGENT: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
+    (data ?? []).forEach((r) => {
+      c[''] += 1;
+      c[r.status] = (c[r.status] ?? 0) + 1;
+      if (['OPEN', 'ASSIGNED', 'IN_PROGRESS', 'ON_HOLD'].includes(r.status)) {
+        openCount += 1;
+        if (r.priority in byPriority) byPriority[r.priority] += 1;
+      }
+    });
+    return { c, openCount, byPriority };
+  }, [data]);
+
+  const rows = (data ?? []).filter((r) => !status || r.status === status);
+
   if (isLoading) return <Spinner />;
   if (error) return <ErrorBanner message={apiErrorMessage(error)} />;
 
@@ -51,22 +84,42 @@ export default function OwnerMaintenance() {
       <PageHeader
         title="Maintenance"
         description="Requests raised by tenants. AI suggests a category and priority — assign staff and track them through."
-        actions={
-          <select className="input w-52" value={status} onChange={(e) => setStatus(e.target.value)}>
-            {['', 'OPEN', 'ASSIGNED', 'IN_PROGRESS', 'ON_HOLD', 'COMPLETED', 'CANCELLED'].map((s) => (
-              <option key={s} value={s}>
-                {s ? s.replaceAll('_', ' ') : 'All statuses'}
-              </option>
-            ))}
-          </select>
-        }
       />
+
+      {data?.length === 0 ? (
+        <EmptyState icon="wrench" title="No maintenance requests" hint="Requests raised by tenants appear here." />
+      ) : (
+      <SplitLayout
+        aside={
+          <>
+            <RailFilters
+              title="Status"
+              value={status}
+              onChange={setStatus}
+              options={STATUSES.map((s) => ({
+                value: s,
+                label: s ? s.replaceAll('_', ' ') : 'All',
+                count: counts.c[s],
+              }))}
+            />
+            <RailStats
+              title="Open by priority"
+              rows={[
+                { label: 'Urgent', value: counts.byPriority.URGENT, tone: 'critical' },
+                { label: 'High', value: counts.byPriority.HIGH, tone: 'critical' },
+                { label: 'Medium', value: counts.byPriority.MEDIUM, tone: 'warning' },
+                { label: 'Low', value: counts.byPriority.LOW },
+              ]}
+            />
+          </>
+        }
+      >
       <div className="space-y-2.5">
 
-      {data?.length === 0 && (
-        <EmptyState icon="wrench" title="No maintenance requests" hint="Requests raised by tenants appear here." />
+      {rows.length === 0 && (
+        <EmptyState icon="wrench" title="No requests with this status" />
       )}
-      {data?.map((r) => (
+      {rows.map((r) => (
         <div key={r.id} className="card">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
@@ -141,6 +194,8 @@ export default function OwnerMaintenance() {
       ))}
       {(assign.error || update.error) && <ErrorBanner message={apiErrorMessage(assign.error ?? update.error)} />}
       </div>
+      </SplitLayout>
+      )}
     </div>
   );
 }
