@@ -172,17 +172,19 @@ export function selectTools(question: string): AssistantToolName[] {
   const picks = new Set<AssistantToolName>();
 
   if (/(overdue|late|unpaid|owe|arrears|behind on rent)/.test(q)) picks.add('overdueRent');
-  if (/(vacant|empty|available room|free bed|unoccupied)/.test(q)) picks.add('vacantRooms');
+  if (/(vacant|empty|available room|free bed|unoccupied|open for application|open room|which rooms|list.*rooms|rent|price|charge|how much)/.test(q))
+    picks.add('vacantRooms');
   if (/(lease|expir|renew|ending|end date)/.test(q)) picks.add('leasesExpiring');
-  if (/(revenue|income|earnings|collected|money|financ|outstanding)/.test(q)) picks.add('revenueSummary');
+  if (/(revenue|income|earnings|collected|money|financ|outstanding|profit)/.test(q)) picks.add('revenueSummary');
   if (/(maintenance|repair|issue|broken|fix)/.test(q)) picks.add('maintenanceFrequency');
-  if (/(application|applicant|approve|pending review|screening)/.test(q)) picks.add('pendingApplications');
-  if (/(occupancy|how full|utilization|utilisation)/.test(q)) picks.add('occupancyOverview');
+  if (/(application|applicant|approve|pending review|screening|tenant.*appl)/.test(q)) picks.add('pendingApplications');
+  if (/(occupancy|how full|utilization|utilisation|how many rooms|how many propert)/.test(q)) picks.add('occupancyOverview');
   if (/(warning|alert|risk|flag)/.test(q)) picks.add('activeWarnings');
 
   // Default: give a broad snapshot.
   if (picks.size === 0) {
     picks.add('occupancyOverview');
+    picks.add('vacantRooms');
     picks.add('overdueRent');
     picks.add('revenueSummary');
     picks.add('pendingApplications');

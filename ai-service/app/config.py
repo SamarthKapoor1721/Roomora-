@@ -14,19 +14,19 @@ class Settings:
     nvidia_base_url: str = os.getenv(
         "NVIDIA_NIM_BASE_URL", "https://integrate.api.nvidia.com/v1"
     ).rstrip("/")
-    # openai/gpt-oss-20b is the fastest model that works on the current key
-    # (~10-15s for a structured response). Bigger alternatives that also work:
-    # nvidia/nemotron-3-super-120b-a12b, moonshotai/kimi-k3 (slow, ~40s+).
-    nvidia_model: str = os.getenv("NVIDIA_NIM_MODEL", "openai/gpt-oss-20b")
+    # nvidia/nemotron-3-super-120b-a12b (~20s) is the default. Faster:
+    # openai/gpt-oss-20b (~12s). Slow: moonshotai/kimi-k3 (~40s+). Many older
+    # meta/mistral models on public NIM are retired (410).
+    nvidia_model: str = os.getenv("NVIDIA_NIM_MODEL", "nvidia/nemotron-3-super-120b-a12b")
     nvidia_temperature: float = float(os.getenv("NVIDIA_NIM_TEMPERATURE", "0.3"))
     # Only sent when set — for DeepSeek/reasoning models: low|medium|high|max.
     nvidia_reasoning_effort: str = os.getenv("NVIDIA_NIM_REASONING_EFFORT", "").strip()
 
     # "blocking" = a user is waiting on it inside a synchronous flow (screening);
     # "interactive" = owner action / chat assistant (can wait longer).
-    timeout_blocking: float = float(os.getenv("AI_TIMEOUT_BLOCKING", "35"))
+    timeout_blocking: float = float(os.getenv("AI_TIMEOUT_BLOCKING", "40"))
     timeout_interactive: float = float(os.getenv("AI_TIMEOUT_INTERACTIVE", "60"))
-    max_retries: int = int(os.getenv("AI_MAX_RETRIES", "0"))
+    max_retries: int = int(os.getenv("AI_MAX_RETRIES", "1"))
     port: int = int(os.getenv("PORT", "8001"))
 
     @property

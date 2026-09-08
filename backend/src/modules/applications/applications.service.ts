@@ -331,6 +331,10 @@ export async function runAiScreening(applicationId: string): Promise<void> {
   const providedDocs = app.documents.map((d) => d.type);
   const room = app.room;
 
+  // NVIDIA's public tier throttles bursts; a small gap between the three
+  // sequential calls reduces 429/503s.
+  const gap = () => new Promise((r) => setTimeout(r, 800));
+
   // 1. Eligibility (advisory score / criteria match)
   const eligibility = await aiClient.eligibility({
     applicant: {
@@ -381,6 +385,8 @@ export async function runAiScreening(applicationId: string): Promise<void> {
     },
   });
 
+  await gap();
+
   // 2. Document verification (extraction + consistency)
   const docVerify = await aiClient.verifyDocuments({
     applicant: {
@@ -426,6 +432,8 @@ export async function runAiScreening(applicationId: string): Promise<void> {
       data: { verification: 'INCONSISTENT' },
     });
   }
+
+  await gap();
 
   // 3. Application summary
   const summary = await aiClient.summarizeApplication({

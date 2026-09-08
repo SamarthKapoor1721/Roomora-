@@ -12,6 +12,7 @@ owner-triggered actions and the chat assistant (long timeout).
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import re
 from typing import Any, Literal
@@ -106,15 +107,23 @@ async def chat_json(
             return parsed
 
         except RateLimitError as exc:
+            # NVIDIA's public tier throttles bursts; a short wait often clears it.
+            last_err = exc
+            if attempt < settings.max_retries:
+                await asyncio.sleep(1.5 * (attempt + 1))
+                continue
             raise NvidiaUnavailable(f"rate limited: {exc}") from exc
         except (APITimeoutError, APIConnectionError) as exc:
             last_err = exc
             if attempt < settings.max_retries:
+                await asyncio.sleep(0.5)
                 continue
             raise NvidiaUnavailable(f"network: {type(exc).__name__}: {exc}") from exc
         except APIStatusError as exc:
+            # 503 "Service temporarily overloaded" and other 5xx: retry once.
             if exc.status_code >= 500 and attempt < settings.max_retries:
                 last_err = exc
+                await asyncio.sleep(1.5 * (attempt + 1))
                 continue
             raise NvidiaUnavailable(f"API {exc.status_code}: {exc}") from exc
         except (KeyError, ValueError, json.JSONDecodeError) as exc:

@@ -42,6 +42,6 @@ export const env = {
 
   ai: {
     serviceUrl: process.env.AI_SERVICE_URL ?? 'http://localhost:8001',
-    timeoutMs: num('AI_SERVICE_TIMEOUT_MS', 100000),
+    timeoutMs: num('AI_SERVICE_TIMEOUT_MS', 130000),
   },
 } as const;
