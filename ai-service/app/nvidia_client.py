@@ -69,6 +69,12 @@ async def chat_json(
     )
     client = _client_for(timeout)
 
+    extra_body: dict[str, Any] = {}
+    if settings.nvidia_reasoning_effort:
+        # DeepSeek/reasoning models accept this; others 400 on it, so only send
+        # it when explicitly configured.
+        extra_body["reasoning_effort"] = settings.nvidia_reasoning_effort
+
     last_err: Exception | None = None
     for attempt in range(settings.max_retries + 1):
         try:
@@ -84,8 +90,7 @@ async def chat_json(
                 top_p=0.95,
                 max_tokens=max_tokens,
                 stream=False,
-                # reasoning models: control thinking depth
-                extra_body={"reasoning_effort": settings.nvidia_reasoning_effort},
+                extra_body=extra_body or None,
             )
             msg = completion.choices[0].message
             content = (msg.content or "").strip()
