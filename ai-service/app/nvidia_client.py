@@ -75,6 +75,8 @@ async def chat_json(
         # DeepSeek/reasoning models accept this; others 400 on it, so only send
         # it when explicitly configured.
         extra_body["reasoning_effort"] = settings.nvidia_reasoning_effort
+    # Nemotron 3.5 leaks its chain-of-thought into `content` unless disabled.
+    extra_body["chat_template_kwargs"] = {"enable_thinking": settings.nvidia_thinking}
 
     last_err: Exception | None = None
     for attempt in range(settings.max_retries + 1):
