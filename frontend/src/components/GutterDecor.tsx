@@ -59,7 +59,7 @@ function Column({ side, blobs }: { side: 'left' | 'right'; blobs: Blob[] }) {
   return (
     <div
       aria-hidden="true"
-      className={`pointer-events-none fixed bottom-0 top-[6.75rem] z-0 hidden w-[calc((100vw-72rem)/2)] xl:block ${
+      className={`gutter-decor pointer-events-none fixed bottom-0 top-[6.75rem] z-0 hidden w-[calc((100vw-72rem)/2)] xl:block ${
         side === 'left' ? 'left-0' : 'right-0'
       }`}
     >

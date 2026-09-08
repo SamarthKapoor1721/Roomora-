@@ -241,6 +241,24 @@
   animation: route-page-in 380ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
 }
 
+/* While the flourish plays, the page body goes soft — blurred and faded —
+   so the zooming icon owns the screen. The navbar (a sibling <header>) is
+   untouched. Transition lives on the targets so they ease back in smoothly. */
+main,
+.gutter-decor {
+  transition: filter 220ms ease, opacity 220ms ease, transform 220ms ease;
+}
+:root[data-routing] main {
+  filter: blur(6px);
+  opacity: 0.35;
+  transform: scale(0.985);
+  pointer-events: none;
+}
+:root[data-routing] .gutter-decor {
+  filter: blur(6px);
+  opacity: 0.25;
+}
+
 /* the active nav icon gives a little bounce when its tab becomes current */
 @keyframes nav-pop {
   0% {
@@ -268,5 +286,10 @@
   .route-icon,
   .route-halo {
     display: none !important;
+  }
+  :root[data-routing] main {
+    filter: none;
+    opacity: 1;
+    transform: none;
   }
 }

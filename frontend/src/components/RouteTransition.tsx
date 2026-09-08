@@ -37,9 +37,17 @@ export function RouteTransition({ nav }: { nav: NavLookup }) {
     if (!hit) return;
 
     setBurst({ icon: hit.icon, label: hit.label, id: Date.now() });
+    // CSS on [data-routing] blurs + fades the page body while this is set.
+    document.documentElement.setAttribute('data-routing', '');
     window.clearTimeout(timer.current);
-    timer.current = window.setTimeout(() => setBurst(null), 640);
-    return () => window.clearTimeout(timer.current);
+    timer.current = window.setTimeout(() => {
+      setBurst(null);
+      document.documentElement.removeAttribute('data-routing');
+    }, 640);
+    return () => {
+      window.clearTimeout(timer.current);
+      document.documentElement.removeAttribute('data-routing');
+    };
   }, [pathname, nav]);
 
   if (!burst) return null;
