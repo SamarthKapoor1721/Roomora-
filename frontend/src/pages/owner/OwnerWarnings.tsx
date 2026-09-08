@@ -119,16 +119,16 @@ export default function OwnerWarnings() {
             }
           />
         ) : (
-          <div className="space-y-3">
+          <div>
             {rows.map((w) => (
               <div
                 key={w.id}
-                className={`card border-l-4 ${
+                className={`border-b border-slate-100 border-l-2 py-4 pl-4 last:border-b-0 ${
                   w.severity === 'CRITICAL' || w.severity === 'HIGH'
                     ? 'border-l-rose-400'
                     : w.severity === 'MEDIUM'
                       ? 'border-l-amber-400'
-                      : 'border-l-slate-300'
+                      : 'border-l-slate-200'
                 }`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">

@@ -61,7 +61,7 @@ export default function AssistantWidget() {
 
       {/* panel */}
       {open && (
-        <div className="fixed bottom-20 right-5 z-50 flex h-[30rem] w-[22rem] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-pop">
+        <div className="fixed bottom-20 right-5 z-50 flex h-[30rem] w-[22rem] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-pop">
           {/* header */}
           <div className="flex items-center gap-2 border-b border-slate-200 bg-brand-600 px-4 py-3 text-white">
             <Icon name="bot" size={18} />
@@ -99,7 +99,7 @@ export default function AssistantWidget() {
             {messages.map((m, i) => (
               <div key={i} className={m.role === 'user' ? 'flex justify-end' : 'flex flex-col items-start'}>
                 <div
-                  className={`max-w-[88%] whitespace-pre-wrap rounded-xl px-3 py-2 text-sm ${
+                  className={`max-w-[88%] whitespace-pre-wrap rounded-lg px-3 py-2 text-sm ${
                     m.role === 'user'
                       ? 'bg-brand-600 text-white'
                       : 'border border-slate-200 bg-white text-ink-700'

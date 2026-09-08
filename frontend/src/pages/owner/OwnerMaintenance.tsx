@@ -114,13 +114,13 @@ export default function OwnerMaintenance() {
           </>
         }
       >
-      <div className="space-y-2.5">
+      <div>
 
       {rows.length === 0 && (
         <EmptyState icon="wrench" title="No requests with this status" />
       )}
       {rows.map((r) => (
-        <div key={r.id} className="card">
+        <div key={r.id} className="row">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-sm font-semibold text-ink-900">{r.title}</p>
@@ -137,7 +137,7 @@ export default function OwnerMaintenance() {
           </div>
 
           <button
-            className="btn-secondary btn-sm mt-3"
+            className="mt-2.5 inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:text-brand-700"
             onClick={() => setExpand(expand === r.id ? null : r.id)}
           >
             {expand === r.id ? 'Hide details' : 'Details & manage'}
@@ -145,7 +145,7 @@ export default function OwnerMaintenance() {
           </button>
 
           {expand === r.id && (
-            <div className="mt-3 space-y-3 rounded-lg bg-slate-50 p-4 text-sm">
+            <div className="mt-3 space-y-3 border-l-2 border-slate-200 py-1 pl-4 text-sm">
               <p className="text-ink-600">{r.description}</p>
               {r.photos.length > 0 && (
                 <div className="flex flex-wrap gap-2">
@@ -155,7 +155,7 @@ export default function OwnerMaintenance() {
                       href={`/uploads/${p.path}`}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-2xs font-medium text-ink-600 hover:border-brand-300"
+                      className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-2xs font-medium text-ink-600 hover:border-brand-400"
                     >
                       <Icon name="camera" size={11} />
                       {p.kind}

@@ -35,7 +35,7 @@ export function ConfirmDialog({
       aria-modal="true"
       onClick={onCancel}
     >
-      <div className="w-full max-w-sm rounded-xl bg-white shadow-pop" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white shadow-pop" onClick={(e) => e.stopPropagation()}>
         <div className="p-5">
           <div className="flex items-start gap-3">
             <span
@@ -147,14 +147,14 @@ export function RailStats({
   rows: { label: string; value: ReactNode; tone?: 'default' | 'positive' | 'warning' | 'critical' }[];
 }) {
   return (
-    <div className="card">
-      <p className="mb-2 text-2xs font-semibold uppercase tracking-wide text-ink-400">{title}</p>
+    <div>
+      <p className="mb-1.5 text-2xs font-semibold uppercase tracking-wide text-ink-400">{title}</p>
       <div className="divide-y divide-slate-100">
         {rows.map((r) => (
           <div key={r.label} className="flex items-baseline justify-between py-1.5">
             <span className="text-sm text-ink-500">{r.label}</span>
             <span
-              className={`text-sm font-semibold ${
+              className={`text-sm font-semibold tabular-nums ${
                 r.tone === 'critical'
                   ? 'text-rose-600'
                   : r.tone === 'warning'
@@ -186,24 +186,29 @@ export function RailFilters<T extends string>({
   options: { value: T; label: string; count?: number }[];
 }) {
   return (
-    <div className="card">
-      <p className="mb-2 text-2xs font-semibold uppercase tracking-wide text-ink-400">{title}</p>
-      <div className="space-y-0.5">
+    <div>
+      <p className="mb-1.5 text-2xs font-semibold uppercase tracking-wide text-ink-400">{title}</p>
+      <div className="-mx-1.5">
         {options.map((o) => (
           <button
             key={o.value}
             onClick={() => onChange(o.value)}
-            className={`flex w-full items-center justify-between rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors ${
-              value === o.value ? 'bg-brand-600 text-white' : 'text-ink-700 hover:bg-slate-100'
+            className={`flex w-full items-center justify-between rounded-md px-1.5 py-1 text-sm transition-colors ${
+              value === o.value
+                ? 'font-semibold text-brand-700'
+                : 'font-medium text-ink-600 hover:text-ink-900'
             }`}
           >
-            {o.label}
-            {o.count != null && (
+            <span className="flex items-center gap-1.5">
               <span
-                className={`text-xs ${value === o.value ? 'text-brand-100' : 'text-ink-400'}`}
-              >
-                {o.count}
-              </span>
+                className={`h-1.5 w-1.5 rounded-full ${
+                  value === o.value ? 'bg-brand-600' : 'bg-transparent'
+                }`}
+              />
+              {o.label}
+            </span>
+            {o.count != null && (
+              <span className="text-xs tabular-nums text-ink-400">{o.count}</span>
             )}
           </button>
         ))}
@@ -265,13 +270,6 @@ const toneText: Record<Tone, string> = {
   warning: 'text-amber-600',
   critical: 'text-rose-600',
 };
-const toneAccent: Record<Tone, string> = {
-  default: 'bg-slate-300',
-  positive: 'bg-emerald-500',
-  warning: 'bg-amber-500',
-  critical: 'bg-rose-500',
-};
-
 /** Prominent headline metric — use 3–4 of these at the top of a dashboard. */
 export function MetricCard({
   label,
@@ -290,25 +288,39 @@ export function MetricCard({
   to?: string;
   cta?: string;
 }) {
-  return (
-    <div className="group relative flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-card transition-shadow hover:shadow-pop">
-      <span className={`absolute inset-y-0 left-0 w-1 ${toneAccent[tone]}`} aria-hidden="true" />
+  const body = (
+    <>
       <div className="flex items-center justify-between">
         <p className="text-xs font-medium uppercase tracking-wide text-ink-500">{label}</p>
-        {icon && <Icon name={icon} size={16} className="text-ink-400" />}
+        {icon && <Icon name={icon} size={15} className="text-ink-300" />}
       </div>
-      <p className={`mt-2 font-display text-3xl font-semibold ${toneText[tone]}`}>{value}</p>
-      {hint && <p className="mt-1 text-xs text-ink-500">{hint}</p>}
+      <p className={`mt-1.5 font-display text-3xl font-semibold tabular-nums ${toneText[tone]}`}>
+        {value}
+      </p>
+      {hint && <p className="mt-0.5 text-xs text-ink-400">{hint}</p>}
       {to && (
-        <Link
-          to={to}
-          className="mt-4 inline-flex h-8 items-center justify-center gap-1 self-start rounded-lg border border-slate-300 bg-white px-3 text-xs font-medium text-ink-700 transition-colors hover:border-brand-400 hover:bg-brand-50 hover:text-brand-700"
-        >
+        <span className="mt-2 inline-flex items-center gap-0.5 text-xs font-medium text-brand-600">
           {cta}
-          <Icon name="chevronRight" size={13} />
-        </Link>
+          <Icon name="chevronRight" size={12} />
+        </span>
       )}
-    </div>
+    </>
+  );
+  const cls = `flex flex-col border-l-2 py-1.5 pl-3.5 ${
+    tone === 'critical'
+      ? 'border-l-rose-400'
+      : tone === 'warning'
+        ? 'border-l-amber-400'
+        : tone === 'positive'
+          ? 'border-l-emerald-400'
+          : 'border-l-slate-300'
+  }`;
+  return to ? (
+    <Link to={to} className={`${cls} transition-colors hover:border-l-brand-500`}>
+      {body}
+    </Link>
+  ) : (
+    <div className={cls}>{body}</div>
   );
 }
 
@@ -505,12 +517,10 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
-      <span className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-ink-400">
-        <Icon name={icon} size={20} />
-      </span>
+    <div className="flex flex-col items-center px-6 py-16 text-center">
+      <Icon name={icon} size={28} className="mb-3 text-ink-300" />
       <p className="text-sm font-medium text-ink-700">{title}</p>
-      {hint && <p className="mt-1 max-w-sm text-sm text-ink-500">{hint}</p>}
+      {hint && <p className="mt-1 max-w-sm text-sm text-ink-400">{hint}</p>}
       {action && <div className="mt-4">{action}</div>}
     </div>
   );
@@ -544,10 +554,8 @@ export function InlineNote({ tone = 'info', children }: { tone?: 'info' | 'warni
 
 export function TableWrap({ children }: { children: ReactNode }) {
   return (
-    <div className="card overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse">{children}</table>
-      </div>
+    <div className="overflow-x-auto rounded-lg border border-slate-200">
+      <table className="w-full border-collapse">{children}</table>
     </div>
   );
 }

@@ -12,8 +12,7 @@
   }
 
   body {
-    @apply font-sans text-[0.875rem] text-ink-900 antialiased;
-    background-color: #f7f7f2; /* barely-warm off-white so white cards still separate */
+    @apply bg-white font-sans text-[0.875rem] text-ink-900 antialiased;
   }
 
   /* consistent, visible focus for keyboard users */
@@ -66,10 +65,11 @@
     @apply btn btn-md border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100;
   }
 
-  /* ---- surfaces ---- */
-  /* .card is padded by default (the common case). Use .card.card-flush to opt out. */
+  /* ---- surfaces ----
+     The page is white; sections are separated by whitespace and hairlines, not
+     by floating cards. Reserve .card for genuinely distinct grouped panels. */
   .card {
-    @apply rounded-xl border border-slate-200 bg-white p-5 shadow-card;
+    @apply rounded-lg border border-slate-200 bg-white p-4;
   }
   .card-flush {
     @apply p-0;
@@ -77,8 +77,16 @@
   .card-pad {
     /* no-op: kept for existing call sites that pass it explicitly */
   }
+  /* a bordered container without the "floating" feel — the default for panels */
+  .panel {
+    @apply rounded-lg border border-slate-200 bg-white;
+  }
   .badge {
-    @apply inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-ink-600;
+    @apply inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-2xs font-medium text-ink-600;
+  }
+  /* a plain list row: a hairline underneath, no box */
+  .row {
+    @apply border-b border-slate-100 py-4 last:border-0;
   }
 
   /* ---- form controls ---- */

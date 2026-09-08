@@ -120,9 +120,9 @@ export default function OwnerProperties() {
             key={p.id}
             type="button"
             onClick={() => setSelected(selected === p.id ? null : p.id)}
-            className={`rounded-xl border bg-white p-5 text-left shadow-card transition-colors ${
+            className={`rounded-lg border bg-white p-4 text-left transition-colors ${
               selected === p.id
-                ? 'border-brand-500 ring-2 ring-brand-500/20'
+                ? 'border-brand-500 bg-brand-50/30'
                 : 'border-slate-200 hover:border-slate-300'
             }`}
           >
@@ -134,26 +134,26 @@ export default function OwnerProperties() {
                 </p>
               </div>
               {p.foodEnabled && (
-                <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                <span className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-emerald-700">
                   <Icon name="check" size={11} />
                   Food {money(p.foodCharge)}
                 </span>
               )}
             </div>
-            <div className="mt-4 flex divide-x divide-slate-100 rounded-lg bg-slate-50 text-center text-sm">
-              <div className="flex-1 py-2">
-                <p className="font-semibold text-ink-900">{p.roomCount}</p>
-                <p className="text-2xs uppercase tracking-wide text-ink-400">rooms</p>
+            <div className="mt-4 flex gap-6 text-sm">
+              <div>
+                <span className="font-semibold tabular-nums text-ink-900">{p.roomCount}</span>
+                <span className="ml-1 text-2xs uppercase tracking-wide text-ink-400">rooms</span>
               </div>
-              <div className="flex-1 py-2">
-                <p className="font-semibold text-ink-900">
+              <div>
+                <span className="font-semibold tabular-nums text-ink-900">
                   {p.totalOccupants}/{p.totalCapacity}
-                </p>
-                <p className="text-2xs uppercase tracking-wide text-ink-400">occupied</p>
+                </span>
+                <span className="ml-1 text-2xs uppercase tracking-wide text-ink-400">occupied</span>
               </div>
-              <div className="flex-1 py-2">
-                <p className="font-semibold text-ink-900">{p.openForApplications}</p>
-                <p className="text-2xs uppercase tracking-wide text-ink-400">open</p>
+              <div>
+                <span className="font-semibold tabular-nums text-ink-900">{p.openForApplications}</span>
+                <span className="ml-1 text-2xs uppercase tracking-wide text-ink-400">open</span>
               </div>
             </div>
           </button>
@@ -161,9 +161,9 @@ export default function OwnerProperties() {
       </div>
 
       {selected && (
-        <div className="card">
+        <div className="border-t border-slate-200 pt-6">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-semibold">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-ink-400">
               Rooms in {props.data?.find((p) => p.id === selected)?.name}
             </h2>
             <div className="flex items-center gap-2">
@@ -291,13 +291,13 @@ function PropertyForm({ onDone }: { onDone: () => void }) {
   const m = useApiMutation('post', () => '/owner/properties');
   return (
     <form
-      className="card space-y-3"
+      className="space-y-3 border-l-2 border-brand-200 py-1 pl-4"
       onSubmit={(e) => {
         e.preventDefault();
         m.mutate(f, { onSuccess: onDone });
       }}
     >
-      <h3 className="font-semibold">New property</h3>
+      <h3 className="text-sm font-semibold text-ink-900">New property</h3>
       {Boolean(m.error) && <ErrorBanner message={apiErrorMessage(m.error)} />}
       <div className="grid gap-3 md:grid-cols-3">
         <input className="input" placeholder="Name" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} required />
@@ -335,7 +335,7 @@ function RoomForm({ propertyId, onDone }: { propertyId: string; onDone: () => vo
   const m = useApiMutation('post', () => '/owner/rooms');
   return (
     <form
-      className="mb-4 space-y-3 rounded-lg bg-slate-50 p-4"
+      className="mb-4 space-y-3 border-l-2 border-brand-200 py-1 pl-4"
       onSubmit={(e) => {
         e.preventDefault();
         m.mutate({ ...f, propertyId }, { onSuccess: onDone });

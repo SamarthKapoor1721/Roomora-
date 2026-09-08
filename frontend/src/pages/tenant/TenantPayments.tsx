@@ -52,18 +52,18 @@ export default function TenantPayments() {
           ))}
         </div>
       ) : (
-        <div className="space-y-2.5">
+        <div>
       {data?.length === 0 && (
         <EmptyState icon="wallet" title="No invoices yet" hint="Your rent invoices appear here once your owner generates them." />
       )}
       {data?.map((p) => {
         const outstanding = Number(p.totalAmount) - Number(p.amountPaid);
         return (
-          <div key={p.id} className="card">
+          <div key={p.id} className="row">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
-                <p className="font-semibold">{p.lease.room.name} · {p.periodMonth}/{p.periodYear}</p>
-                <p className="text-xs text-slate-400">
+                <p className="text-sm font-semibold text-ink-900">{p.lease.room.name} · {p.periodMonth}/{p.periodYear}</p>
+                <p className="text-xs text-ink-500">
                   Rent {money(p.rentAmount)}{Number(p.foodAmount) > 0 && ` + food ${money(p.foodAmount)}`} = {money(p.totalAmount)} ·
                   due {date(p.dueDate)}{p.paidDate && ` · paid ${date(p.paidDate)}`}
                   {p.daysLate > 0 && ` · ${p.daysLate} days late`}
@@ -100,7 +100,7 @@ function PayForm({ outstanding, onSubmit, pending }: { outstanding: number; onSu
   const [method, setMethod] = useState('UPI');
   return (
     <form
-      className="mt-3 flex flex-wrap items-end gap-3 rounded bg-slate-50 p-3"
+      className="mt-3 flex flex-wrap items-end gap-3 border-l-2 border-brand-200 py-1 pl-3"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit(amount, method);

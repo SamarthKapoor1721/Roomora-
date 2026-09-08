@@ -109,9 +109,9 @@ export default function OwnerLeases() {
             </>
           }
         >
-        <div className="space-y-3">
+        <div>
           {rows.map((l) => (
-            <div key={l.id} className="card">
+            <div key={l.id} className="row">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-ink-900">{l.tenant.fullName}</p>
@@ -153,7 +153,7 @@ export default function OwnerLeases() {
                 </div>
               </div>
               {open === l.id && l.aiSummary && (
-                <div className="mt-3 rounded-lg bg-slate-50 p-3">
+                <div className="mt-3 border-l-2 border-slate-200 py-1 pl-4">
                   <div className="mb-1 flex items-center gap-2">
                     <span className="text-xs font-semibold text-ink-700">AI lease summary</span>
                     <AiSourceTag source={l.aiSummarySource} />

@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
 import {
-  Card,
   ErrorBanner,
   MetricCard,
   PageHeader,
@@ -33,7 +32,7 @@ export default function StaffDashboard() {
       ) : (
         <>
           <Section title="Needs attention">
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-x-8 gap-y-6 sm:grid-cols-2 xl:grid-cols-4">
               <MetricCard
                 label="Open maintenance"
                 value={data.maintenance.open}
@@ -69,27 +68,27 @@ export default function StaffDashboard() {
           </Section>
 
           <Section title="Breakdown">
-            <div className="grid gap-4 md:grid-cols-2">
-              <Card>
-                <div className="mb-2 flex items-center justify-between">
+            <div className="grid gap-x-10 gap-y-8 md:grid-cols-2">
+              <div>
+                <div className="mb-2 flex items-center justify-between border-b border-slate-200 pb-1.5">
                   <div className="flex items-center gap-2">
                     <Icon name="wrench" size={16} className="text-ink-400" />
                     <h3 className="text-sm font-semibold text-ink-900">Maintenance by status</h3>
                   </div>
-                  <Link to="/staff/maintenance" className="btn-secondary btn-sm">Open <Icon name="chevronRight" size={13} /></Link>
+                  <Link to="/staff/maintenance" className="inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:text-brand-700">Open <Icon name="chevronRight" size={13} /></Link>
                 </div>
                 <StatusBreakdown map={data.maintenance.byStatus} />
-              </Card>
-              <Card>
-                <div className="mb-2 flex items-center justify-between">
+              </div>
+              <div>
+                <div className="mb-2 flex items-center justify-between border-b border-slate-200 pb-1.5">
                   <div className="flex items-center gap-2">
                     <Icon name="broom" size={16} className="text-ink-400" />
                     <h3 className="text-sm font-semibold text-ink-900">Cleaning by status</h3>
                   </div>
-                  <Link to="/staff/cleaning" className="btn-secondary btn-sm">Open <Icon name="chevronRight" size={13} /></Link>
+                  <Link to="/staff/cleaning" className="inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:text-brand-700">Open <Icon name="chevronRight" size={13} /></Link>
                 </div>
                 <StatusBreakdown map={data.cleaning.byStatus} />
-              </Card>
+              </div>
             </div>
           </Section>
         </>

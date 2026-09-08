@@ -11,7 +11,7 @@ function Tabs({ tab, setTab }: { tab: 'active' | 'completed'; setTab: (t: 'activ
           key={t}
           onClick={() => setTab(t)}
           className={`rounded-md px-3 py-1.5 text-xs font-medium capitalize transition-colors ${
-            tab === t ? 'bg-brand-500 text-white' : 'text-ink-600 hover:bg-slate-50'
+            tab === t ? 'bg-brand-600 text-white' : 'text-ink-600 hover:bg-slate-50'
           }`}
         >
           {t}
@@ -82,7 +82,7 @@ export default function StaffCleaning() {
         actions={<Tabs tab={tab} setTab={setTab} />}
       />
 
-      <div className="space-y-2.5">
+      <div>
       {data?.length === 0 && (
         <EmptyState
           icon={tab === 'active' ? 'broom' : 'check'}
@@ -91,14 +91,14 @@ export default function StaffCleaning() {
         />
       )}
       {data?.map((t) => (
-        <div key={t.id} className="card">
+        <div key={t.id} className="row">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
-              <p className="font-semibold">{t.title}</p>
-              <p className="text-xs text-slate-400">
+              <p className="text-sm font-semibold text-ink-900">{t.title}</p>
+              <p className="text-xs text-ink-500">
                 {t.property.name}{t.room ? ` / ${t.room.name}` : ''} — {t.property.addressLine1}, {t.property.city}
               </p>
-              <p className="text-xs text-slate-400">{t.frequency} · scheduled {date(t.scheduledFor)}</p>
+              <p className="text-xs text-ink-500">{t.frequency} · scheduled {date(t.scheduledFor)}</p>
             </div>
             <div className="flex items-center gap-2">
               <Badge>{t.priority}</Badge>
@@ -106,23 +106,23 @@ export default function StaffCleaning() {
             </div>
           </div>
 
-          <button className="mt-2 text-sm text-brand-600" onClick={() => setExpand(expand === t.id ? null : t.id)}>
+          <button className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-600 hover:text-brand-700" onClick={() => setExpand(expand === t.id ? null : t.id)}>
             {expand === t.id ? 'Hide' : 'Open task'}
           </button>
 
           {expand === t.id && (
-            <div className="mt-3 space-y-3 rounded bg-slate-50 p-3 text-sm">
-              {t.description && <p className="text-slate-600">{t.description}</p>}
+            <div className="mt-3 space-y-3 border-l-2 border-slate-200 py-1 pl-4 text-sm">
+              {t.description && <p className="text-ink-600">{t.description}</p>}
               <div className="flex flex-wrap gap-2">
                 {t.photos.map((p) => (
-                  <a key={p.id} href={`/uploads/${p.path}`} target="_blank" rel="noreferrer" className="badge bg-white text-slate-500">{p.kind}</a>
+                  <a key={p.id} href={`/uploads/${p.path}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-0.5 text-2xs font-medium text-ink-600 hover:border-brand-400">{p.kind}</a>
                 ))}
-                {t.photos.length === 0 && <span className="text-xs text-slate-400">No photos yet</span>}
+                {t.photos.length === 0 && <span className="text-xs text-ink-400">No photos yet</span>}
               </div>
               {t.status !== 'COMPLETED' && (
                 <>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs text-slate-400">Update status:</span>
+                    <span className="text-xs text-ink-400">Update status:</span>
                     {(NEXT_STATUS[t.status] ?? []).map((s) => (
                       <button key={s} className="btn-ghost" onClick={() => setStatus.mutate({ id: t.id, status: s })} disabled={setStatus.isPending}>
                         {s.replaceAll('_', ' ')}

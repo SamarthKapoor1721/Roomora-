@@ -76,12 +76,12 @@ export default function OwnerCleaning() {
         </div>
       )}
 
-      <div className="space-y-2.5">
+      <div>
       {data?.length === 0 && (
         <EmptyState icon="broom" title="No cleaning tasks" hint="Create a task to schedule a clean and assign it to staff." />
       )}
       {data?.map((t) => (
-        <div key={t.id} className="card flex flex-wrap items-center justify-between gap-4">
+        <div key={t.id} className="row flex flex-wrap items-center justify-between gap-4">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-ink-900">{t.title}</p>
             <p className="text-xs text-ink-500">
@@ -97,7 +97,7 @@ export default function OwnerCleaning() {
                   href={`/uploads/${p.path}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-0.5 text-2xs font-medium text-ink-600 hover:border-brand-300"
+                  className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-0.5 text-2xs font-medium text-ink-600 hover:border-brand-400"
                 >
                   <Icon name="camera" size={11} />
                   {p.kind}
@@ -174,7 +174,7 @@ function CleaningForm({
   });
   return (
     <form
-      className="card space-y-3"
+      className="space-y-3 border-l-2 border-brand-200 py-1 pl-4"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit({ ...f, scheduledFor: new Date(f.scheduledFor).toISOString() });

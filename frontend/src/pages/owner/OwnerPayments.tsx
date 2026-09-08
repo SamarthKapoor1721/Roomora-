@@ -89,7 +89,7 @@ export default function OwnerPayments() {
       ) : (
         <>
           <Section title="This view">
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-x-8 gap-y-6 sm:grid-cols-3">
               <MetricCard label="Billed" value={money(data.summary.billed)} icon="wallet" />
               <MetricCard label="Collected" value={money(data.summary.collected)} tone="positive" icon="check" />
               <MetricCard
@@ -110,7 +110,7 @@ export default function OwnerPayments() {
                     key={f}
                     onClick={() => setStatus(f)}
                     className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                      status === f ? 'bg-brand-500 text-white' : 'bg-white text-ink-600 ring-1 ring-slate-200 hover:bg-slate-50'
+                      status === f ? 'bg-brand-600 text-white' : 'text-ink-600 hover:bg-slate-100'
                     }`}
                   >
                     {f || 'All'}

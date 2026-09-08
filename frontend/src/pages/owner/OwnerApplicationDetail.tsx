@@ -91,7 +91,7 @@ export default function OwnerApplicationDetail() {
             <ReadField label="Food opt-in" value={data.foodOptIn ? 'Yes' : 'No'} />
           </div>
           {data.notes && (
-            <p className="mt-4 rounded-lg bg-slate-50 p-3 text-sm text-ink-600">{data.notes}</p>
+            <p className="mt-4 border-l-2 border-slate-200 py-1 pl-3 text-sm text-ink-600">{data.notes}</p>
           )}
         </Card>
       </Section>
@@ -126,9 +126,9 @@ export default function OwnerApplicationDetail() {
       </Section>
 
       <Section title="AI screening" description="Advisory only — these results never approve or reject anyone.">
-        <div className="grid gap-4 lg:grid-cols-2">
-          <Card>
-            <div className="mb-3 flex items-center justify-between">
+        <div className="grid gap-x-10 gap-y-6 lg:grid-cols-2">
+          <div>
+            <div className="mb-3 flex items-center justify-between border-b border-slate-200 pb-1.5">
               <h3 className="text-sm font-semibold text-ink-900">Eligibility</h3>
               {elig && <AiSourceTag source={elig.source} />}
             </div>
@@ -147,10 +147,10 @@ export default function OwnerApplicationDetail() {
                 <List title="Missing requirements" items={elig.missingRequirements} tone="text-rose-600" />
               </>
             )}
-          </Card>
+          </div>
 
-          <Card>
-            <div className="mb-3 flex items-center justify-between">
+          <div>
+            <div className="mb-3 flex items-center justify-between border-b border-slate-200 pb-1.5">
               <h3 className="text-sm font-semibold text-ink-900">Document verification</h3>
               {docv && <AiSourceTag source={docv.source} />}
             </div>
@@ -167,21 +167,21 @@ export default function OwnerApplicationDetail() {
                 {docv.notes && <p className="mt-3 text-xs text-ink-500">{docv.notes}</p>}
               </>
             )}
-          </Card>
+          </div>
         </div>
 
         {summary && (
-          <Card className="mt-4">
-            <div className="mb-2 flex items-center justify-between">
+          <div className="mt-8">
+            <div className="mb-2 flex items-center justify-between border-b border-slate-200 pb-1.5">
               <h3 className="text-sm font-semibold text-ink-900">Summary</h3>
               <AiSourceTag source={summary.source} />
             </div>
             <p className="text-sm text-ink-700">{summary.summary}</p>
-            <div className="mt-3 grid gap-4 md:grid-cols-2">
+            <div className="mt-3 grid gap-x-10 gap-y-4 md:grid-cols-2">
               <List title="Highlights" items={summary.highlights} tone="text-emerald-600" />
               <List title="Concerns" items={summary.concerns} tone="text-amber-600" />
             </div>
-          </Card>
+          </div>
         )}
       </Section>
 
