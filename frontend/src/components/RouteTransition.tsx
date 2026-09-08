@@ -58,12 +58,12 @@ export function RouteTransition({ nav }: { nav: NavLookup }) {
       aria-hidden="true"
       className="pointer-events-none fixed inset-0 z-[70] flex items-center justify-center"
     >
-      <span className="route-halo absolute left-1/2 top-1/2 h-40 w-40 rounded-full bg-brand-500/25" />
-      <span className="route-icon absolute left-1/2 top-1/2 flex flex-col items-center gap-2 text-brand-600">
-        <span className="flex h-24 w-24 items-center justify-center rounded-2xl bg-white shadow-pop ring-1 ring-brand-500/20">
-          <Icon name={burst.icon} size={44} strokeWidth={1.75} />
+      <span className="route-halo absolute left-1/2 top-1/2 h-32 w-32 rounded-full bg-brand-500/25" />
+      <span className="route-icon absolute left-1/2 top-1/2 flex flex-col items-center gap-1.5 text-brand-600">
+        <span className="flex h-16 w-16 items-center justify-center rounded-xl bg-white shadow-pop ring-1 ring-brand-500/20">
+          <Icon name={burst.icon} size={30} strokeWidth={1.75} />
         </span>
-        <span className="rounded-full bg-white/90 px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-ink-600 shadow-sm">
+        <span className="rounded-full bg-white/90 px-2 py-0.5 text-[0.65rem] font-semibold uppercase tracking-wide text-ink-600 shadow-sm">
           {burst.label}
         </span>
       </span>
