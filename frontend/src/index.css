@@ -38,17 +38,49 @@
 }
 
 @layer components {
-  /* ---- buttons: three clear tiers ---- */
+  /* ---- buttons: three clear tiers ---- *
+   * Every tier springs slightly on press and lifts a hair on hover. The
+   * transition covers transform + colors + shadow; keep individual tiers to
+   * colour/border only so the motion stays consistent. */
   .btn {
-    @apply inline-flex items-center justify-center gap-1.5 rounded-lg text-sm font-medium
-           transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply relative inline-flex select-none items-center justify-center gap-1.5
+           overflow-hidden rounded-lg text-sm font-medium
+           transition-[transform,background-color,border-color,box-shadow,color] duration-150
+           ease-[cubic-bezier(0.34,1.56,0.64,1)]
+           hover:-translate-y-px active:translate-y-0 active:scale-[0.97]
+           disabled:cursor-not-allowed disabled:opacity-50
+           disabled:hover:translate-y-0 disabled:active:scale-100;
   }
   .btn-md {
     @apply h-9 px-3.5;
   }
   .btn-sm {
-    @apply inline-flex h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-xs font-medium
-           transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply relative inline-flex h-8 select-none items-center justify-center gap-1.5
+           overflow-hidden rounded-lg px-3 text-xs font-medium
+           transition-[transform,background-color,border-color,box-shadow,color] duration-150
+           ease-[cubic-bezier(0.34,1.56,0.64,1)]
+           hover:-translate-y-px active:translate-y-0 active:scale-[0.96]
+           disabled:cursor-not-allowed disabled:opacity-50
+           disabled:hover:translate-y-0 disabled:active:scale-100;
+  }
+
+  /* Click ripple — a span injected by useRipple() (see lib/ripple.ts). Sits
+     above the button background but below its label (which the .btn children
+     get via position/z-index from normal flow). */
+  .ripple {
+    position: absolute;
+    border-radius: 9999px;
+    transform: scale(0);
+    opacity: 0.45;
+    background: currentColor;
+    pointer-events: none;
+    animation: ripple-expand 560ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  }
+  @keyframes ripple-expand {
+    to {
+      transform: scale(2.6);
+      opacity: 0;
+    }
   }
   .btn-primary {
     @apply btn btn-md bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-700;
@@ -151,4 +183,90 @@
   animation-timing-function: linear;
   animation-iteration-count: infinite;
   will-change: transform;
+}
+
+/* ---- route transition (see RouteTransition.tsx) ---- *
+ * On a feature switch, the destination's nav icon zooms up from the middle
+ * of the screen while the incoming page content fades + slides in. */
+@keyframes route-icon {
+  0% {
+    transform: translate(-50%, -50%) scale(0.4) rotate(-12deg);
+    opacity: 0;
+  }
+  35% {
+    transform: translate(-50%, -50%) scale(1.15) rotate(0deg);
+    opacity: 1;
+  }
+  70% {
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.4) rotate(0deg);
+    opacity: 0;
+  }
+}
+@keyframes route-halo {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.8);
+    opacity: 0;
+  }
+}
+@keyframes route-page-in {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.route-icon {
+  animation: route-icon 620ms cubic-bezier(0.34, 1.4, 0.5, 1) forwards;
+  will-change: transform, opacity;
+}
+.route-halo {
+  animation: route-halo 620ms cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+.route-page-in {
+  animation: route-page-in 380ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+/* the active nav icon gives a little bounce when its tab becomes current */
+@keyframes nav-pop {
+  0% {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.nav-pop {
+  animation: nav-pop 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ripple,
+  .route-icon,
+  .route-halo,
+  .route-page-in,
+  .nav-pop {
+    animation: none !important;
+  }
+  .route-icon,
+  .route-halo {
+    display: none !important;
+  }
 }

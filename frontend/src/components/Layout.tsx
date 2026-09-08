@@ -1,11 +1,13 @@
-import { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useMemo, useState } from 'react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
+import { useGlobalRipple } from '../lib/ripple';
 import { Icon, type IconName } from './Icon';
 import AssistantWidget from './AssistantWidget';
 import GutterDecor from './GutterDecor';
+import { RouteTransition } from './RouteTransition';
 
 type NavItem = { to: string; label: string; icon: IconName; end?: boolean };
 
@@ -38,8 +40,23 @@ const NAV: Record<string, NavItem[]> = {
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileNav, setMobileNav] = useState(false);
   const items = user ? NAV[user.role] : [];
+
+  useGlobalRipple();
+
+  // path "feature" -> { icon, label } for the route-switch flourish, e.g.
+  // "owner/leases" and the bare "owner" (dashboard).
+  const navLookup = useMemo(() => {
+    const map: Record<string, { icon: IconName; label: string }> = {};
+    for (const n of items) {
+      map[n.to.replace(/^\/+/, '')] = { icon: n.icon, label: n.label };
+    }
+    return map;
+  }, [items]);
+
+  const featureKey = location.pathname.replace(/^\/+/, '').split('/').slice(0, 2).join('/');
 
   const { data: unread } = useQuery({
     queryKey: ['notifications', 'unread'],
@@ -61,8 +78,12 @@ export default function Layout() {
   ];
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-      isActive ? 'bg-brand-600 text-white' : 'text-ink-700 hover:bg-brand-50 hover:text-brand-700'
+    `flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium
+     transition-[transform,background-color,color] duration-150 ease-[cubic-bezier(0.34,1.56,0.64,1)]
+     active:scale-95 ${
+      isActive
+        ? 'bg-brand-600 text-white shadow-sm'
+        : 'text-ink-700 hover:-translate-y-px hover:bg-brand-50 hover:text-brand-700'
     }`;
 
   return (
@@ -138,7 +159,12 @@ export default function Layout() {
               <NavLink key={n.to} to={n.to} end={n.end} className={navLinkClass}>
                 {({ isActive }) => (
                   <>
-                    <Icon name={n.icon} size={16} className={isActive ? '' : 'text-ink-400'} />
+                    <Icon
+                      key={String(isActive)}
+                      name={n.icon}
+                      size={16}
+                      className={isActive ? 'nav-pop' : 'text-ink-400'}
+                    />
                     {n.label}
                   </>
                 )}
@@ -177,9 +203,12 @@ export default function Layout() {
       </header>
 
       <GutterDecor />
+      <RouteTransition nav={navLookup} />
 
       <main className="relative z-10 mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-        <Outlet />
+        <div key={featureKey} className="route-page-in">
+          <Outlet />
+        </div>
       </main>
 
       {user?.role === 'OWNER' && <AssistantWidget />}
