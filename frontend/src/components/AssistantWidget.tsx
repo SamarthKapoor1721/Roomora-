@@ -56,7 +56,7 @@ export default function AssistantWidget() {
         className="fixed bottom-5 right-5 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-brand-600 text-white shadow-pop transition-transform hover:scale-105 active:scale-95"
         aria-label={open ? 'Close assistant' : 'Open assistant'}
       >
-        <Icon name={open ? 'x' : 'sparkles'} size={20} />
+        <Icon name={open ? 'x' : 'bot'} size={22} />
       </button>
 
       {/* panel */}
@@ -64,7 +64,7 @@ export default function AssistantWidget() {
         <div className="fixed bottom-20 right-5 z-50 flex h-[30rem] w-[22rem] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-pop">
           {/* header */}
           <div className="flex items-center gap-2 border-b border-slate-200 bg-brand-600 px-4 py-3 text-white">
-            <Icon name="sparkles" size={16} />
+            <Icon name="bot" size={18} />
             <div className="min-w-0">
               <p className="text-sm font-semibold leading-tight">Roomora assistant</p>
               <p className="text-2xs text-brand-100">Answers from your live data</p>

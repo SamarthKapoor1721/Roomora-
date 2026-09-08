@@ -42,7 +42,7 @@ def _clamp_int(v, lo=0, hi=100, default=50) -> int:
 async def eligibility(req: EligibilityRequest) -> EligibilityResponse:
     user = json.dumps(req.model_dump(), default=str)
     try:
-        data = await chat_json(prompts.ELIGIBILITY_SYSTEM, user)
+        data = await chat_json(prompts.ELIGIBILITY_SYSTEM, user, budget="blocking")
         reco = str(data.get("recommendation", "REVIEW")).upper()
         return EligibilityResponse(
             source="NVIDIA_AI",
@@ -63,7 +63,7 @@ async def eligibility(req: EligibilityRequest) -> EligibilityResponse:
 async def verify_documents(req: DocVerificationRequest) -> DocVerificationResponse:
     user = json.dumps(req.model_dump(), default=str)
     try:
-        data = await chat_json(prompts.DOC_VERIFY_SYSTEM, user)
+        data = await chat_json(prompts.DOC_VERIFY_SYSTEM, user, budget="blocking")
         status = str(data.get("overallStatus", "PENDING")).upper()
         return DocVerificationResponse(
             source="NVIDIA_AI",
@@ -84,7 +84,7 @@ async def verify_documents(req: DocVerificationRequest) -> DocVerificationRespon
 async def summarize_application(payload: dict) -> SummaryResponse:
     user = json.dumps(payload, default=str)
     try:
-        data = await chat_json(prompts.APP_SUMMARY_SYSTEM, user)
+        data = await chat_json(prompts.APP_SUMMARY_SYSTEM, user, budget="interactive")
         return SummaryResponse(
             source="NVIDIA_AI",
             summary=str(data.get("summary", "")).strip() or "No summary produced.",
@@ -100,7 +100,7 @@ async def summarize_application(payload: dict) -> SummaryResponse:
 async def summarize_lease(payload: dict) -> LeaseSummaryResponse:
     user = json.dumps(payload, default=str)
     try:
-        data = await chat_json(prompts.LEASE_SUMMARY_SYSTEM, user)
+        data = await chat_json(prompts.LEASE_SUMMARY_SYSTEM, user, budget="interactive")
         return LeaseSummaryResponse(
             source="NVIDIA_AI",
             summary=str(data.get("summary", "")).strip() or "No summary produced.",
@@ -116,7 +116,7 @@ async def summarize_lease(payload: dict) -> LeaseSummaryResponse:
 async def classify_maintenance(req: MaintenanceClassifyRequest) -> MaintenanceClassifyResponse:
     user = json.dumps(req.model_dump(), default=str)
     try:
-        data = await chat_json(prompts.MAINTENANCE_SYSTEM, user)
+        data = await chat_json(prompts.MAINTENANCE_SYSTEM, user, budget="blocking")
         prio = str(data.get("priority", "MEDIUM")).upper()
         return MaintenanceClassifyResponse(
             source="NVIDIA_AI",
@@ -135,7 +135,7 @@ async def assistant(req: AssistantRequest) -> AssistantResponse:
     payload = {"question": req.question, "context": req.context, "history": req.history[-6:]}
     user = json.dumps(payload, default=str)
     try:
-        data = await chat_json(prompts.ASSISTANT_SYSTEM, user, temperature=0.1, max_tokens=1100)
+        data = await chat_json(prompts.ASSISTANT_SYSTEM, user, budget="interactive", temperature=0.2, max_tokens=1600)
         answer = str(data.get("answer", "")).strip()
         if not answer:
             raise NvidiaUnavailable("empty answer")
@@ -151,7 +151,7 @@ async def assistant(req: AssistantRequest) -> AssistantResponse:
 async def insights(req: InsightsRequest) -> InsightsResponse:
     user = json.dumps(req.model_dump(), default=str)
     try:
-        data = await chat_json(prompts.INSIGHTS_SYSTEM, user)
+        data = await chat_json(prompts.INSIGHTS_SYSTEM, user, budget="interactive")
         return InsightsResponse(
             source="NVIDIA_AI",
             insights=[str(x) for x in data.get("insights", [])][:12],
