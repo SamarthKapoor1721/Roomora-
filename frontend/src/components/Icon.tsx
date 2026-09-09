@@ -74,9 +74,7 @@ export function Icon({ name, size = 18, className = '', ...rest }: IconProps) {
       className={className}
       {...rest}
     >
-      {d.split('M').filter(Boolean).map((seg, i) => (
-        <path key={i} d={`M${seg}`} />
-      ))}
+      <path d={d} />
     </svg>
   );
 }
