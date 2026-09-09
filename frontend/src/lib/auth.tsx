@@ -27,15 +27,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     if (!tokenStore.access) {
       setLoading(false);
       return;
     }
     api
       .get('/auth/me')
-      .then((res) => setUser(res.data.data))
-      .catch(() => tokenStore.clear())
-      .finally(() => setLoading(false));
+      .then((res) => {
+        if (!cancelled) setUser(res.data.data);
+      })
+      .catch(() => {
+        tokenStore.clear();
+        if (!cancelled) setUser(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {

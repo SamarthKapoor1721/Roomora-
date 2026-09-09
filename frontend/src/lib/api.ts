@@ -20,7 +20,7 @@ export const tokenStore = {
   },
 };
 
-export const api = axios.create({ baseURL: '/api/v1' });
+export const api = axios.create({ baseURL: '/api/v1', timeout: 20_000 });
 
 api.interceptors.request.use((config) => {
   const t = tokenStore.access;
@@ -30,32 +30,48 @@ api.interceptors.request.use((config) => {
 
 let refreshing: Promise<string> | null = null;
 
+/** Endpoints that must never trigger the refresh-and-retry dance. */
+function isAuthRoute(url?: string) {
+  return !!url && /\/auth\/(login|register|refresh|logout)/.test(url);
+}
+
 api.interceptors.response.use(
   (r) => r,
   async (error: AxiosError) => {
-    const original = error.config as typeof error.config & { _retry?: boolean };
-    if (error.response?.status === 401 && !original._retry && tokenStore.refresh) {
-      original._retry = true;
-      try {
-        refreshing ??= api
-          .post('/auth/refresh', { refreshToken: tokenStore.refresh })
-          .then((res) => {
-            const { accessToken, refreshToken } = res.data.data;
-            tokenStore.set(accessToken, refreshToken);
-            return accessToken as string;
-          })
-          .finally(() => {
-            refreshing = null;
-          });
-        const newToken = await refreshing;
-        original.headers!.Authorization = `Bearer ${newToken}`;
-        return api(original);
-      } catch {
-        tokenStore.clear();
-        window.location.href = '/login';
-      }
+    const original = error.config as (typeof error.config & { _retry?: boolean }) | undefined;
+
+    const canRetry =
+      error.response?.status === 401 &&
+      original &&
+      !original._retry &&
+      !isAuthRoute(original.url) &&
+      !!tokenStore.refresh;
+
+    if (!canRetry) return Promise.reject(error);
+
+    original!._retry = true;
+    try {
+      refreshing ??= api
+        .post('/auth/refresh', { refreshToken: tokenStore.refresh })
+        .then((res) => {
+          const { accessToken, refreshToken } = res.data.data;
+          tokenStore.set(accessToken, refreshToken);
+          return accessToken as string;
+        })
+        .finally(() => {
+          refreshing = null;
+        });
+      const newToken = await refreshing;
+      original!.headers!.Authorization = `Bearer ${newToken}`;
+      return api(original!);
+    } catch {
+      // Refresh failed — the session is dead. Clear it and reject so callers
+      // (e.g. AuthProvider) settle immediately; route guards send the user to
+      // /login. Do NOT touch window.location here: navigating from inside a
+      // rejected promise can strand pending microtasks and hang the app.
+      tokenStore.clear();
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
   },
 );
 
