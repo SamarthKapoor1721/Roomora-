@@ -136,7 +136,7 @@ export default function Layout() {
 
         {/* row 2: horizontal nav (desktop) */}
         <nav className="hidden border-t border-slate-100 md:block">
-          <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-3 py-1.5 sm:px-5 lg:px-7">
+          <div className="mx-auto flex max-w-6xl gap-2.5 overflow-x-auto px-3 py-1.5 sm:px-5 lg:px-7">
             {items.map((n) => (
               <NavLink key={n.to} to={n.to} end={n.end} className={navLinkClass}>
                 {({ isActive }) => (
