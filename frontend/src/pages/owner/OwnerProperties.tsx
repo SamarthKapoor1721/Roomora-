@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
@@ -14,6 +14,7 @@ import {
   money,
 } from '../../components/ui';
 import { useApiMutation } from '../../lib/hooks';
+import OccupantsPanel from './OccupantsPanel';
 
 interface Property {
   id: string;
@@ -47,6 +48,7 @@ interface Room {
   foodEnabled: boolean;
   foodCharge: string;
   images?: Img[];
+  property?: { id: string; name: string };
 }
 
 export default function OwnerProperties() {
@@ -65,6 +67,15 @@ export default function OwnerProperties() {
     queryFn: async () => (await api.get(`/owner/rooms?propertyId=${selected}`)).data.data as Room[],
     enabled: !!selected,
   });
+
+  // Every room across the portfolio, for the "shift to another room" target
+  // picker in OccupantsPanel — a move can land in a different property.
+  const allRooms = useQuery({
+    queryKey: ['owner', 'rooms', 'all'],
+    queryFn: async () => (await api.get('/owner/rooms?pageSize=100')).data.data as Room[],
+  });
+
+  const [expandedRoom, setExpandedRoom] = useState<string | null>(null);
 
   const toggleApps = useApiMutation<{ id: string; open: boolean }>(
     'post',
@@ -231,11 +242,13 @@ export default function OwnerProperties() {
                     <th className="th">Status</th>
                     <th className="th">Applications</th>
                     <th className="th" />
+                    <th className="th" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {rooms.data?.map((r) => (
-                    <tr key={r.id} className="hover:bg-slate-50/70">
+                    <Fragment key={r.id}>
+                    <tr className="hover:bg-slate-50/70">
                       <td className="td font-medium text-ink-900">
                         <div className="flex items-center gap-2">
                           {r.images && r.images.length > 0 ? (
@@ -281,6 +294,16 @@ export default function OwnerProperties() {
                           {r.applicationsOpen ? 'Open · close' : 'Closed · open'}
                         </button>
                       </td>
+                      <td className="td">
+                        <button
+                          className="btn-ghost btn-sm"
+                          onClick={() => setExpandedRoom(expandedRoom === r.id ? null : r.id)}
+                        >
+                          <Icon name="users" size={13} />
+                          Occupants
+                          <Icon name={expandedRoom === r.id ? 'chevronUp' : 'chevronDown'} size={12} />
+                        </button>
+                      </td>
                       <td className="td text-right">
                         <button
                           className="btn-ghost btn-sm text-rose-600"
@@ -291,6 +314,20 @@ export default function OwnerProperties() {
                         </button>
                       </td>
                     </tr>
+                    {expandedRoom === r.id && (
+                      <tr>
+                        <td colSpan={8} className="bg-slate-50/60 px-4 py-4">
+                          <OccupantsPanel
+                            room={{
+                              ...r,
+                              property: r.property ?? { id: selected!, name: props.data?.find((p) => p.id === selected)?.name ?? '' },
+                            }}
+                            allRooms={(allRooms.data ?? []).filter((x): x is Room & { property: { id: string; name: string } } => !!x.property)}
+                          />
+                        </td>
+                      </tr>
+                    )}
+                    </Fragment>
                   ))}
                 </tbody>
               </table>
