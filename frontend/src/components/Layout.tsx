@@ -7,6 +7,7 @@ import { useGlobalRipple } from '../lib/ripple';
 import { Icon, type IconName } from './Icon';
 import AssistantWidget from './AssistantWidget';
 import GutterDecor from './GutterDecor';
+import NavbarAccent from './NavbarAccent';
 import { RouteTransition } from './RouteTransition';
 
 type NavItem = { to: string; label: string; icon: IconName; end?: boolean };
@@ -82,9 +83,11 @@ export default function Layout() {
   return (
     <div className="min-h-screen">
       {/* ── Top navbar ─────────────────────────────────────────── */}
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white">
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white relative">
         {/* row 1: brand + account */}
-        <div className="mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:px-6 lg:px-8">
+        <NavbarAccent side="left" icon="building" />
+        <NavbarAccent side="right" icon="key" />
+        <div className="relative mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-500 text-sm font-bold text-white">
               R
