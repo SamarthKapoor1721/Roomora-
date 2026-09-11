@@ -140,9 +140,9 @@ function ApplyModal({ room, onClose, onApplied }: { room: Room; onClose: () => v
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" role="dialog" aria-modal="true">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/20 p-4 backdrop-blur-[2px]" role="dialog" aria-modal="true">
       <form
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white shadow-pop"
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-pop"
         onSubmit={(e) => {
           e.preventDefault();
           m.mutate();
