@@ -30,12 +30,12 @@ export function ConfirmDialog({
   if (!open) return null;
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/20 p-4 backdrop-blur-[2px]"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-white/60 p-4 backdrop-blur-md"
       role="dialog"
       aria-modal="true"
       onClick={onCancel}
     >
-      <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white shadow-pop" onClick={(e) => e.stopPropagation()}>
+      <div className="w-full max-w-sm rounded-xl border border-slate-200 bg-white" onClick={(e) => e.stopPropagation()}>
         <div className="p-5">
           <div className="flex items-start gap-3">
             <span
