@@ -42,10 +42,10 @@ export default function Login() {
       {/* left: brand panel */}
       <div className="hidden flex-col justify-between bg-brand-700 p-10 text-white lg:flex">
         <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-500 text-base font-bold text-white">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500 text-base font-bold text-white">
             R
           </span>
-          <span className="font-display text-base font-semibold">Roomora</span>
+          <span className="font-wordmark text-2xl font-bold tracking-tight">Roomora</span>
         </div>
         <div>
           <h1 className="font-display text-3xl font-semibold leading-tight">
@@ -75,10 +75,10 @@ export default function Login() {
       <div className="flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
           <div className="mb-6 flex items-center gap-2 lg:hidden">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-500 text-sm font-bold text-white">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500 text-sm font-bold text-white">
               R
             </span>
-            <span className="font-display text-lg font-semibold text-ink-900">Roomora</span>
+            <span className="font-wordmark text-xl font-bold tracking-tight text-ink-900">Roomora</span>
           </div>
           <h2 className="font-display text-xl font-semibold text-ink-900">Sign in</h2>
           <p className="mt-1 text-sm text-ink-500">Use a demo account below, or your own credentials.</p>

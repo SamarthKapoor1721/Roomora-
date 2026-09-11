@@ -36,10 +36,10 @@ export default function Register() {
     <div className="flex min-h-screen items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center text-center">
-          <span className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg bg-brand-500 text-base font-bold text-white">
+          <span className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500 text-base font-bold text-white">
             R
           </span>
-          <span className="font-display text-lg font-semibold text-ink-900">Roomora</span>
+          <span className="font-wordmark text-2xl font-bold tracking-tight text-ink-900">Roomora</span>
           <p className="mt-1 text-sm text-ink-500">Create your account</p>
         </div>
         <form onSubmit={submit} className="card card-pad space-y-4">
