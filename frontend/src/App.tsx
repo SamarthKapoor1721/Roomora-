@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
 import { Spinner } from './components/ui';
 import { useAuth, type Role } from './lib/auth';
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import OwnerDashboard from './pages/owner/OwnerDashboard';
@@ -35,13 +36,14 @@ function Protected({ roles, children }: { roles: Role[]; children: JSX.Element }
 function HomeRedirect() {
   const { user, loading } = useAuth();
   if (loading) return <Spinner />;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/welcome" replace />;
   return <Navigate to={`/${user.role.toLowerCase()}`} replace />;
 }
 
 export default function App() {
   return (
     <Routes>
+      <Route path="/welcome" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/" element={<HomeRedirect />} />
