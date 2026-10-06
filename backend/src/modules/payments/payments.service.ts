@@ -4,6 +4,10 @@ import { notify } from '../../lib/notify';
 import { parsePage } from '../../lib/pagination';
 import { prisma } from '../../lib/prisma';
 
+function roundMoney(amount: number): number {
+  return Math.round((amount + Number.EPSILON) * 100) / 100;
+}
+
 function daysBetween(a: Date, b: Date): number {
   return Math.floor((a.getTime() - b.getTime()) / 86_400_000);
 }
@@ -18,7 +22,7 @@ export function derivePaymentState(p: {
 }): { status: Prisma.PaymentUpdateInput['status']; daysLate: number } {
   if (p.status === 'WAIVED') return { status: 'WAIVED', daysLate: 0 };
   const now = new Date();
-  if (p.amountPaid >= p.totalAmount && p.totalAmount > 0) {
+  if (roundMoney(p.amountPaid) >= roundMoney(p.totalAmount) && p.totalAmount > 0) {
     const ref = p.paidDate ?? now;
     return { status: 'PAID', daysLate: Math.max(0, daysBetween(ref, p.dueDate)) };
   }
@@ -72,7 +76,7 @@ export const paymentsService = {
         rentAmount: rent,
         foodAmount: food,
         otherAmount: 0,
-        totalAmount: rent + food,
+        totalAmount: roundMoney(rent + food),
         dueDate,
         status: 'PENDING',
       },
@@ -104,7 +108,7 @@ export const paymentsService = {
     if (payment.status === 'WAIVED') throw conflict('Payment is waived');
     if (input.amount <= 0) throw badRequest('Amount must be positive');
 
-    const newPaid = Number(payment.amountPaid) + input.amount;
+    const newPaid = roundMoney(Number(payment.amountPaid) + input.amount);
     const paidDate = input.paidDate ?? new Date();
     const state = derivePaymentState({
       totalAmount: Number(payment.totalAmount),
@@ -145,7 +149,7 @@ export const paymentsService = {
   ) {
     const payment = await ownerPaymentOrThrow(ownerId, id);
     const other = input.otherAmount ?? Number(payment.otherAmount);
-    const total = Number(payment.rentAmount) + Number(payment.foodAmount) + other;
+    const total = roundMoney(Number(payment.rentAmount) + Number(payment.foodAmount) + other);
     let data: Prisma.PaymentUpdateInput = {
       otherAmount: other,
       totalAmount: total,
@@ -241,7 +245,7 @@ export const paymentsService = {
     }
     if (input.amount <= 0) throw badRequest('Amount must be positive');
 
-    const newPaid = Number(payment.amountPaid) + input.amount;
+    const newPaid = roundMoney(Number(payment.amountPaid) + input.amount);
     const paidDate = new Date();
     const state = derivePaymentState({
       totalAmount: Number(payment.totalAmount),

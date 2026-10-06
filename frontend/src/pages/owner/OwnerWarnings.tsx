@@ -48,7 +48,7 @@ export default function OwnerWarnings() {
       {scan.data && (
         <p className="mb-4 flex items-center gap-1.5 text-sm text-emerald-600">
           <Icon name="check" size={15} />
-          Scan complete — {scan.data.created} new warning(s).
+          Scan complete: {scan.data.created} new warning(s).
         </p>
       )}
 

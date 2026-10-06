@@ -82,7 +82,7 @@ export default function AssistantWidget() {
             {messages.length === 0 && (
               <div className="space-y-2">
                 <p className="px-1 text-xs text-ink-500">
-                  Ask about your properties, tenants and rent — or try:
+                  Ask about your properties, tenants and rent: or try:
                 </p>
                 {SUGGESTIONS.map((s) => (
                   <button

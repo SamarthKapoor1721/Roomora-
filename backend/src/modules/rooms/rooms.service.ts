@@ -141,8 +141,8 @@ export const roomsService = {
     if (query.city) where.property = { ...where.property as object, city: { contains: query.city as string, mode: 'insensitive' } };
     if (query.minRent || query.maxRent) {
       where.monthlyRent = {};
-      if (query.minRent) (where.monthlyRent as Prisma.DecimalFilter).gte = query.minRent as number;
-      if (query.maxRent) (where.monthlyRent as Prisma.DecimalFilter).lte = query.maxRent as number;
+      if (query.minRent) (where.monthlyRent as Prisma.FloatFilter).gte = query.minRent as number;
+      if (query.maxRent) (where.monthlyRent as Prisma.FloatFilter).lte = query.maxRent as number;
     }
 
     const [rows, total] = await Promise.all([

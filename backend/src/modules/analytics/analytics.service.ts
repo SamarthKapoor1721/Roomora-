@@ -159,7 +159,7 @@ export async function tenantDashboard(tenantId: string) {
         orderBy: { dueDate: 'asc' },
       }),
       prisma.maintenanceRequest.groupBy({ by: ['status'], where: { tenantId }, _count: { _all: true } }),
-      prisma.notification.count({ where: { userId: tenantId, readAt: null } }),
+      prisma.notification.count({ where: { userId: tenantId, OR: [{ readAt: null }, { readAt: { isSet: false } }] } }),
       prisma.warning.count({ where: { tenantId, status: 'ACTIVE' } }),
     ]);
 

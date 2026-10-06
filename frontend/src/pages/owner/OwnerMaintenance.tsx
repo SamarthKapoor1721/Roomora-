@@ -53,7 +53,7 @@ export default function OwnerMaintenance() {
     <div>
       <PageHeader
         title="Maintenance"
-        description="Requests raised by tenants. AI suggests a category and priority — assign staff and track them through."
+        description="Requests raised by tenants. AI suggests a category and priority: assign staff and track them through."
         actions={
           <FilterSelect
             label="Status"

@@ -40,7 +40,7 @@ const PATHS: Record<string, string> = {
   send: 'M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z',
   key: 'm21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777Zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4',
   menu: 'M4 6h16M4 12h16M4 18h16',
-  // AI assistant — bot head with a sparkle (matches the Roomora assistant mark)
+  // AI assistant: bot head with a sparkle (matches the Roomora assistant mark)
   bot:
     'M12 2v3M7 6h7a3 3 0 0 1 3 3v3.5M6 18a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3M6 18h6M6 18a3 3 0 0 0 0 0M9 12h.01M13 12h.01M19 14l1.2 3.2L23.5 18l-3.3 1.2L19 22l-1.2-2.8L14.5 18l3.3-.8L19 14Z',
   // ── extra property-themed glyphs, used by the decorative gutters ──

@@ -36,7 +36,7 @@ const oneYearISO = () => new Date(Date.now() + 365 * 86_400_000).toISOString().s
 /**
  * Occupants of one room: current tenants with an end/shift action, and a
  * form to manually add someone (no application needed). Shifting = end the
- * assignment here, then assign the same tenant into a picked target room —
+ * assignment here, then assign the same tenant into a picked target room -
  * both calls run from one confirm so the owner does it in one step.
  */
 export default function OccupantsPanel({ room, allRooms }: { room: RoomBrief; allRooms: RoomBrief[] }) {
@@ -138,7 +138,7 @@ export default function OccupantsPanel({ room, allRooms }: { room: RoomBrief; al
           <ul className="mt-2 space-y-1.5">
             {past.map((a) => (
               <li key={a.id} className="text-xs text-ink-400">
-                {a.tenant.fullName} · {date(a.startDate)} → {a.endDate ? date(a.endDate) : '—'}
+                {a.tenant.fullName} · {date(a.startDate)} → {a.endDate ? date(a.endDate) : '-'}
               </li>
             ))}
           </ul>
@@ -223,7 +223,7 @@ function AddPersonForm({ room, onDone }: { room: RoomBrief; onDone: () => void }
     >
       {Boolean(assign.error) && <ErrorBanner message={apiErrorMessage(assign.error)} />}
 
-      <Field label="Tenant" hint="Search by name or email — only tenants already connected to your properties appear here.">
+      <Field label="Tenant" hint="Search by name or email: only tenants already connected to your properties appear here.">
         {tenantId ? (
           <div className="flex items-center justify-between rounded-lg border border-brand-300 bg-brand-50 px-3 py-2 text-sm">
             <span className="font-medium text-ink-900">{tenantLabel}</span>
@@ -383,7 +383,7 @@ function ShiftModal({
                 <select className="input" value={targetId} onChange={(e) => setTargetId(e.target.value)}>
                   {targets.map((r) => (
                     <option key={r.id} value={r.id}>
-                      {r.property.name} · {r.name} ({r.occupantCount}/{r.capacity}) — {money(r.monthlyRent)}/mo
+                      {r.property.name} · {r.name} ({r.occupantCount}/{r.capacity}): {money(r.monthlyRent)}/mo
                     </option>
                   ))}
                 </select>

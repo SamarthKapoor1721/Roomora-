@@ -199,7 +199,7 @@ export default function TenantApplicationDetail() {
       </Section>
 
       {(elig || docv) && (
-        <Section title="AI screening" description="Advisory only — the owner reviews these and makes the final decision.">
+        <Section title="AI screening" description="Advisory only: the owner reviews these and makes the final decision.">
           <Card className="space-y-4">
             {elig && (
               <div>
@@ -232,7 +232,7 @@ export default function TenantApplicationDetail() {
       {data.status === 'APPROVED' && data.assignment && (
         <div className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
           <Icon name="check" size={16} className="mt-0.5" />
-          Approved — you've been assigned to this room. See your dashboard for lease and rent details.
+          Approved: you've been assigned to this room. See your dashboard for lease and rent details.
         </div>
       )}
       {data.status === 'REJECTED' && (

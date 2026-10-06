@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Icon, type IconName } from './Icon';
 
 /* ------------------------------------------------------------------ *
- * Confirm dialog — for destructive actions (delete / deactivate)      *
+ * Confirm dialog: for destructive actions (delete / deactivate)      *
  * ------------------------------------------------------------------ */
 
 export function ConfirmDialog({
@@ -74,7 +74,7 @@ export function ConfirmDialog({
 }
 
 /* ------------------------------------------------------------------ *
- * Page scaffolding — gives every screen a clear header and sections   *
+ * Page scaffolding: gives every screen a clear header and sections   *
  * ------------------------------------------------------------------ */
 
 export function PageHeader({
@@ -159,7 +159,7 @@ export function Card({
 }
 
 /* ------------------------------------------------------------------ *
- * Metrics — a small number of prominent figures, with context        *
+ * Metrics: a small number of prominent figures, with context        *
  * ------------------------------------------------------------------ */
 
 type Tone = 'default' | 'positive' | 'warning' | 'critical';
@@ -177,7 +177,7 @@ const toneAccent: Record<Tone, string> = {
   critical: 'bg-rose-500',
 };
 
-/** Prominent headline metric — use 3–4 of these at the top of a dashboard. */
+/** Prominent headline metric: use 3–4 of these at the top of a dashboard. */
 export function MetricCard({
   label,
   value,
@@ -217,7 +217,7 @@ export function MetricCard({
   );
 }
 
-/** Compact secondary figure — for supporting breakdowns, not headlines. */
+/** Compact secondary figure: for supporting breakdowns, not headlines. */
 export function StatLine({ label, value, tone = 'default' }: { label: string; value: ReactNode; tone?: Tone }) {
   return (
     <div className="flex items-baseline justify-between border-b border-slate-100 py-2 last:border-0">
@@ -228,7 +228,7 @@ export function StatLine({ label, value, tone = 'default' }: { label: string; va
 }
 
 /* ------------------------------------------------------------------ *
- * Status — one solid, well-spaced pill per row. A tone dot inside a   *
+ * Status: one solid, well-spaced pill per row. A tone dot inside a   *
  * soft-tinted capsule with a matching hairline. Never all-caps.       *
  * ------------------------------------------------------------------ */
 
@@ -299,7 +299,7 @@ export function StatusPill({ value }: { value: string }) {
 }
 
 /**
- * A compact priority marker for the title area — a coloured triangle/flag
+ * A compact priority marker for the title area: a coloured triangle/flag
  * glyph + label, only shown when it's worth flagging (MEDIUM and up).
  */
 export function PriorityFlag({ value }: { value: string }) {
@@ -315,11 +315,11 @@ export function PriorityFlag({ value }: { value: string }) {
   );
 }
 
-/** Back-compat alias — prefer <StatusPill>. */
+/** Back-compat alias: prefer <StatusPill>. */
 export const Badge = ({ children }: { children: string }) => <StatusPill value={children} />;
 
 /* ------------------------------------------------------------------ *
- * FilterSelect — a dropdown that filters a list by one or more values *
+ * FilterSelect: a dropdown that filters a list by one or more values *
  * ------------------------------------------------------------------ */
 
 export interface FilterOption {
@@ -440,7 +440,7 @@ export function FilterSelect({
 }
 
 /**
- * Neutral label chip (categories, tags) — not a status. A hairline-outlined
+ * Neutral label chip (categories, tags): not a status. A hairline-outlined
  * tag with a leading hash, so it reads as metadata rather than a button.
  */
 export function Chip({ children }: { children: ReactNode }) {
@@ -477,7 +477,7 @@ export function Field({
 }
 
 /**
- * Plain numeric text field — no browser spinner, numeric keypad on mobile,
+ * Plain numeric text field: no browser spinner, numeric keypad on mobile,
  * empty allowed while typing. `value` is a number; `onChange` gets a number
  * (0 when the field is cleared).
  */
@@ -665,7 +665,7 @@ export function Spinner({ label }: { label?: string }) {
   );
 }
 
-/** Skeleton block — reserves layout space while data loads. */
+/** Skeleton block: reserves layout space while data loads. */
 export function Skeleton({ className = '' }: { className?: string }) {
   return <div className={`animate-pulse rounded-lg bg-slate-200 ${className}`} />;
 }
@@ -716,7 +716,7 @@ export function InlineNote({ tone = 'info', children }: { tone?: 'info' | 'warni
 }
 
 /* ------------------------------------------------------------------ *
- * Table wrapper — horizontal scroll on small screens                 *
+ * Table wrapper: horizontal scroll on small screens                 *
  * ------------------------------------------------------------------ */
 
 export function TableWrap({ children }: { children: ReactNode }) {
@@ -739,7 +739,7 @@ export function money(n: number | string | null | undefined): string {
 }
 
 export function date(d: string | Date | null | undefined): string {
-  if (!d) return '—';
+  if (!d) return '-';
   return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 

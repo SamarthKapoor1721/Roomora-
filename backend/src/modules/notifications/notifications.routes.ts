@@ -23,12 +23,12 @@ notificationsRoutes.get(
     const { skip, take, page, pageSize } = parsePage(req.query as never);
     const where = {
       userId: req.user!.id,
-      ...(req.query.unread === 'true' ? { readAt: null } : {}),
+      ...(req.query.unread === 'true' ? { OR: [{ readAt: null }, { readAt: { isSet: false } }] } : {}),
     };
     const [items, total, unreadCount] = await Promise.all([
       prisma.notification.findMany({ where, skip, take, orderBy: { createdAt: 'desc' } }),
       prisma.notification.count({ where }),
-      prisma.notification.count({ where: { userId: req.user!.id, readAt: null } }),
+      prisma.notification.count({ where: { userId: req.user!.id, OR: [{ readAt: null }, { readAt: { isSet: false } }] } }),
     ]);
     res.json({
       data: items,
@@ -53,7 +53,7 @@ notificationsRoutes.post(
   '/read-all',
   asyncHandler(async (req, res) => {
     await prisma.notification.updateMany({
-      where: { userId: req.user!.id, readAt: null },
+      where: { userId: req.user!.id, OR: [{ readAt: null }, { readAt: { isSet: false } }] },
       data: { readAt: new Date() },
     });
     ok(res, { success: true });

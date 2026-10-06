@@ -64,7 +64,7 @@ export default function OwnerDashboard() {
         </div>
       ) : (
         <>
-          {/* PRIORITY ROW — the few things a person acts on */}
+          {/* PRIORITY ROW: the few things a person acts on */}
           <Section title="Needs attention">
             <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <MetricCard
@@ -106,7 +106,7 @@ export default function OwnerDashboard() {
             </div>
           </Section>
 
-          {/* PORTFOLIO — supporting figures, grouped, not headline-sized */}
+          {/* PORTFOLIO: supporting figures, grouped, not headline-sized */}
           <Section title="Portfolio">
             <div className="grid gap-4 lg:grid-cols-3">
               <Card>

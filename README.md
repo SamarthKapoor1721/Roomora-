@@ -9,7 +9,7 @@ Full-stack rental management platform with **AI-assisted (advisory-only) tenant 
 | ---------- | ------------------------------------------------- |
 | Frontend   | React 18 + TypeScript + Tailwind CSS + Vite       |
 | Backend    | Node.js + Express + TypeScript                    |
-| Database   | PostgreSQL + Prisma ORM                           |
+| Database   | MongoDB Atlas + Prisma ORM                           |
 | AI service | Python + FastAPI, **NVIDIA NIM** primary provider |
 
 Monorepo via npm workspaces: [`backend/`](backend), [`frontend/`](frontend), plus the standalone Python [`ai-service/`](ai-service).
@@ -85,7 +85,7 @@ maintenance delays, and cleaning delays. Owners can also run it on demand and cr
 
 - Node.js 20+
 - Python 3.11+
-- Docker (for PostgreSQL) — or your own Postgres
+- MongoDB Atlas (or MongoDB configured as a replica set)
 
 ### 1. Install
 
@@ -96,14 +96,23 @@ npm install                       # installs backend + frontend workspaces
 ### 2. Database
 
 ```bash
-docker compose up -d              # Postgres on localhost:5440 (see docker-compose.yml)
 cp backend/.env.example backend/.env
-npm run db:migrate                # prisma migrate
-npm run db:seed                   # demo data + accounts
+# Set DATABASE_URL to your MongoDB Atlas URI, including /srms before the query.
+npm run db:generate
+npm run db:push                   # sync collections/indexes; MongoDB uses no SQL migrations
+npm run db:check                  # verify connection and database reads
+npm run db:seed                   # optional demo data + accounts
 ```
 
-> The compose file publishes Postgres on **5440** to avoid clashing with a local Postgres.
-> If you change it, update `DATABASE_URL` in `backend/.env`.
+Keep database credentials in the ignored `backend/.env` file. Atlas must allow your
+machine's IP address, and the database user needs read/write access to `srms`.
+Existing PostgreSQL data is not copied automatically. SQL migrations are retained
+as historical files and are not used by the MongoDB setup.
+
+MongoDB stores monetary fields as numbers; payment calculations round to two decimal
+places. IDs remain CUID strings mapped to MongoDB `_id`, preserving API ID formats.
+The setup script adds a partial unique index for application assignments, allowing
+multiple manual assignments without an application.
 
 ### 3. AI service
 

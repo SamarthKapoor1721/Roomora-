@@ -18,7 +18,9 @@
     "db:generate": "npm --workspace backend run db:generate",
     "db:migrate": "npm --workspace backend run db:migrate",
     "db:seed": "npm --workspace backend run db:seed",
-    "test": "npm --workspace backend run test"
+    "test": "npm --workspace backend run test",
+    "db:push": "npm --workspace backend run db:push",
+    "db:check": "npm --workspace backend run db:check"
   },
   "devDependencies": {
     "concurrently": "^9.1.0"

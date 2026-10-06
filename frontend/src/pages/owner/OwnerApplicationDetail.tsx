@@ -77,11 +77,11 @@ export default function OwnerApplicationDetail() {
         <Card>
           <div className="grid gap-x-8 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
             <ReadField label="Email" value={data.tenant.email} />
-            <ReadField label="Phone" value={data.tenant.phone ?? '—'} />
+            <ReadField label="Phone" value={data.tenant.phone ?? '-'} />
             <ReadField label="Applied" value={date(data.createdAt)} />
-            <ReadField label="Monthly income" value={data.monthlyIncome ? money(data.monthlyIncome) : '—'} />
-            <ReadField label="Employment" value={data.employmentStatus ?? '—'} />
-            <ReadField label="Employer" value={data.employerName ?? '—'} />
+            <ReadField label="Monthly income" value={data.monthlyIncome ? money(data.monthlyIncome) : '-'} />
+            <ReadField label="Employment" value={data.employmentStatus ?? '-'} />
+            <ReadField label="Employer" value={data.employerName ?? '-'} />
             <ReadField label="Occupants" value={String(data.occupants)} />
             <ReadField
               label="Lifestyle"
@@ -124,7 +124,7 @@ export default function OwnerApplicationDetail() {
         </Card>
       </Section>
 
-      <Section title="AI screening" description="Advisory only — these results never approve or reject anyone.">
+      <Section title="AI screening" description="Advisory only: these results never approve or reject anyone.">
         <div className="grid gap-4 lg:grid-cols-2">
           <Card>
             <div className="mb-3">
@@ -184,7 +184,7 @@ export default function OwnerApplicationDetail() {
       {!finalised ? (
         <Section title="Your decision">
           <InlineNote>
-            The screening above is advisory. You make the final call — approving creates the assignment and lease.
+            The screening above is advisory. You make the final call: approving creates the assignment and lease.
           </InlineNote>
           {decide.error && (
             <div className="mt-3">
@@ -193,7 +193,7 @@ export default function OwnerApplicationDetail() {
           )}
 
           <div className="mt-3 space-y-3">
-            {/* Approve — the primary path */}
+            {/* Approve: the primary path */}
             <Card className="border-brand-200">
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-ink-900">Approve &amp; create lease</h3>
@@ -250,10 +250,10 @@ export default function OwnerApplicationDetail() {
               </button>
             </Card>
 
-            {/* Reject — secondary */}
+            {/* Reject: secondary */}
             <Card>
               <h3 className="mb-2 text-sm font-semibold text-ink-900">Reject</h3>
-              <Field label="Reason (optional — shared with the tenant)">
+              <Field label="Reason (optional, shared with the tenant)">
                 <input
                   className="input"
                   value={reason}

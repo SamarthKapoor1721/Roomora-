@@ -107,14 +107,14 @@ export const authService = {
   async logout(refreshToken: string) {
     const tokenHash = hashToken(refreshToken);
     await prisma.refreshToken.updateMany({
-      where: { tokenHash, revokedAt: null },
+      where: { tokenHash, OR: [{ revokedAt: null }, { revokedAt: { isSet: false } }] },
       data: { revokedAt: new Date() },
     });
   },
 
   async logoutAll(userId: string) {
     await prisma.refreshToken.updateMany({
-      where: { userId, revokedAt: null },
+      where: { userId, OR: [{ revokedAt: null }, { revokedAt: { isSet: false } }] },
       data: { revokedAt: new Date() },
     });
   },
@@ -136,7 +136,7 @@ export const authService = {
     });
     // Invalidate all other sessions on password change.
     await prisma.refreshToken.updateMany({
-      where: { userId, revokedAt: null },
+      where: { userId, OR: [{ revokedAt: null }, { revokedAt: { isSet: false } }] },
       data: { revokedAt: new Date() },
     });
   },

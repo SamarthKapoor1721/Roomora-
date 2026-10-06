@@ -65,7 +65,7 @@ api.interceptors.response.use(
       original!.headers!.Authorization = `Bearer ${newToken}`;
       return api(original!);
     } catch {
-      // Refresh failed — the session is dead. Clear it and reject so callers
+      // Refresh failed: the session is dead. Clear it and reject so callers
       // (e.g. AuthProvider) settle immediately; route guards send the user to
       // /login. Do NOT touch window.location here: navigating from inside a
       // rejected promise can strand pending microtasks and hang the app.

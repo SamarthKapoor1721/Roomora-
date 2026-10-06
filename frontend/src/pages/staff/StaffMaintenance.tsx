@@ -110,7 +110,7 @@ export default function StaffMaintenance() {
                 {r.category && <span className="badge">{r.category}</span>}
               </div>
               <p className="mt-0.5 text-xs text-slate-400">
-                {r.room.property.name} / {r.room.name} — {r.room.property.addressLine1}, {r.room.property.city}
+                {r.room.property.name} / {r.room.name}: {r.room.property.addressLine1}, {r.room.property.city}
               </p>
               <p className="text-xs text-slate-400">Tenant: {r.tenant.fullName} {r.tenant.phone && `· ${r.tenant.phone}`} · {date(r.createdAt)}</p>
             </div>

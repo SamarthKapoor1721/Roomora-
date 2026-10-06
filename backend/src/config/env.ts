@@ -26,7 +26,7 @@ export const env = {
     .split(',')
     .map((s) => s.trim()),
 
-  databaseUrl: required('DATABASE_URL', 'postgresql://srms:srms@localhost:5432/srms?schema=public'),
+  databaseUrl: required('DATABASE_URL'),
 
   jwt: {
     accessSecret: required('JWT_ACCESS_SECRET', 'dev-access-secret'),

@@ -8,7 +8,7 @@ import { Icon } from '../components/Icon';
 const demoAccounts: [string, string, string][] = [
   ['Owner', 'owner@srms.test', 'Manage properties, applications, rent, staff'],
   ['Tenant', 'tenant2@srms.test', 'Assigned to a room, has an overdue invoice'],
-  ['Tenant (new)', 'tenant@srms.test', 'No room yet — can browse and apply'],
+  ['Tenant (new)', 'tenant@srms.test', 'No room yet. Can browse and apply'],
   ['Maintenance staff', 'maintenance@srms.test', 'Assigned maintenance tasks'],
   ['Cleaning staff', 'cleaning@srms.test', 'Assigned cleaning tasks'],
 ];
@@ -41,18 +41,13 @@ export default function Login() {
     <div className="grid min-h-screen lg:grid-cols-2">
       {/* left: brand panel */}
       <div className="hidden flex-col justify-between bg-brand-700 p-10 text-white lg:flex">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-500 text-base font-bold text-white">
-            R
-          </span>
-          <span className="font-wordmark text-2xl font-bold tracking-tight">Roomora</span>
-        </div>
+        <span className="font-wordmark text-3xl font-bold tracking-tight">Roomora</span>
         <div>
           <h1 className="font-display text-3xl font-semibold leading-tight">
             One calm place for properties, tenants and rent.
           </h1>
           <p className="mt-3 max-w-md text-sm text-brand-100">
-            Applications with AI-assisted screening (advisory only — you always decide),
+            Applications with AI-assisted screening (advisory only; you always decide),
             leases, payments, maintenance, cleaning and automatic warnings.
           </p>
           <ul className="mt-6 space-y-2.5 text-sm text-brand-100">
@@ -74,11 +69,8 @@ export default function Login() {
       {/* right: form */}
       <div className="flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
-          <div className="mb-6 flex items-center gap-2 lg:hidden">
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500 text-sm font-bold text-white">
-              R
-            </span>
-            <span className="font-wordmark text-xl font-bold tracking-tight text-ink-900">Roomora</span>
+          <div className="mb-6 lg:hidden">
+            <span className="font-wordmark text-3xl font-bold tracking-tight text-ink-900">Roomora</span>
           </div>
           <h2 className="font-display text-xl font-semibold text-ink-900">Sign in</h2>
           <p className="mt-1 text-sm text-ink-500">Use a demo account below, or your own credentials.</p>

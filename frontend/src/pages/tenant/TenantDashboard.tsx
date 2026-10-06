@@ -71,7 +71,7 @@ export default function TenantDashboard() {
         />
       ) : (
         <>
-          {/* RENT — the one thing a tenant checks most */}
+          {/* RENT: the one thing a tenant checks most */}
           {rentDue && (
             <Section>
               <div

@@ -88,7 +88,7 @@ export default function OwnerPayments() {
       {generate.data && (
         <p className="mb-4 flex items-center gap-1.5 text-sm text-emerald-600">
           <Icon name="check" size={15} />
-          Generated for {generate.data.leases} lease(s) — {generate.data.processed} invoice(s) created.
+          Generated for {generate.data.leases} lease(s): {generate.data.processed} invoice(s) created.
         </p>
       )}
 
@@ -172,7 +172,7 @@ export default function OwnerPayments() {
                             {p.daysLate > 0 ? (
                               <span className="font-medium text-rose-600">{p.daysLate}d</span>
                             ) : (
-                              <span className="text-ink-400">—</span>
+                              <span className="text-ink-400">-</span>
                             )}
                           </td>
                           <td className="td">

@@ -99,7 +99,7 @@ export default function StaffCleaning() {
                 <PriorityFlag value={t.priority} />
               </div>
               <p className="mt-0.5 text-xs text-slate-400">
-                {t.property.name}{t.room ? ` / ${t.room.name}` : ''} — {t.property.addressLine1}, {t.property.city}
+                {t.property.name}{t.room ? ` / ${t.room.name}` : ''}: {t.property.addressLine1}, {t.property.city}
               </p>
               <p className="text-xs text-slate-400">{t.frequency} · scheduled {date(t.scheduledFor)}</p>
             </div>

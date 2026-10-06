@@ -46,6 +46,12 @@ describe('derivePaymentState', () => {
     expect(r.daysLate).toBe(3);
   });
 
+  it('treats decimal installments as fully paid at currency precision', () => {
+    const r = derivePaymentState({ ...base, totalAmount: 0.1 + 0.2, amountPaid: 0.3, paidDate: new Date('2026-01-04') });
+    expect(r.status).toBe('PAID');
+    expect(r.daysLate).toBe(0);
+  });
+
   it('keeps WAIVED payments waived', () => {
     const r = derivePaymentState({ ...base, status: 'WAIVED' });
     expect(r.status).toBe('WAIVED');

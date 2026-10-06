@@ -220,7 +220,7 @@ function ApplyModal({ room, onClose, onApplied }: { room: Room; onClose: () => v
                 checked={f.foodOptIn}
                 onChange={(e) => setF({ ...f, foodOptIn: e.target.checked })}
               />
-              Opt in to food — {money(room.food.foodCharge)} / month, added to your rent
+              Opt in to food: {money(room.food.foodCharge)} / month, added to your rent
             </label>
           )}
           <Field label="Notes (optional)">

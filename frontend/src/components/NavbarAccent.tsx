@@ -2,7 +2,7 @@ import { Icon, type IconName } from './Icon';
 
 /**
  * Quiet, static brand marks for the empty margins beside the navbar on wide
- * screens — a small dot-grid plus a couple of housing glyphs. Deliberately
+ * screens: a small dot-grid plus a couple of housing glyphs. Deliberately
  * still (no drift/spin, unlike GutterDecor) so it doesn't compete with the
  * nav row; purely decorative (pointer-events-none, aria-hidden). Hidden
  * below xl, where the header has no real side margin to fill.

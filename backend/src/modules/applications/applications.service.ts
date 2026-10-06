@@ -195,11 +195,12 @@ export const applicationsService = {
         eligibility: true,
         docVerification: true,
         summary: true,
-        assignment: true,
+        assignments: { take: 1 },
       },
     });
     if (!app) throw notFound('Application not found');
-    return app;
+    const { assignments, ...result } = app;
+    return { ...result, assignment: assignments[0] ?? null };
   },
 
   // ---------- Owner reads ----------

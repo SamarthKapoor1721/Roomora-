@@ -69,7 +69,7 @@ export default function OwnerProperties() {
   });
 
   // Every room across the portfolio, for the "shift to another room" target
-  // picker in OccupantsPanel — a move can land in a different property.
+  // picker in OccupantsPanel: a move can land in a different property.
   const allRooms = useQuery({
     queryKey: ['owner', 'rooms', 'all'],
     queryFn: async () => (await api.get('/owner/rooms?pageSize=100')).data.data as Room[],
@@ -113,7 +113,7 @@ export default function OwnerProperties() {
     <div className="space-y-6">
       <PageHeader
         title="Properties & rooms"
-        description="Select a property to manage its rooms — set rent, capacity, food, and open or close applications."
+        description="Select a property to manage its rooms: set rent, capacity, food, and open or close applications."
         actions={
           <button className="btn-primary" onClick={() => setShowPropForm((v) => !v)}>
             {!showPropForm && <Icon name="plus" size={16} />}
@@ -308,7 +308,7 @@ export default function OwnerProperties() {
                         <button
                           className="btn-ghost btn-sm text-rose-600"
                           onClick={() => setConfirm({ kind: 'room', id: r.id, name: r.name })}
-                          title={r.occupantCount > 0 ? 'Room has occupants — free the beds first' : 'Deactivate room'}
+                          title={r.occupantCount > 0 ? 'Room has occupants: free the beds first' : 'Deactivate room'}
                         >
                           <Icon name="x" size={13} />
                         </button>
@@ -408,7 +408,7 @@ function PropertyForm({ onDone }: { onDone: () => void }) {
       )}
       <ImagePicker
         label="Building photos"
-        hint="Show the exterior, common areas, entrance — up to 10 images"
+        hint="Show the exterior, common areas, entrance: up to 10 images"
         files={images}
         onChange={setImages}
       />
@@ -483,7 +483,7 @@ function RoomForm({ propertyId, onDone }: { propertyId: string; onDone: () => vo
       )}
       <ImagePicker
         label="Room photos"
-        hint="Show the beds, storage, window, attached bath — up to 10 images"
+        hint="Show the beds, storage, window, attached bath: up to 10 images"
         files={images}
         onChange={setImages}
       />

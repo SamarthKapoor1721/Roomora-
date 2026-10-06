@@ -172,7 +172,7 @@ export const staffService = {
     await prisma.$transaction([
       prisma.staffProfile.update({ where: { userId: staffUserId }, data: { isActive: false } }),
       prisma.user.update({ where: { id: staffUserId }, data: { isActive: false } }),
-      prisma.refreshToken.updateMany({ where: { userId: staffUserId, revokedAt: null }, data: { revokedAt: new Date() } }),
+      prisma.refreshToken.updateMany({ where: { userId: staffUserId, OR: [{ revokedAt: null }, { revokedAt: { isSet: false } }] }, data: { revokedAt: new Date() } }),
     ]);
   },
 

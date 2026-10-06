@@ -88,12 +88,7 @@ export default function Layout() {
         <NavbarAccent side="left" icon="building" />
         <NavbarAccent side="right" icon="key" />
         <div className="relative mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-500 text-base font-bold text-white">
-              R
-            </span>
-            <span className="font-wordmark text-2xl font-bold tracking-tight text-ink-900">Roomora</span>
-          </div>
+          <span className="font-wordmark text-3xl font-bold tracking-tight text-ink-900">Roomora</span>
 
           <div className="ml-auto flex items-center gap-2.5">
             <span className="relative inline-flex" title={`${unread ?? 0} unread notifications`}>
