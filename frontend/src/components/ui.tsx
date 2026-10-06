@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon, type IconName } from './Icon';
+import { assetUrl } from '../lib/api';
 
 /* ------------------------------------------------------------------ *
  * Confirm dialog: for destructive actions (delete / deactivate)      *
@@ -630,7 +631,7 @@ export function ImageGallery({
   return (
     <div className={className}>
       <div className={`overflow-hidden rounded-lg border border-slate-200 bg-slate-50 ${box}`}>
-        <img src={current.url} alt={current.name ?? ''} className="h-full w-full object-cover" />
+        <img src={assetUrl(current.url)} alt={current.name ?? ''} className="h-full w-full object-cover" />
       </div>
       {images.length > 1 && (
         <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -643,7 +644,7 @@ export function ImageGallery({
                 i === active ? 'border-brand-500 ring-1 ring-brand-500/30' : 'border-slate-200 hover:border-slate-300'
               }`}
             >
-              <img src={img.url} alt="" className="h-full w-full object-cover" />
+              <img src={assetUrl(img.url)} alt="" className="h-full w-full object-cover" />
             </button>
           ))}
         </div>

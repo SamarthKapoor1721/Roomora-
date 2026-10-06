@@ -18,6 +18,18 @@ function num(name: string, fallback: number): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+if (process.env.NODE_ENV === 'production') {
+  for (const name of ['DATABASE_URL', 'CORS_ORIGIN', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET']) {
+    required(name);
+  }
+  if (process.env.JWT_ACCESS_SECRET === process.env.JWT_REFRESH_SECRET) {
+    throw new Error('JWT access and refresh secrets must be different');
+  }
+  if (process.env.JWT_ACCESS_SECRET!.length < 32 || process.env.JWT_REFRESH_SECRET!.length < 32) {
+    throw new Error('JWT secrets must be at least 32 characters');
+  }
+}
+
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
   isProd: process.env.NODE_ENV === 'production',
@@ -41,7 +53,7 @@ export const env = {
   },
 
   ai: {
-    serviceUrl: process.env.AI_SERVICE_URL ?? 'http://localhost:8001',
+    serviceUrl: process.env.AI_SERVICE_URL ?? (process.env.AI_SERVICE_HOSTPORT ? `http://${process.env.AI_SERVICE_HOSTPORT}` : 'http://localhost:8001'),
     timeoutMs: num('AI_SERVICE_TIMEOUT_MS', 130000),
   },
 } as const;

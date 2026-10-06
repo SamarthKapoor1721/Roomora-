@@ -29,6 +29,8 @@ pip-wheel-metadata/
 !.env.example
 *.env
 !*.env.example
+.envrc
+.direnv/
 # service-specific
 backend/.env
 ai-service/.env
@@ -36,9 +38,18 @@ frontend/.env
 # key material
 *.pem
 *.key
+*.p8
 *.p12
 *.pfx
+*.crt
+*.cer
 secrets.json
+credentials.json
+*-credentials.json
+*service-account*.json
+.npmrc
+.pypirc
+.netrc
 
 # ── Build output ──────────────────────────────────────────────
 dist/
@@ -59,6 +70,15 @@ backend/prisma/*.db-journal
 backend/prisma/dev.db*
 prisma/generated/
 .prisma/
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
 
 # ── Local Postgres data (if bind-mounted) ─────────────────────
 pgdata/
@@ -68,6 +88,7 @@ postgres-data/
 # ── Uploaded files (keep the folder, ignore its contents) ─────
 backend/uploads/*
 !backend/uploads/.gitkeep
+uploads/
 
 # ── Logs & runtime ────────────────────────────────────────────
 *.log
@@ -87,6 +108,11 @@ coverage/
 *.lcov
 .nyc_output/
 .pytest_cache/
+.coverage
+.coverage.*
+.mypy_cache/
+.ruff_cache/
+.hypothesis/
 htmlcov/
 .tox/
 .cache/
@@ -98,6 +124,7 @@ playwright-report/
 .eslintcache
 .stylelintcache
 .parcel-cache/
+.vite/
 *.tgz
 .npm/
 .yarn/cache/
@@ -145,3 +172,9 @@ scratch/
 # Docker / compose overrides (keep the base file)
 docker-compose.override.yml
 docker-compose.*.local.yml
+
+# Hosting provider local state (keep render.yaml and vercel.json)
+.vercel/
+.render/
+.netlify/
+.serverless/

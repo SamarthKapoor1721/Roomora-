@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, apiErrorMessage } from '../../lib/api';
+import { api, apiErrorMessage, openPrivateFile } from '../../lib/api';
 import { Icon } from '../../components/Icon';
 import { Badge, EmptyState, ErrorBanner, PageHeader, PriorityFlag, Spinner, date } from '../../components/ui';
 
@@ -103,7 +103,7 @@ export default function TenantMaintenance() {
               {r.photos.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {r.photos.map((p) => (
-                    <a key={p.id} href={`/uploads/${p.path}`} target="_blank" rel="noreferrer" className="badge bg-white text-slate-500">{p.kind}</a>
+                    <button key={p.id} type="button" onClick={() => void openPrivateFile(p.path)} className="badge bg-white text-slate-500">{p.kind}</button>
                   ))}
                 </div>
               )}

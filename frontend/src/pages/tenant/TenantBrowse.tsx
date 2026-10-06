@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { api, apiErrorMessage } from '../../lib/api';
+import { api, apiErrorMessage, assetUrl } from '../../lib/api';
 import { Icon } from '../../components/Icon';
 import { Chip, EmptyState, ErrorBanner, Field, ImageGallery, NumberInput, PageHeader, Skeleton, money } from '../../components/ui';
 
@@ -66,7 +66,7 @@ export default function TenantBrowse() {
             return (
             <div key={r.id} className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-card">
               {photos.length > 0 ? (
-                <img src={photos[0].url} alt="" className="h-40 w-full object-cover" />
+                <img src={assetUrl(photos[0].url)} alt="" className="h-40 w-full object-cover" />
               ) : (
                 <div className="flex h-40 w-full items-center justify-center bg-slate-50 text-ink-300">
                   <Icon name="building" size={28} />

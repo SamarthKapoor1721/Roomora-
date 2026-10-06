@@ -1,5 +1,7 @@
 # Roomora
 
+Deployment instructions: [docs/deployment.md](docs/deployment.md).
+
 Full-stack rental management platform with **AI-assisted (advisory-only) tenant screening**.
 (Internal service slugs and the database still use the earlier `srms` name.)
 

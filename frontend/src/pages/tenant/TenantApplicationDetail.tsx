@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
-import { api, apiErrorMessage } from '../../lib/api';
+import { api, apiErrorMessage, openPrivateFile } from '../../lib/api';
 import { Icon } from '../../components/Icon';
 import {
   Badge,
@@ -132,9 +132,9 @@ export default function TenantApplicationDetail() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge>{d.verification}</Badge>
-                    <a className="btn-secondary btn-sm" href={`/uploads/${d.path}`} target="_blank" rel="noreferrer">
+                    <button type="button" className="btn-secondary btn-sm" onClick={() => void openPrivateFile(d.path)}>
                       View
-                    </a>
+                    </button>
                     {canEdit && (
                       <button className="btn-ghost btn-sm text-rose-600" onClick={() => removeDoc.mutate(d.id)}>
                         Remove

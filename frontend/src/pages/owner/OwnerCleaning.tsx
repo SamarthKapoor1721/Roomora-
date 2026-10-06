@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, apiErrorMessage } from '../../lib/api';
+import { api, apiErrorMessage, openPrivateFile } from '../../lib/api';
 import { Icon } from '../../components/Icon';
 import { Badge, ConfirmDialog, EmptyState, ErrorBanner, PageHeader, PriorityFlag, Spinner, date } from '../../components/ui';
 
@@ -94,16 +94,14 @@ export default function OwnerCleaning() {
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               <Badge>{t.status}</Badge>
               {t.photos.map((p) => (
-                <a
+                <button type="button"
                   key={p.id}
-                  href={`/uploads/${p.path}`}
-                  target="_blank"
-                  rel="noreferrer"
+                  onClick={() => void openPrivateFile(p.path)}
                   className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-0.5 text-2xs font-medium text-ink-600 hover:border-brand-300"
                 >
                   <Icon name="camera" size={11} />
                   {p.kind}
-                </a>
+                </button>
               ))}
             </div>
           </div>

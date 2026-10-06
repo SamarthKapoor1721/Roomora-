@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, apiErrorMessage } from '../../lib/api';
+import { api, apiErrorMessage, openPrivateFile } from '../../lib/api';
 import { Badge, EmptyState, ErrorBanner, PageHeader, PriorityFlag, Spinner, date } from '../../components/ui';
 
 function Tabs({ tab, setTab }: { tab: 'active' | 'completed'; setTab: (t: 'active' | 'completed') => void }) {
@@ -115,7 +115,7 @@ export default function StaffCleaning() {
               {t.description && <p className="text-slate-600">{t.description}</p>}
               <div className="flex flex-wrap gap-2">
                 {t.photos.map((p) => (
-                  <a key={p.id} href={`/uploads/${p.path}`} target="_blank" rel="noreferrer" className="badge bg-white text-slate-500">{p.kind}</a>
+                  <button key={p.id} type="button" onClick={() => void openPrivateFile(p.path)} className="badge bg-white text-slate-500">{p.kind}</button>
                 ))}
                 {t.photos.length === 0 && <span className="text-xs text-slate-400">No photos yet</span>}
               </div>

@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: roomora-api
+    runtime: node
+    plan: 0.5c-512mb
+    buildCommand: npm ci --include=dev && npm run db:generate && npm --workspace backend run build
+    preDeployCommand: npm run db:push
+    startCommand: npm --workspace backend run start
+    healthCheckPath: /health
+    disk:
+      name: roomora-uploads
+      mountPath: /opt/render/project/src/backend/uploads
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: UPLOAD_DIR
+        value: /opt/render/project/src/backend/uploads
+      - key: AI_SERVICE_HOSTPORT
+        fromService:
+          type: pserv
+          name: roomora-ai
+          property: hostport
+  - type: pserv
+    name: roomora-ai
+    runtime: python
+    plan: 0.5c-512mb
+    rootDir: ai-service
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.11

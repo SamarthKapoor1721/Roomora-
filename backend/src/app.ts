@@ -28,16 +28,17 @@ export function createApp() {
     res.json({ status: 'ok', service: 'srms-backend', time: new Date().toISOString() });
   });
 
-  // Uploaded files. Served read-only; every file has a random name and the
-  // route is auth-gated at the API layer for sensitive documents.
-  app.use(
-    '/uploads',
-    express.static(env.upload.dir, {
+  // Listing images are public; documents and work photos use /api/v1/files.
+  for (const kind of ['property-images', 'room-images']) {
+    app.use(`/uploads/${kind}`, express.static(path.join(env.upload.dir, kind), {
       index: false,
       dotfiles: 'deny',
-      setHeaders: (res) => res.setHeader('X-Content-Type-Options', 'nosniff'),
-    }),
-  );
+      setHeaders: (res) => {
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      },
+    }));
+  }
 
   app.use('/api/v1', apiRouter);
 

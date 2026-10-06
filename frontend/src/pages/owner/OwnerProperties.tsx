@@ -1,6 +1,6 @@
 import { Fragment, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, apiErrorMessage } from '../../lib/api';
+import { api, apiErrorMessage, assetUrl } from '../../lib/api';
 import { Icon } from '../../components/Icon';
 import {
   Badge,
@@ -149,7 +149,7 @@ export default function OwnerProperties() {
             <div className="flex items-start gap-3">
               {p.images && p.images.length > 0 && (
                 <img
-                  src={p.images[0].url}
+                  src={assetUrl(p.images[0].url)}
                   alt=""
                   className="h-14 w-14 shrink-0 rounded-lg border border-slate-200 object-cover"
                 />
@@ -253,7 +253,7 @@ export default function OwnerProperties() {
                         <div className="flex items-center gap-2">
                           {r.images && r.images.length > 0 ? (
                             <img
-                              src={r.images[0].url}
+                              src={assetUrl(r.images[0].url)}
                               alt=""
                               className="h-8 w-8 shrink-0 rounded-md border border-slate-200 object-cover"
                             />

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { api, apiErrorMessage } from '../../lib/api';
+import { api, apiErrorMessage, openPrivateFile } from '../../lib/api';
 import { Icon } from '../../components/Icon';
 import { Badge, Chip, EmptyState, ErrorBanner, FilterSelect, PageHeader, PriorityFlag, Spinner, date } from '../../components/ui';
 
@@ -109,16 +109,14 @@ export default function OwnerMaintenance() {
               {r.photos.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {r.photos.map((p) => (
-                    <a
+                    <button type="button"
                       key={p.id}
-                      href={`/uploads/${p.path}`}
-                      target="_blank"
-                      rel="noreferrer"
+                      onClick={() => void openPrivateFile(p.path)}
                       className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-2xs font-medium text-ink-600 hover:border-brand-300"
                     >
                       <Icon name="camera" size={11} />
                       {p.kind}
-                    </a>
+                    </button>
                   ))}
                 </div>
               )}

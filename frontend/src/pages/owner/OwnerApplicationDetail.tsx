@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useParams } from 'react-router-dom';
-import { api, apiErrorMessage } from '../../lib/api';
+import { api, apiErrorMessage, openPrivateFile } from '../../lib/api';
 import { Icon } from '../../components/Icon';
 import {
   Badge,
@@ -107,15 +107,13 @@ export default function OwnerApplicationDetail() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge>{d.verification}</Badge>
-                    <a
+                    <button type="button"
                       className="btn-secondary btn-sm"
-                      href={`/uploads/${d.path}`}
-                      target="_blank"
-                      rel="noreferrer"
+                      onClick={() => void openPrivateFile(d.path)}
                     >
                       <Icon name="arrowUpRight" size={13} />
                       View
-                    </a>
+                    </button>
                   </div>
                 </li>
               ),

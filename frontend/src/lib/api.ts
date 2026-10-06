@@ -20,7 +20,36 @@ export const tokenStore = {
   },
 };
 
-export const api = axios.create({ baseURL: '/api/v1', timeout: 20_000 });
+const apiOrigin = (import.meta.env.VITE_API_ORIGIN ?? '').replace(/\/$/, '');
+
+/** Local Vite proxy in development; an explicit API origin in production. */
+export const api = axios.create({ baseURL: `${apiOrigin}/api/v1`, timeout: 20_000 });
+
+export function assetUrl(relativeUrl: string): string {
+  return `${apiOrigin}${relativeUrl}`;
+}
+
+/** Fetch private uploads with the access token instead of exposing a public URL. */
+export async function openPrivateFile(path: string): Promise<void> {
+  const tab = window.open('', '_blank');
+  try {
+    const response = await api.get(`/files/${path}`, { responseType: 'blob' });
+    const url = URL.createObjectURL(response.data as Blob);
+    if (tab) {
+      tab.opener = null;
+      tab.location.href = url;
+    } else {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = path.split('/').pop() ?? 'attachment';
+      link.click();
+    }
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  } catch (error) {
+    tab?.close();
+    window.alert(apiErrorMessage(error));
+  }
+}
 
 api.interceptors.request.use((config) => {
   const t = tokenStore.access;

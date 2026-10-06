@@ -11,6 +11,7 @@ import {
 } from './modules/assignments/assignments.routes';
 import { assistantRoutes } from './modules/assistant/assistant.routes';
 import { authRoutes } from './modules/auth/auth.routes';
+import { filesRoutes } from './modules/files/files.routes';
 import { ownerCleaningRoutes, staffCleaningRoutes } from './modules/cleaning/cleaning.routes';
 import { ownerLeaseRoutes, tenantLeaseRoutes } from './modules/leases/leases.routes';
 import {
@@ -31,6 +32,7 @@ export const apiRouter = Router();
 
 // Auth & profile
 apiRouter.use('/auth', authRoutes);
+apiRouter.use('/files', filesRoutes);
 apiRouter.use('/users', usersRoutes);
 apiRouter.use('/notifications', notificationsRoutes);
 apiRouter.use('/ai', aiRoutes);
