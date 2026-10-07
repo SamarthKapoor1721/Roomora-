@@ -106,6 +106,8 @@ api.interceptors.response.use(
 
 export function apiErrorMessage(err: unknown): string {
   if (err instanceof AxiosError) {
+    if (err.code === 'ECONNABORTED') return 'Roomora is taking too long to respond. Please try again shortly.';
+    if (err.code === 'ERR_NETWORK') return 'Cannot connect to Roomora right now. Please try again shortly.';
     const data = err.response?.data as { error?: { message?: string; details?: unknown } } | undefined;
     if (data?.error?.message) {
       const details = data.error.details;

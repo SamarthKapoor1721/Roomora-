@@ -7,12 +7,25 @@ import { prisma } from '../../lib/prisma';
 export const warningsService = {
   async listForOwner(ownerId: string, query: Record<string, unknown>) {
     const { skip, take, page, pageSize } = parsePage(query);
-    // Owner sees warnings about their tenants (via property ownership) + ones they issued.
+    // Resolve tenant IDs first. MongoDB's Prisma connector can generate a $size
+    // expression on null for nested list filters through Warning.tenant.
+    const properties = await prisma.property.findMany({ where: { ownerId }, select: { id: true } });
+    const rooms = properties.length
+      ? await prisma.room.findMany({ where: { propertyId: { in: properties.map((property) => property.id) } }, select: { id: true } })
+      : [];
+    const [assignments, applications] = rooms.length
+      ? await Promise.all([
+        prisma.roomAssignment.findMany({ where: { roomId: { in: rooms.map((room) => room.id) } }, select: { tenantId: true } }),
+        prisma.application.findMany({ where: { roomId: { in: rooms.map((room) => room.id) } }, select: { tenantId: true } }),
+      ])
+      : [[], []];
+    const tenantIds = [...new Set([...assignments, ...applications].map((row) => row.tenantId))];
+
+    // Owner sees warnings about associated tenants plus ones they issued.
     const where: Prisma.WarningWhereInput = {
       OR: [
         { issuedById: ownerId },
-        { tenant: { tenancies: { some: { room: { property: { ownerId } } } } } },
-        { tenant: { applications: { some: { room: { property: { ownerId } } } } } },
+        ...(tenantIds.length ? [{ tenantId: { in: tenantIds } }] : []),
       ],
     };
     if (query.status) where.status = query.status as never;
@@ -25,11 +38,18 @@ export const warningsService = {
         skip,
         take,
         orderBy: [{ status: 'asc' }, { severity: 'desc' }, { createdAt: 'desc' }],
-        include: { tenant: { select: { id: true, fullName: true, email: true } } },
       }),
       prisma.warning.count({ where }),
     ]);
-    return { items, meta: { page, pageSize, total } };
+    const visibleTenantIds = [...new Set(items.map((item) => item.tenantId).filter((id): id is string => !!id))];
+    const tenants = visibleTenantIds.length
+      ? await prisma.user.findMany({ where: { id: { in: visibleTenantIds } }, select: { id: true, fullName: true, email: true } })
+      : [];
+    const tenantsById = new Map(tenants.map((tenant) => [tenant.id, tenant]));
+    return {
+      items: items.map((item) => ({ ...item, tenant: item.tenantId ? tenantsById.get(item.tenantId) ?? null : null })),
+      meta: { page, pageSize, total },
+    };
   },
 
   async listForTenant(tenantId: string, query: Record<string, unknown>) {

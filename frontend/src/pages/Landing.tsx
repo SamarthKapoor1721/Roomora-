@@ -74,77 +74,88 @@ const roles: { icon: IconName; title: string; action: string; description: strin
   },
 ];
 
-const workflowSteps: { title: string; description: string; icon: IconName }[] = [
+const workflowSteps: { title: string; description: string; image: string }[] = [
   {
     title: 'Owner opens applications',
     description: 'Choose a room and invite tenants to apply.',
-    icon: 'home',
+    image: '/images/step-listing.jpg',
   },
   {
     title: 'Tenant applies and uploads documents',
     description: 'Applicants share their details and required documents in one place.',
-    icon: 'file',
+    image: '/images/step-application.jpg',
   },
   {
     title: 'AI screening advises',
     description: 'Eligibility and document checks help the owner review each application.',
-    icon: 'sparkles',
+    image: '/images/step-review.jpg',
   },
   {
     title: 'Owner approves and creates a lease',
     description: 'The owner makes the final decision and assigns the tenant to a room.',
-    icon: 'key',
+    image: '/images/step-lease.jpg',
   },
 ];
 
-const featurePreviews = [
-  { screen: 'Application review', subject: 'Tina Tenant', metric: '82%', metricLabel: 'Criteria match', rows: [['ID proof', 'Verified'], ['Income documents', 'Ready for review']], status: 'Owner decision pending' },
-  { screen: 'Property overview', subject: 'Maple Residency', metric: '02', metricLabel: 'Rooms available', rows: [['Room 101', 'Occupied'], ['Room 102', 'Applications open']], status: 'Manage rooms' },
-  { screen: 'Rent and payments', subject: 'July rent', metric: '₹18,000', metricLabel: 'Invoice total', rows: [['Rent', '₹15,000'], ['Food', '₹3,000']], status: 'Payment recorded' },
-  { screen: 'Maintenance', subject: 'AC not cooling', metric: 'Open', metricLabel: 'Request status', rows: [['Priority', 'Medium'], ['Assigned team', 'Maintenance']], status: 'Track progress' },
-  { screen: 'Warnings', subject: 'Rent reminder', metric: '03', metricLabel: 'Days until due', rows: [['Room', '101'], ['Next step', 'Notify tenant']], status: 'Automatic reminder' },
-  { screen: 'Roomora assistant', subject: 'Portfolio question', metric: '02', metricLabel: 'Rooms to review', rows: [['Available rooms', 'Room 102'], ['Open requests', '1 maintenance']], status: 'Ask another question' },
-];
-
 function FeaturePreview({ index }: { index: number }) {
-  const preview = featurePreviews[index];
-
   return (
-    <div className="relative mt-6 max-w-xl" aria-hidden="true">
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.11)]">
-        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-4 py-2.5">
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-brand-400" />
-            <span className="h-2 w-2 rounded-full bg-slate-200" />
-            <span className="h-2 w-2 rounded-full bg-slate-200" />
-          </div>
-          <span className="text-[0.65rem] font-semibold uppercase tracking-widest text-ink-400">Roomora / {preview.screen}</span>
-        </div>
-        <div className="p-4 sm:p-5">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs font-medium text-ink-400">{preview.screen}</p>
-              <p className="mt-0.5 font-display text-lg font-semibold text-ink-900">{preview.subject}</p>
-            </div>
-            <span className="rounded-full bg-brand-50 px-2.5 py-1 text-[0.65rem] font-semibold text-brand-700">{preview.status}</span>
-          </div>
-          <div className="mt-4 flex items-center gap-4 rounded-xl bg-[#f4f9f0] px-4 py-3">
-            <span className="font-display text-2xl font-bold text-brand-700 sm:text-3xl">{preview.metric}</span>
-            <span className="text-xs font-medium text-ink-500">{preview.metricLabel}</span>
-          </div>
-          <div className="mt-3 hidden grid-cols-2 gap-3 sm:grid">
-            {preview.rows.map(([label, value]) => (
-              <div key={label} className="rounded-lg border border-slate-100 px-3 py-2">
-                <p className="text-[0.65rem] text-ink-400">{label}</p>
-                <p className="mt-0.5 truncate text-xs font-semibold text-ink-700">{value}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-      <span className="absolute -right-3 -top-3 flex h-10 w-10 items-center justify-center rounded-xl border border-brand-200 bg-brand-50 text-brand-700 shadow-sm">
-        <Icon name={features[index].icon} size={21} strokeWidth={1.6} />
-      </span>
+    <div className="feature-visual mt-5 max-w-xl border-y border-[#b9c7b5] py-3 sm:mt-7 sm:py-4" aria-hidden="true">
+      <svg viewBox="0 0 560 270" className="h-[180px] w-full sm:h-[250px]" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g stroke="#d2ddcc" strokeWidth="1"><path d="M0 0H560M0 269H560" /><path d="M0 0V270M559 0V270" /></g>
+        {index === 0 && <>
+          <path className="feature-draw" d="M105 134H215M345 134H455" stroke="#7ca66d" strokeWidth="2" />
+          <path d="M199 128L215 134L199 140M439 128L455 134L439 140" stroke="#7ca66d" strokeWidth="2" />
+          <g stroke="#3f7d36" strokeWidth="2"><path d="M43 75H115L134 94V188H43V75Z" /><path d="M115 75V94H134" /><path d="M61 113H112M61 128H101M61 143H109" /></g>
+          <circle cx="280" cy="134" r="62" fill="#e8f2e1" stroke="#83b477" strokeWidth="2" />
+          <circle className="feature-pulse" cx="280" cy="134" r="48" stroke="#83b477" strokeWidth="1.5" strokeDasharray="3 6" />
+          <text x="280" y="131" textAnchor="middle" fill="#1d4c35" fontSize="16" fontWeight="700">REVIEW</text>
+          <text x="280" y="153" textAnchor="middle" fill="#577564" fontSize="11">with reasons</text>
+          <path d="M450 81H518V189H450V81Z" stroke="#3f7d36" strokeWidth="2" /><path d="M465 113L475 123L496 100M465 145H501M465 158H489" stroke="#3f7d36" strokeWidth="2" />
+          <text x="43" y="219" fill="#60776a" fontSize="11">DOCUMENTS</text><text x="444" y="219" fill="#60776a" fontSize="11">OWNER DECIDES</text>
+        </>}
+        {index === 1 && <>
+          <path d="M98 32H462V238H98V32Z" stroke="#2d6145" strokeWidth="3" />
+          <path d="M98 117H337M337 32V238M98 179H337M337 146H462" stroke="#2d6145" strokeWidth="2" />
+          <path d="M160 117V134M238 179V162M337 95H354M337 190H354" stroke="#f7f7f2" strokeWidth="5" />
+          <path d="M120 53H313V98H120V53Z" fill="#dcebcf" /><path d="M358 53H441V127H358V53Z" fill="#e8f2e1" />
+          <text x="138" y="81" fill="#276345" fontSize="14" fontWeight="700">ROOM 101</text><text x="358" y="101" fill="#276345" fontSize="13" fontWeight="700">ROOM 102</text>
+          <text x="126" y="155" fill="#67806e" fontSize="11">OCCUPIED</text><text x="363" y="173" fill="#67806e" fontSize="11">OPEN</text>
+          <circle className="feature-pulse" cx="412" cy="188" r="17" stroke="#4c8c40" strokeWidth="2" /><circle cx="412" cy="188" r="5" fill="#4c8c40" />
+          <text x="103" y="259" fill="#60776a" fontSize="11">ONE PROPERTY · EVERY ROOM IN VIEW</text>
+        </>}
+        {index === 2 && <>
+          <path d="M42 62H205V219H42V62Z" stroke="#346b47" strokeWidth="2" /><path d="M59 83H170M59 103H187M59 123H179M59 165C85 145 92 183 118 164C140 149 151 180 185 159" stroke="#346b47" strokeWidth="2" />
+          <text x="59" y="207" fill="#5e7867" fontSize="11">LEASE</text>
+          <path className="feature-draw" d="M210 139H351" stroke="#83b477" strokeWidth="2" /><path d="M339 133L352 139L339 145" stroke="#83b477" strokeWidth="2" />
+          <circle cx="404" cy="139" r="60" stroke="#4c8c40" strokeWidth="2" fill="#e8f2e1" /><path d="M377 139L396 158L432 119" stroke="#3f7d36" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+          <text x="348" y="228" fill="#60776a" fontSize="11">PAYMENTS TRACKED</text>
+          <path d="M42 38H518" stroke="#b9c7b5" /><text x="42" y="28" fill="#60776a" fontSize="11">APPROVAL</text><text x="417" y="28" fill="#60776a" fontSize="11">TENANCY</text>
+        </>}
+        {index === 3 && <>
+          <path d="M44 200H517" stroke="#b9c7b5" strokeWidth="2" />
+          <path className="feature-draw" d="M83 200V118H255V200M255 200V70H429V200" stroke="#4c8c40" strokeWidth="3" />
+          <circle cx="83" cy="118" r="10" fill="#f7f7f2" stroke="#4c8c40" strokeWidth="3" /><circle cx="255" cy="70" r="10" fill="#f7f7f2" stroke="#4c8c40" strokeWidth="3" /><circle className="feature-pulse" cx="429" cy="94" r="22" fill="#dcebcf" stroke="#4c8c40" strokeWidth="2" />
+          <path d="M419 94L426 101L439 87" stroke="#2d6145" strokeWidth="3" strokeLinecap="round" />
+          <text x="45" y="235" fill="#3f7d36" fontSize="12" fontWeight="700">REQUESTED</text><text x="215" y="235" fill="#3f7d36" fontSize="12" fontWeight="700">ASSIGNED</text><text x="389" y="235" fill="#3f7d36" fontSize="12" fontWeight="700">RESOLVED</text>
+          <text x="44" y="37" fill="#60776a" fontSize="11">A CLEAR PATH FROM REPORT TO REPAIR</text>
+        </>}
+        {index === 4 && <>
+          <circle cx="279" cy="135" r="103" stroke="#c7d8c0" strokeWidth="1.5" /><circle cx="279" cy="135" r="72" stroke="#c7d8c0" strokeWidth="1.5" /><circle cx="279" cy="135" r="40" fill="#e8f2e1" stroke="#4c8c40" strokeWidth="2" />
+          <path className="feature-draw" d="M279 135L204 65M279 135L365 102M279 135L321 218" stroke="#78a86c" strokeWidth="1.5" />
+          <circle className="feature-pulse" cx="204" cy="65" r="10" fill="#4c8c40" /><circle className="feature-pulse" cx="365" cy="102" r="10" fill="#4c8c40" /><circle className="feature-pulse" cx="321" cy="218" r="10" fill="#4c8c40" />
+          <text x="279" y="139" textAnchor="middle" fill="#276345" fontSize="13" fontWeight="700">ALERTS</text>
+          <text x="113" y="59" fill="#60776a" fontSize="12">RENT</text><text x="386" y="105" fill="#60776a" fontSize="12">LEASES</text><text x="339" y="235" fill="#60776a" fontSize="12">TASKS</text>
+        </>}
+        {index === 5 && <>
+          <text x="31" y="45" fill="#60776a" fontSize="11">ASK</text><text x="439" y="45" fill="#60776a" fontSize="11">ANSWER</text>
+          <path d="M31 66H193V138H31V66Z" stroke="#3f7d36" strokeWidth="2" /><text x="49" y="94" fill="#276345" fontSize="14" fontWeight="700">Which rooms</text><text x="49" y="115" fill="#276345" fontSize="14" fontWeight="700">need attention?</text>
+          <path className="feature-draw" d="M193 102H254M254 102V48H352M254 102V137H352M254 102V222H352M352 48H395M352 137H395M352 222H395" stroke="#75a467" strokeWidth="2" />
+          <circle cx="352" cy="48" r="6" fill="#4c8c40" /><circle cx="352" cy="137" r="6" fill="#4c8c40" /><circle cx="352" cy="222" r="6" fill="#4c8c40" />
+          <text x="274" y="43" fill="#60776a" fontSize="11">ROOMS</text><text x="274" y="132" fill="#60776a" fontSize="11">RENT</text><text x="274" y="217" fill="#60776a" fontSize="11">TASKS</text>
+          <path d="M395 73H529V199H395V73Z" fill="#e8f2e1" stroke="#4c8c40" strokeWidth="2" /><path d="M412 105H508M412 125H490M412 145H503M412 165H473" stroke="#4c8c40" strokeWidth="2" />
+          <text x="31" y="251" fill="#60776a" fontSize="11">AN ANSWER GROUNDED IN YOUR PROPERTY RECORDS</text>
+        </>}
+      </svg>
     </div>
   );
 }
@@ -159,6 +170,7 @@ export default function Landing() {
   // The extra copies let the deck wrap without jumping back across the screen.
   const [deckSlot, setDeckSlot] = useState(workflowSteps.length);
   const [deckTransition, setDeckTransition] = useState(true);
+  const [deckPaused, setDeckPaused] = useState(false);
   const activeStep = deckSlot % workflowSteps.length;
 
   const moveStep = (direction: number) => {
@@ -166,10 +178,10 @@ export default function Landing() {
   };
 
   useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (deckPaused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const timer = window.setTimeout(() => moveStep(1), 2000);
     return () => window.clearTimeout(timer);
-  }, [activeStep]);
+  }, [activeStep, deckPaused]);
 
   useEffect(() => {
     if (deckSlot > workflowSteps.length - 1 && deckSlot < workflowSteps.length * 2) return;
@@ -253,11 +265,11 @@ export default function Landing() {
         <header className="absolute inset-x-0 top-0 z-30">
           <nav className="flex h-16 w-full items-center justify-between px-4 sm:px-6" aria-label="Main navigation">
             <span className="font-wordmark text-3xl font-bold tracking-tight text-white">Roomora</span>
-            <div className="flex items-center gap-2">
-              <Link to="/login" className="btn btn-md text-white hover:bg-white/15">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <Link to="/login" className="btn h-11 px-4 text-base text-white hover:bg-white/15 sm:h-12 sm:px-6">
                 Sign in
               </Link>
-              <Link to="/register" className="btn-primary">
+              <Link to="/register" className="btn-primary h-11 px-5 text-base sm:h-12 sm:px-7">
                 Get started
               </Link>
             </div>
@@ -336,6 +348,12 @@ export default function Landing() {
 
           <div
             className="relative pb-4"
+            onMouseEnter={() => setDeckPaused(true)}
+            onMouseLeave={() => setDeckPaused(false)}
+            onFocusCapture={() => setDeckPaused(true)}
+            onBlurCapture={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node)) setDeckPaused(false);
+            }}
             onKeyDown={(event) => {
               if (event.key === 'ArrowLeft') {
                 event.preventDefault();
@@ -363,7 +381,7 @@ export default function Landing() {
                     aria-current={active ? 'step' : undefined}
                     tabIndex={Math.abs(position) <= 1 ? 0 : -1}
                     aria-hidden={Math.abs(position) > 1}
-                    className={`absolute left-1/2 top-1/2 flex h-[270px] w-[64vw] max-w-[430px] flex-col rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-[0_16px_36px_rgba(15,23,42,0.16)] sm:h-[430px] sm:p-8 ${deckTransition ? 'transition-[transform,opacity] duration-500 ease-in-out motion-reduce:transition-none' : ''}`}
+                    className={`group absolute left-1/2 top-1/2 flex h-[270px] w-[64vw] max-w-[430px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-[0_16px_36px_rgba(15,23,42,0.16)] sm:h-[430px] sm:p-8 ${deckTransition ? 'transition-[transform,opacity] duration-500 ease-in-out motion-reduce:transition-none' : ''}`}
                     style={{
                       zIndex: 10 - Math.abs(position),
                       opacity: Math.abs(position) > 1 ? 0 : 1,
@@ -371,15 +389,19 @@ export default function Landing() {
                       transform: `translate(-50%, -50%) translateX(${position * 63}%) rotate(${position * 8}deg) scale(${active ? 1 : 0.94})`,
                     }}
                   >
-                    <span className={`font-display text-3xl font-semibold leading-none text-brand-700 sm:text-5xl ${active ? 'self-start' : 'self-center'}`}>
+                    <img
+                      src={step.image}
+                      alt=""
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-0 h-full w-full scale-105 object-cover opacity-0 transition-[opacity,transform] duration-500 ease-out group-hover:scale-100 group-hover:opacity-100 group-focus-visible:scale-100 group-focus-visible:opacity-100 motion-reduce:transition-none"
+                    />
+                    <span className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#10251d]/45 to-[#10251d]/85 opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-focus-visible:opacity-100 motion-reduce:transition-none" />
+                    <span className={`relative z-10 font-display text-3xl font-semibold leading-none text-brand-700 transition-colors duration-500 group-hover:text-white group-focus-visible:text-white sm:text-5xl ${active ? 'self-start' : 'self-center'}`}>
                       {String(index + 1).padStart(2, '0')}
                     </span>
-                    <span className="my-auto flex w-full justify-center text-brand-600" aria-hidden="true">
-                      <Icon name={step.icon} size={72} strokeWidth={1.35} />
-                    </span>
-                    <span className="block w-full">
-                      <span className="block font-display text-base font-semibold leading-tight text-ink-900 sm:text-3xl lg:text-4xl">{step.title}</span>
-                      <span className="mt-3 hidden text-lg leading-relaxed text-ink-600 sm:block">{step.description}</span>
+                    <span className="relative z-10 my-auto block w-full">
+                      <span className="block font-display text-base font-semibold leading-tight text-ink-900 transition-colors duration-500 group-hover:text-white group-focus-visible:text-white sm:text-3xl lg:text-4xl">{step.title}</span>
+                      <span className="mt-3 hidden text-lg leading-relaxed text-ink-600 transition-colors duration-500 group-hover:text-white/90 group-focus-visible:text-white/90 sm:block">{step.description}</span>
                     </span>
                   </button>
                 );
@@ -433,8 +455,8 @@ export default function Landing() {
         <div className="sticky top-0 flex h-[100svh] items-center px-4 sm:px-6 lg:top-[15svh] lg:h-[70svh]">
           <div className="mx-auto grid w-full max-w-6xl gap-8 py-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-20">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">Features</p>
-              <h2 className="mt-3 max-w-md font-display text-2xl font-semibold leading-tight text-ink-900 sm:text-4xl">
+              <p className="text-base font-semibold uppercase tracking-[0.2em] text-brand-700 sm:text-xl">Features</p>
+              <h2 className="mt-3 max-w-xl font-display text-3xl font-semibold leading-tight text-ink-900 sm:text-5xl">
                 Everything you need to manage rentals
               </h2>
               <p className="mt-4 hidden max-w-md text-base text-ink-500 sm:block">
@@ -546,21 +568,6 @@ export default function Landing() {
                 Screening brings the important details together so an owner can review each applicant with confidence.
                 Recommendations always stay advisory.
               </p>
-              <ul className="mt-8 grid gap-3 text-sm text-white/85 sm:grid-cols-2 lg:grid-cols-1">
-                {[
-                  'Eligibility with clear reasons',
-                  'Document consistency checks',
-                  'A readable application summary',
-                  'Source shown for every AI result',
-                ].map((item) => (
-                  <li key={item} className="flex items-start gap-3">
-                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-300/20 text-brand-300">
-                      <Icon name="check" size={13} strokeWidth={2.5} />
-                    </span>
-                    {item}
-                  </li>
-                ))}
-              </ul>
             </div>
 
             <div className="relative rounded-[1.5rem] border border-white/15 bg-white/[0.07] p-4 shadow-inner sm:p-6" aria-label="Illustration of an application review workflow">

@@ -15,6 +15,9 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
   }
 
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    if (err.code === 'P1001' || err.code === 'P1002' || (err.code === 'P2010' && /Server selection timeout|No available servers/i.test(err.message))) {
+      return res.status(503).json({ error: { code: 'SERVICE_UNAVAILABLE', message: 'Service temporarily unavailable. Please try again shortly.' } });
+    }
     if (err.code === 'P2002') {
       return res.status(409).json({
         error: { code: 'CONFLICT', message: 'A record with these values already exists', details: err.meta },
