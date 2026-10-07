@@ -606,35 +606,50 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── CTA ────────────────────────────────────────────────────── */}
-      <section className="border-t border-slate-200 bg-white py-16 sm:py-20">
-        <div className="mx-auto max-w-2xl px-4 text-center">
-          <h2 className="font-display text-2xl font-semibold text-ink-900 sm:text-3xl">
-            Ready to simplify your rental management?
-          </h2>
-          <p className="mt-3 text-ink-500">
-            Try the demo with pre-seeded data, or create your own account.
-          </p>
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-            <Link to="/register" className="btn-primary h-11 px-6">
-              Create account
-            </Link>
-            <Link to="/login" className="btn-secondary h-11 px-6">
-              Sign in to demo
-            </Link>
+      {/* ── Closing invitation ─────────────────────────────────────── */}
+      <section className="relative isolate overflow-hidden bg-[#123d31] text-white" aria-labelledby="closing-title">
+        <div className="pointer-events-none absolute inset-0 -z-10 opacity-25" style={{ backgroundImage: 'linear-gradient(rgba(197,229,173,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(197,229,173,.18) 1px, transparent 1px)', backgroundSize: '76px 76px' }} aria-hidden="true" />
+        <div className="pointer-events-none absolute -right-40 bottom-10 -z-10 h-[540px] w-[540px] rounded-full border border-[#c5e5ad]/20 sm:-right-24" aria-hidden="true">
+          <div className="absolute inset-14 rounded-full border border-[#c5e5ad]/20" />
+          <div className="absolute inset-28 rounded-full border border-[#c5e5ad]/20" />
+        </div>
+        <div className="mx-auto max-w-6xl px-5 pt-20 sm:px-8 sm:pt-28 lg:pt-36">
+          <div className="flex items-center gap-4 text-xs font-semibold uppercase tracking-[0.24em] text-[#c5e5ad]">
+            <span className="h-px w-10 bg-[#c5e5ad]" aria-hidden="true" />
+            Your next chapter
+          </div>
+          <div className="mt-8 grid gap-10 border-b border-white/25 pb-20 lg:grid-cols-[1.35fr_0.65fr] lg:items-end lg:gap-16 lg:pb-28">
+            <h2 id="closing-title" className="max-w-3xl font-display text-[clamp(3.25rem,7vw,6.75rem)] font-semibold leading-[0.98] tracking-[-0.055em]">
+              More room for<br /><span className="text-[#b6df9a]">what matters.</span>
+            </h2>
+            <div className="max-w-md lg:pb-2">
+              <p className="text-lg leading-relaxed text-white/75 sm:text-xl">
+                Bring your properties, people and everyday work into one calm place.
+              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
+                <Link to="/register" className="inline-flex min-h-12 items-center justify-center gap-5 rounded-lg bg-[#b6df9a] px-6 py-3 text-sm font-semibold text-[#123d31] transition-colors hover:bg-white focus-visible:ring-[#b6df9a]">
+                  Create your account <span aria-hidden="true">↗</span>
+                </Link>
+                <Link to="/login" className="inline-flex min-h-12 items-center justify-center gap-5 rounded-lg border border-white/45 px-6 py-3 text-sm font-semibold text-white transition-colors hover:border-white hover:bg-white/10 focus-visible:ring-white">
+                  Explore the demo <span aria-hidden="true">↗</span>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
-      </section>
 
-      {/* ── Footer ─────────────────────────────────────────────────── */}
-      <footer className="border-t border-slate-200 bg-slate-50 py-8">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 text-center sm:flex-row sm:justify-between sm:text-left">
-          <span className="font-wordmark text-2xl font-bold tracking-tight text-ink-900">Roomora</span>
-          <p className="text-xs text-ink-400">
-            Smart rental management with AI-assisted screening · Demo environment
-          </p>
-        </div>
-      </footer>
+        <footer className="mx-auto flex max-w-6xl flex-col gap-5 px-5 py-8 sm:flex-row sm:items-end sm:justify-between sm:px-8 sm:py-10">
+          <div>
+            <Link to="/" className="font-wordmark text-3xl font-bold tracking-tight text-white sm:text-4xl">Roomora</Link>
+            <p className="mt-2 text-sm text-white/55">A better way to keep rentals moving.</p>
+          </div>
+          <nav aria-label="Footer" className="flex flex-wrap gap-x-7 gap-y-2 text-sm text-white/70">
+            <Link to="/login" className="hover:text-white">Sign in</Link>
+            <Link to="/register" className="hover:text-white">Get started</Link>
+            <a href="#how-it-works" className="hover:text-white">How it works</a>
+          </nav>
+        </footer>
+      </section>
     </div>
   );
 }

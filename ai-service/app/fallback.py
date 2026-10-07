@@ -337,20 +337,20 @@ def assistant(question: str, context: dict) -> str:
         rows = context["overdueRent"]
         if rows:
             total = sum(r.get("outstanding", 0) for r in rows)
-            lines.append(f"**Overdue rent** — {len(rows)} tenant(s), {fmt_money(total)} outstanding:")
+            lines.append(f"Overdue rent — {len(rows)} tenant(s), {fmt_money(total)} outstanding:")
             for r in rows[:10]:
                 lines.append(
                     f"- {r['tenant']} ({r['room']}): {fmt_money(r['outstanding'])}, "
                     f"{r['daysLate']} days late (period {r['period']})"
                 )
         else:
-            lines.append("**Overdue rent** — none. All tenants are current.")
+            lines.append("Overdue rent — none. All tenants are current.")
 
     if "vacantRooms" in context:
         rows = context["vacantRooms"]
         if rows:
             beds = sum(r.get("vacantBeds", 0) for r in rows)
-            lines.append(f"**Vacant rooms** — {len(rows)} room(s), {beds} bed(s) available:")
+            lines.append(f"Vacant rooms — {len(rows)} room(s), {beds} bed(s) available:")
             for r in rows[:15]:
                 lines.append(
                     f"- {r['room']} at {r['property']}: {r['vacantBeds']} bed(s) free, "
@@ -358,24 +358,24 @@ def assistant(question: str, context: dict) -> str:
                     + ("" if r.get("applicationsOpen") else " (applications closed)")
                 )
         else:
-            lines.append("**Vacant rooms** — none; all rooms are at capacity.")
+            lines.append("Vacant rooms — none; all rooms are at capacity.")
 
     if "leasesExpiring" in context:
         rows = context["leasesExpiring"]
         if rows:
-            lines.append(f"**Leases expiring soon** — {len(rows)}:")
+            lines.append(f"Leases expiring soon — {len(rows)}:")
             for r in rows[:15]:
                 lines.append(
                     f"- {r['tenant']} ({r['room']}): ends {r['endDate']} "
                     f"({r['daysRemaining']} days)"
                 )
         else:
-            lines.append("**Leases expiring soon** — none in the next month.")
+            lines.append("Leases expiring soon — none in the next month.")
 
     if "revenueSummary" in context:
         r = context["revenueSummary"]
         lines.append(
-            "**Revenue** — "
+            "Revenue — "
             f"billed {fmt_money(r['totalBilled'])}, "
             f"collected {fmt_money(r['totalCollected'])}, "
             f"outstanding {fmt_money(r['outstanding'])}, "
@@ -387,30 +387,30 @@ def assistant(question: str, context: dict) -> str:
         if rows:
             top = rows[0]
             lines.append(
-                f"**Maintenance frequency** — most common issue: {top['category']} "
+                f"Maintenance frequency — most common issue: {top['category']} "
                 f"({top['count']} request(s)). Full breakdown: "
                 + ", ".join(f"{r['category']} {r['count']}" for r in rows[:8])
                 + "."
             )
         else:
-            lines.append("**Maintenance frequency** — no maintenance requests on record.")
+            lines.append("Maintenance frequency — no maintenance requests on record.")
 
     if "pendingApplications" in context:
         rows = context["pendingApplications"]
         if rows:
-            lines.append(f"**Applications awaiting your review** — {len(rows)}:")
+            lines.append(f"Applications awaiting your review — {len(rows)}:")
             for r in rows[:10]:
                 lines.append(
                     f"- {r['tenant']} for {r['room']}: {r['status']}, "
                     f"AI {r['aiScore']}, recommendation {r['aiRecommendation']}"
                 )
         else:
-            lines.append("**Applications awaiting your review** — none.")
+            lines.append("Applications awaiting your review — none.")
 
     if "occupancyOverview" in context:
         rows = context["occupancyOverview"]
         if rows:
-            lines.append("**Occupancy by property:**")
+            lines.append("Occupancy by property:")
             for r in rows:
                 lines.append(
                     f"- {r['property']}: {r['occupants']}/{r['capacity']} beds "
@@ -420,12 +420,12 @@ def assistant(question: str, context: dict) -> str:
     if "activeWarnings" in context:
         rows = context["activeWarnings"]
         if rows:
-            lines.append(f"**Active warnings** — {len(rows)}:")
+            lines.append(f"Active warnings — {len(rows)}:")
             for r in rows[:10]:
                 who = f" [{r['tenant']}]" if r.get("tenant") else ""
                 lines.append(f"- ({r['severity']}) {r['title']}{who}: {r['message']}")
         else:
-            lines.append("**Active warnings** — none.")
+            lines.append("Active warnings — none.")
 
     if not lines:
         lines.append(
@@ -435,7 +435,7 @@ def assistant(question: str, context: dict) -> str:
         )
 
     lines.append("")
-    lines.append("_Answered from your live database via the rule-based assistant (NVIDIA AI unavailable)._")
+    lines.append("Answered from your live database.")
     return "\n".join(lines)
 
 
