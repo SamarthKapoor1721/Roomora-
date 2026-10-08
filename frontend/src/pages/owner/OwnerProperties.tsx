@@ -15,6 +15,7 @@ import {
 } from '../../components/ui';
 import { useApiMutation } from '../../lib/hooks';
 import OccupantsPanel from './OccupantsPanel';
+import EditProperty from './EditProperty';
 
 interface Property {
   id: string;
@@ -56,6 +57,7 @@ export default function OwnerProperties() {
   const [selected, setSelected] = useState<string | null>(null);
   const [showPropForm, setShowPropForm] = useState(false);
   const [showRoomForm, setShowRoomForm] = useState(false);
+  const [editingProperty, setEditingProperty] = useState<string | null>(null);
 
   const props = useQuery({
     queryKey: ['owner', 'properties'],
@@ -200,7 +202,8 @@ export default function OwnerProperties() {
             <h2 className="font-semibold">
               Rooms in {props.data?.find((p) => p.id === selected)?.name}
             </h2>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <button className="btn-secondary btn-sm" onClick={() => setEditingProperty(selected)}>Edit property</button>
               <button className="btn-secondary btn-sm" onClick={() => setShowRoomForm((v) => !v)}>
                 {showRoomForm ? 'Cancel' : 'Add room'}
               </button>
@@ -340,6 +343,7 @@ export default function OwnerProperties() {
         </div>
       )}
 
+      {editingProperty && <EditProperty propertyId={editingProperty} onClose={() => setEditingProperty(null)} />}
       <ConfirmDialog
         open={!!confirm}
         title={confirm?.kind === 'property' ? 'Deactivate this property?' : 'Deactivate this room?'}
