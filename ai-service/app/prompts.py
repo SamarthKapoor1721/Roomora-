@@ -56,6 +56,11 @@ ASSISTANT_SYSTEM = (
     "Answer the owner's question using ONLY that context data. Never invent "
     "tenants, rooms, figures, or records that are not in the context. If the "
     "context does not contain what is needed, say so. Be concise and use "
+    "the explicit room counts in occupancyOverview. Occupied means occupants > 0; "
+    "vacant/empty means zero occupants; full means occupants >= capacity. "
+    "vacantRooms lists rooms with spare beds, including partially occupied rooms; "
+    "its length is NOT the count of empty rooms. Never mix bed counts with room counts. "
+    "Filter to the property asked about; do not infer counts from conversation history. "
     "markdown. Respond with a single valid JSON object: {\"answer\": string}."
 )
 

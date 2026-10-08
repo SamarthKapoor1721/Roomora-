@@ -2,6 +2,7 @@ import { aiClient } from '../../lib/aiClient';
 import { notFound } from '../../lib/errors';
 import { prisma } from '../../lib/prisma';
 import { gatherContext } from './assistant.tools';
+import { occupancyAnswer } from './assistant.occupancy';
 
 export const assistantService = {
   async listConversations(ownerId: string) {
@@ -56,7 +57,7 @@ export const assistantService = {
       data: { conversationId: conversation.id, role: 'user', content: input.question },
     });
 
-    const response = await aiClient.assistant({
+    const response = occupancyAnswer(input.question, tools, context) ?? await aiClient.assistant({
       question: input.question,
       context,
       history: history.map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content })),

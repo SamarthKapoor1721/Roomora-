@@ -44,6 +44,7 @@ export const assistantTools = {
         city: r.property.city,
         capacity: r.capacity,
         occupants: r.occupantCount,
+        occupancy: r.occupantCount === 0 ? 'EMPTY' : 'PARTIALLY_OCCUPIED',
         vacantBeds: r.capacity - r.occupantCount,
         monthlyRent: Number(r.monthlyRent),
         applicationsOpen: r.applicationsOpen,
@@ -126,7 +127,7 @@ export const assistantTools = {
   async occupancyOverview(ownerId: string) {
     const rows = await prisma.property.findMany({
       where: { ownerId, isActive: true },
-      include: { rooms: { select: { capacity: true, occupantCount: true, status: true } } },
+      include: { rooms: { select: { name: true, capacity: true, occupantCount: true, status: true } } },
     });
     return rows.map((p) => {
       const capacity = p.rooms.reduce((s, r) => s + r.capacity, 0);
@@ -134,6 +135,10 @@ export const assistantTools = {
       return {
         property: p.name,
         rooms: p.rooms.length,
+        occupiedRooms: p.rooms.filter((r) => r.occupantCount > 0).length,
+        vacantRooms: p.rooms.filter((r) => r.occupantCount === 0).length,
+        fullRooms: p.rooms.filter((r) => r.capacity > 0 && r.occupantCount >= r.capacity).length,
+        roomDetails: p.rooms.map((r) => ({ room: r.name, occupants: r.occupantCount, capacity: r.capacity })),
         capacity,
         occupants: occ,
         occupancyRate: capacity > 0 ? Math.round((occ / capacity) * 100) : 0,
@@ -178,7 +183,7 @@ export function selectTools(question: string): AssistantToolName[] {
   if (/(revenue|income|earnings|collected|money|financ|outstanding|profit)/.test(q)) picks.add('revenueSummary');
   if (/(maintenance|repair|issue|broken|fix)/.test(q)) picks.add('maintenanceFrequency');
   if (/(application|applicant|approve|pending review|screening|tenant.*appl)/.test(q)) picks.add('pendingApplications');
-  if (/(occupancy|how full|utilization|utilisation|how many rooms|how many propert)/.test(q)) picks.add('occupancyOverview');
+  if (/(occupancy|occupied|vacant|empty|filled|full|free bed|available room|which rooms|utilization|utilisation|how many rooms|how many propert)/.test(q)) picks.add('occupancyOverview');
   if (/(warning|alert|risk|flag)/.test(q)) picks.add('activeWarnings');
 
   // Default: give a broad snapshot.

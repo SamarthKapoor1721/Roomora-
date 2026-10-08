@@ -350,10 +350,13 @@ def assistant(question: str, context: dict) -> str:
         rows = context["vacantRooms"]
         if rows:
             beds = sum(r.get("vacantBeds", 0) for r in rows)
-            lines.append(f"Vacant rooms — {len(rows)} room(s), {beds} bed(s) available:")
+            empty = sum(1 for r in rows if r.get("occupants", 0) == 0)
+            lines.append(f"Rooms with spare beds — {len(rows)} room(s), {beds} bed(s) available; {empty} room(s) completely empty:")
             for r in rows[:15]:
                 lines.append(
-                    f"- {r['room']} at {r['property']}: {r['vacantBeds']} bed(s) free, "
+                    f"- {r['room']} at {r['property']}: "
+                    + ("empty" if r.get("occupants", 0) == 0 else "occupied")
+                    + f", {r['vacantBeds']} bed(s) free, "
                     f"{fmt_money(r['monthlyRent'])}/mo"
                     + ("" if r.get("applicationsOpen") else " (applications closed)")
                 )
