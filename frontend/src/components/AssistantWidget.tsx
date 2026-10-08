@@ -22,14 +22,25 @@ const SUGGESTIONS = [
  */
 export default function AssistantWidget() {
   const [open, setOpen] = useState(false);
+  const [panelMounted, setPanelMounted] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const convo = useRef<string | undefined>(undefined);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    if (open) {
+      setPanelMounted(true);
+      return;
+    }
+    const timer = window.setTimeout(() => setPanelMounted(false), 240);
+    return () => window.clearTimeout(timer);
+  }, [open]);
+
   const ask = useMutation({
     mutationFn: async (question: string) =>
-      (await api.post('/owner/assistant/ask', { question, conversationId: convo.current })).data.data,
+      // Allow the backend's 130-second AI budget plus database/network overhead.
+      (await api.post('/owner/assistant/ask', { question, conversationId: convo.current }, { timeout: 150_000 })).data.data,
     onSuccess: (data) => {
       convo.current = data.conversationId;
       setMessages((m) => [...m, { role: 'assistant', content: data.message.content }]);
@@ -52,15 +63,17 @@ export default function AssistantWidget() {
       {/* launcher bubble */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-5 right-5 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-brand-600 text-white shadow-pop transition-transform hover:scale-105 active:scale-95"
+        className="assistant-launcher fixed bottom-5 right-5 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-brand-600 text-white shadow-pop transition-transform hover:scale-105 active:scale-95"
         aria-label={open ? 'Close assistant' : 'Open assistant'}
+        aria-expanded={open}
+        aria-controls="roomora-assistant"
       >
         <Icon name={open ? 'x' : 'bot'} size={22} />
       </button>
 
       {/* panel */}
-      {open && (
-        <div className="fixed bottom-20 right-5 z-50 flex h-[30rem] w-[22rem] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-pop">
+      {panelMounted && (
+        <div id="roomora-assistant" aria-hidden={!open} className={`assistant-panel ${open ? '' : 'assistant-panel-closing'} fixed bottom-20 right-5 z-50 flex h-[30rem] w-[22rem] max-w-[calc(100vw-2.5rem)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-pop`}>
           {/* header */}
           <div className="flex items-center gap-2 border-b border-slate-200 bg-brand-600 px-4 py-3 text-white">
             <Icon name="bot" size={18} />
@@ -84,11 +97,12 @@ export default function AssistantWidget() {
                 <p className="px-1 text-xs text-ink-500">
                   Ask about your properties, tenants and rent: or try:
                 </p>
-                {SUGGESTIONS.map((s) => (
+                {SUGGESTIONS.map((s, index) => (
                   <button
                     key={s}
                     onClick={() => send(s)}
-                    className="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-xs font-medium text-ink-700 transition-colors hover:border-brand-300 hover:bg-brand-50"
+                    style={{ animationDelay: `${120 + index * 65}ms` }}
+                    className="assistant-suggestion block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-xs font-medium text-ink-700 transition-colors hover:border-brand-300 hover:bg-brand-50"
                   >
                     {s}
                   </button>
