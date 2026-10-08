@@ -3,6 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api, apiErrorMessage, assetUrl } from '../../lib/api';
 import { Icon } from '../../components/Icon';
+import ModalOverlay from '../../components/ModalOverlay';
 import { Chip, EmptyState, ErrorBanner, Field, ImageGallery, NumberInput, PageHeader, Skeleton, money } from '../../components/ui';
 
 interface Img {
@@ -14,6 +15,7 @@ interface Img {
 interface Room {
   id: string;
   name: string;
+  applicationsOpen: boolean;
   monthlyRent: number;
   securityDeposit: number;
   capacity: number;
@@ -33,17 +35,19 @@ function roomPhotos(r: Room): Img[] {
 export default function TenantBrowse() {
   const navigate = useNavigate();
   const [applyFor, setApplyFor] = useState<Room | null>(null);
+  const [page, setPage] = useState(1);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['tenant', 'browse'],
-    queryFn: async () => (await api.get('/tenant/rooms')).data.data as Room[],
+    queryKey: ['tenant', 'browse', page],
+    queryFn: async () => (await api.get('/tenant/rooms', { params: { page, pageSize: 12 } })).data as { data: Room[]; meta: { totalPages: number } },
+    refetchInterval: 30_000,
   });
 
   return (
     <div>
       <PageHeader
         title="Browse rooms"
-        description="Rooms currently open for applications. Apply, then upload your documents for review."
+        description="Explore properties and rooms. Apply when applications are open and a bed is available."
       />
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -53,15 +57,15 @@ export default function TenantBrowse() {
         </div>
       ) : error ? (
         <ErrorBanner message={apiErrorMessage(error)} />
-      ) : data?.length === 0 ? (
+      ) : data?.data.length === 0 ? (
         <EmptyState
           icon="search"
-          title="No rooms are open right now"
-          hint="Owners open applications when a bed is available. Check back later."
+          title="No rooms listed yet"
+          hint="Active properties and rooms will appear here when owners add them."
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {data?.map((r) => {
+          {data?.data.map((r) => {
             const photos = roomPhotos(r);
             return (
             <div key={r.id} className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-card">
@@ -105,8 +109,8 @@ export default function TenantBrowse() {
                   ))}
                 </div>
               )}
-              <button className="btn-primary mt-4 w-full" onClick={() => setApplyFor(r)}>
-                Apply for this room
+              <button className="btn-primary mt-4 w-full" disabled={!r.applicationsOpen || r.spotsAvailable <= 0} onClick={() => setApplyFor(r)}>
+                {r.spotsAvailable <= 0 ? 'Room full' : !r.applicationsOpen ? 'Applications closed' : 'Apply for this room'}
               </button>
               </div>
             </div>
@@ -115,6 +119,11 @@ export default function TenantBrowse() {
         </div>
       )}
 
+      {data && data.meta.totalPages > 1 && <div className="mt-6 flex items-center justify-center gap-3">
+        <button className="btn-secondary btn-sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Previous</button>
+        <span className="text-sm text-ink-500">Page {page} of {data.meta.totalPages}</span>
+        <button className="btn-secondary btn-sm" disabled={page >= data.meta.totalPages} onClick={() => setPage((p) => p + 1)}>Next</button>
+      </div>}
       {applyFor && (
         <ApplyModal room={applyFor} onClose={() => setApplyFor(null)} onApplied={(id) => navigate(`/tenant/applications/${id}`)} />
       )}
@@ -140,9 +149,9 @@ function ApplyModal({ room, onClose, onApplied }: { room: Room; onClose: () => v
   });
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/60 p-4 backdrop-blur-md" role="dialog" aria-modal="true">
+    <ModalOverlay onClose={onClose} labelledBy="apply-room-title">
       <form
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-slate-200 bg-white"
+        className="max-h-[calc(100dvh-2rem)] w-full max-w-lg overflow-y-auto overscroll-contain rounded-xl border border-slate-200 bg-white"
         onSubmit={(e) => {
           e.preventDefault();
           m.mutate();
@@ -150,7 +159,7 @@ function ApplyModal({ room, onClose, onApplied }: { room: Room; onClose: () => v
       >
         <div className="hairline flex items-start justify-between p-5">
           <div>
-            <h2 className="font-display text-lg font-semibold text-ink-900">Apply for this room</h2>
+            <h2 id="apply-room-title" className="font-display text-lg font-semibold text-ink-900">Apply for this room</h2>
             <p className="mt-0.5 text-sm text-ink-500">
               {room.property.name} · {room.name}
             </p>
@@ -242,6 +251,6 @@ function ApplyModal({ room, onClose, onApplied }: { room: Room; onClose: () => v
           </button>
         </div>
       </form>
-    </div>
+    </ModalOverlay>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import TenancyRequests from '../../components/TenancyRequests';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
@@ -43,6 +44,7 @@ export default function OwnerLeases() {
         description="Active and past leases. Generate an AI plain-language summary, or terminate a tenancy."
       />
 
+      <TenancyRequests owner />
       {data?.length === 0 ? (
         <EmptyState
           icon="file"

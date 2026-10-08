@@ -13,9 +13,14 @@ async function main() {
       name: 'RoomAssignment_applicationId_partial_unique',
       unique: true,
       partialFilterExpression: { applicationId: { $type: 'string' } },
+    }, {
+      key: { roomId: 1, tenantId: 1 },
+      name: 'RoomAssignment_active_tenant_partial_unique',
+      unique: true,
+      partialFilterExpression: { isActive: true },
     }],
   });
-  console.log('MongoDB application assignment index ready.');
+  console.log('MongoDB application and active tenancy indexes ready.');
 }
 
 main().catch(() => {

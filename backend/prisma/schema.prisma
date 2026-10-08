@@ -197,6 +197,8 @@ model User {
   warningsIssued  Warning[]        @relation("WarningIssuedBy")
   warningsAbout   Warning[]        @relation("WarningTenant")
   aiConversations AiConversation[]
+  tenancyRequests TenancyRequest[] @relation("RequestTenant")
+  tenancyReviews TenancyRequest[] @relation("RequestOwner")
 
   @@index([role])
 }
@@ -300,6 +302,7 @@ model Room {
   maintenance   MaintenanceRequest[]
   cleaningTasks CleaningTask[]
   images        RoomImage[]
+  requestedMoves TenancyRequest[]
 
   @@index([propertyId])
   @@index([applicationsOpen])
@@ -335,7 +338,11 @@ model RoomAssignment {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
-  @@unique([roomId, tenantId, isActive])
+  requests TenancyRequest[]
+
+  // Only active assignments must be unique; history may contain repeat stays.
+  // The partial unique index is installed by prisma/setup.ts.
+  @@index([roomId, tenantId])
   // A partial unique applicationId index is installed by prisma/setup.ts.
   @@index([applicationId])
   @@index([tenantId])
@@ -452,6 +459,26 @@ model ApplicationSummary {
 // ---------------------------------------------------------------------------
 // Leases, rent, payments
 // ---------------------------------------------------------------------------
+
+model TenancyRequest {
+  id String @id @default(cuid()) @map("_id")
+  tenantId String
+  tenant User @relation("RequestTenant", fields: [tenantId], references: [id])
+  ownerId String
+  owner User @relation("RequestOwner", fields: [ownerId], references: [id])
+  assignmentId String
+  assignment RoomAssignment @relation(fields: [assignmentId], references: [id])
+  targetRoomId String?
+  targetRoom Room? @relation(fields: [targetRoomId], references: [id])
+  type String
+  status String @default("PENDING")
+  reason String
+  ownerNote String?
+  createdAt DateTime @default(now())
+  reviewedAt DateTime?
+  @@index([tenantId, status])
+  @@index([ownerId, status])
+}
 
 model Lease {
   id              String          @id @default(cuid()) @map("_id")

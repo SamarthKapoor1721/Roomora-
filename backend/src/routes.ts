@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { ownerTenancyRoutes, tenantTenancyRoutes } from './modules/tenancy/tenancy.routes';
 import { aiRoutes } from './modules/ai/ai.routes';
 import { analyticsRoutes } from './modules/analytics/analytics.routes';
 import {
@@ -44,6 +45,7 @@ apiRouter.use('/owner/rooms', roomsRoutes);
 apiRouter.use('/owner', ownerAssignmentRoutes); // /owner/rooms/:roomId/assignments, /owner/assignments/:id/end
 apiRouter.use('/owner/applications', ownerApplicationRoutes);
 apiRouter.use('/owner/leases', ownerLeaseRoutes);
+apiRouter.use('/owner/tenancy-requests', ownerTenancyRoutes);
 apiRouter.use('/owner/payments', ownerPaymentRoutes);
 apiRouter.use('/owner/maintenance', ownerMaintenanceRoutes);
 apiRouter.use('/owner/cleaning', ownerCleaningRoutes);
@@ -56,6 +58,7 @@ apiRouter.use('/tenant/rooms', browseRoutes); // browse open rooms
 apiRouter.use('/tenant/applications', tenantApplicationRoutes);
 apiRouter.use('/tenant', tenantAssignmentRoutes); // /tenant/roommates
 apiRouter.use('/tenant/leases', tenantLeaseRoutes);
+apiRouter.use('/tenant/tenancy-requests', tenantTenancyRoutes);
 apiRouter.use('/tenant/payments', tenantPaymentRoutes);
 apiRouter.use('/tenant/maintenance', tenantMaintenanceRoutes);
 apiRouter.use('/tenant/warnings', tenantWarningRoutes);

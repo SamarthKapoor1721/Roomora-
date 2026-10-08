@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import TenancyRequests from '../../components/TenancyRequests';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
 import {
@@ -57,6 +58,7 @@ export default function TenantDashboard() {
         }
       />
 
+      <TenancyRequests />
       {!data.room ? (
         <EmptyState
           icon="home"

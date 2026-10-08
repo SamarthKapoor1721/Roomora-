@@ -134,8 +134,7 @@ export const roomsService = {
   async browse(query: Record<string, unknown>) {
     const { skip, take, page, pageSize } = parsePage(query);
     const where: Prisma.RoomWhereInput = {
-      applicationsOpen: true,
-      status: { in: ['AVAILABLE', 'OCCUPIED'] },
+      status: { in: ['AVAILABLE', 'OCCUPIED', 'FULL'] },
       property: { isActive: true },
     };
     if (query.city) where.property = { ...where.property as object, city: { contains: query.city as string, mode: 'insensitive' } };
@@ -169,6 +168,7 @@ export const roomsService = {
       const food = effectiveFood(r, r.property);
       return {
         id: r.id,
+        applicationsOpen: r.applicationsOpen,
         name: r.name,
         floor: r.floor,
         description: r.description,
@@ -196,12 +196,13 @@ export const roomsService = {
 
   async browseOne(id: string) {
     const room = await prisma.room.findFirst({
-      where: { id, applicationsOpen: true, property: { isActive: true } },
+      where: { id, status: { not: 'INACTIVE' }, property: { isActive: true } },
       include: { images: imageSelect, property: { include: { images: imageSelect } } },
     });
     if (!room) return null;
     return {
       id: room.id,
+      applicationsOpen: room.applicationsOpen,
       name: room.name,
       floor: room.floor,
       description: room.description,

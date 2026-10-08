@@ -283,15 +283,18 @@ export default function OwnerProperties() {
                       </td>
                       <td className="td">
                         <button
-                          className={`rounded-md px-2 py-0.5 text-2xs font-semibold uppercase tracking-wide ${
-                            r.applicationsOpen
-                              ? 'bg-emerald-50 text-emerald-700'
-                              : 'bg-slate-100 text-ink-500'
-                          }`}
+                          role="switch"
+                          aria-checked={r.applicationsOpen}
+                          aria-label={`Applications for ${r.name}`}
+                          title={r.applicationsOpen ? 'Close applications' : 'Open applications'}
+                          className="inline-flex min-h-11 items-center gap-2.5 rounded-lg px-1 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 disabled:cursor-wait disabled:opacity-50"
                           onClick={() => toggleApps.mutate({ id: r.id, open: !r.applicationsOpen })}
                           disabled={toggleApps.isPending}
                         >
-                          {r.applicationsOpen ? 'Open · close' : 'Closed · open'}
+                          <span aria-hidden="true" className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors motion-reduce:transition-none ${r.applicationsOpen ? 'border-brand-600 bg-brand-600' : 'border-slate-300 bg-slate-200'}`}>
+                            <span className={`absolute left-0.5 h-[18px] w-[18px] rounded-full bg-white shadow-sm transition-transform duration-200 motion-reduce:transition-none ${r.applicationsOpen ? 'translate-x-5' : 'translate-x-0'}`} />
+                          </span>
+                          <span className={r.applicationsOpen ? 'text-brand-700' : 'text-ink-500'}>{r.applicationsOpen ? 'Open' : 'Closed'}</span>
                         </button>
                       </td>
                       <td className="td">
