@@ -161,6 +161,73 @@ function FeaturePreview({ index }: { index: number }) {
 }
 
 export default function Landing() {
+  const landingRef = useRef<HTMLDivElement>(null);
+  const brandRef = useRef<HTMLSpanElement>(null);
+  const introRef = useRef<HTMLDivElement>(null);
+  const introBrandRef = useRef<HTMLSpanElement>(null);
+  const [introActive, setIntroActive] = useState(() => !window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+  useEffect(() => {
+    if (!introActive) return;
+    const overlay = introRef.current;
+    const wordmark = introBrandRef.current;
+    const target = brandRef.current;
+    if (!overlay || !wordmark || !target) return;
+
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const content = Array.from(landingRef.current?.children ?? []).filter((element) => element !== overlay);
+    content.forEach((element) => element.setAttribute('inert', ''));
+    const animations: Animation[] = [];
+    let cancelled = false;
+    const finish = () => setIntroActive(false);
+    preference.addEventListener('change', finish);
+
+    const play = async () => {
+      try {
+        // Measure after fonts settle so the moving wordmark lands exactly on the navbar.
+        await document.fonts.ready;
+        if (cancelled) return;
+        const entrance = wordmark.animate([
+          { opacity: 0, transform: 'translateY(14px) scale(0.96)', filter: 'blur(6px)' },
+          { opacity: 1, transform: 'translateY(0) scale(1)', filter: 'blur(0)' },
+        ], { duration: 850, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' });
+        animations.push(entrance);
+        await entrance.finished;
+        if (cancelled) return;
+        const start = wordmark.getBoundingClientRect();
+        const end = target.getBoundingClientRect();
+        const flight = wordmark.animate([
+          { transform: 'translate(0, 0) scale(1)' },
+          { transform: `translate(${end.left - start.left}px, ${end.top - start.top}px) scale(${end.width / start.width})` },
+        ], { delay: 250, duration: 1000, easing: 'cubic-bezier(0.76, 0, 0.24, 1)', fill: 'forwards' });
+        animations.push(flight);
+        await flight.finished;
+        if (cancelled) return;
+        const reveal = overlay.animate([{ opacity: 1 }, { opacity: 0 }], {
+          duration: 650, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'forwards',
+        });
+        animations.push(reveal);
+        // Hand the wordmark to the navbar before fading away the black screen.
+        target.style.visibility = 'visible';
+        await reveal.finished;
+        if (!cancelled) finish();
+      } catch {
+        if (!cancelled) finish();
+      }
+    };
+    void play();
+    return () => {
+      cancelled = true;
+      animations.forEach((animation) => animation.cancel());
+      document.body.style.overflow = previousOverflow;
+      content.forEach((element) => element.removeAttribute('inert'));
+      target.style.visibility = '';
+      preference.removeEventListener('change', finish);
+    };
+  }, [introActive]);
+
   const videoRef = useRef<HTMLVideoElement>(null);
   const featureSectionRef = useRef<HTMLElement>(null);
   const aiSectionRef = useRef<HTMLElement>(null);
@@ -259,12 +326,33 @@ export default function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f7f2]">
+    <div ref={landingRef} className={`min-h-screen bg-[#f7f7f2] ${introActive ? 'roomora-intro-active' : ''}`}>
+      {introActive && (
+        <div ref={introRef} className="roomora-intro" aria-hidden="true">
+          <div className="roomora-intro-icons">
+            {[
+              { name: 'home', left: '15%', top: '19%', size: 72, rotation: -12 },
+              { name: 'key', left: '46%', top: '13%', size: 42, rotation: 15 },
+              { name: 'building', left: '78%', top: '24%', size: 64, rotation: 8 },
+              { name: 'plant', left: '8%', top: '54%', size: 46, rotation: -8 },
+              { name: 'door', left: '86%', top: '58%', size: 48, rotation: 12 },
+              { name: 'sofa', left: '24%', top: '77%', size: 62, rotation: -6 },
+              { name: 'lamp', left: '54%', top: '84%', size: 40, rotation: 10 },
+              { name: 'home', left: '73%', top: '74%', size: 52, rotation: -10 },
+            ].map((item, index) => (
+              <span key={`${item.name}-${index}`} className="roomora-intro-icon" style={{ left: item.left, top: item.top, rotate: `${item.rotation}deg`, animationDelay: `${index * 55}ms` }}>
+                <Icon name={item.name} size={item.size} strokeWidth={1.1} />
+              </span>
+            ))}
+          </div>
+          <span ref={introBrandRef} className="roomora-intro-wordmark font-wordmark font-bold tracking-tight text-white">Roomora</span>
+        </div>
+      )}
       {/* ── Hero ───────────────────────────────────────────────────── */}
       <section className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-[#142c23]">
         <header className="absolute inset-x-0 top-0 z-30">
           <nav className="flex h-16 w-full items-center justify-between px-4 sm:px-6" aria-label="Main navigation">
-            <span className="font-wordmark text-3xl font-bold tracking-tight text-white">Roomora</span>
+            <span ref={brandRef} style={{ visibility: introActive ? 'hidden' : 'visible' }} className="font-wordmark text-3xl font-bold tracking-tight text-white">Roomora</span>
             <div className="flex items-center gap-2 sm:gap-3">
               <Link to="/login" className="btn h-11 px-4 text-base text-white hover:bg-white/15 sm:h-12 sm:px-6">
                 Sign in
