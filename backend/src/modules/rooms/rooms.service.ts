@@ -135,7 +135,7 @@ export const roomsService = {
     const { skip, take, page, pageSize } = parsePage(query);
     const where: Prisma.RoomWhereInput = {
       status: { in: ['AVAILABLE', 'OCCUPIED', 'FULL'] },
-      property: { isActive: true },
+      property: { isActive: true, owner: { isActive: true } },
     };
     if (query.city) where.property = { ...where.property as object, city: { contains: query.city as string, mode: 'insensitive' } };
     if (query.minRent || query.maxRent) {
@@ -196,7 +196,7 @@ export const roomsService = {
 
   async browseOne(id: string) {
     const room = await prisma.room.findFirst({
-      where: { id, status: { not: 'INACTIVE' }, property: { isActive: true } },
+      where: { id, status: { not: 'INACTIVE' }, property: { isActive: true, owner: { isActive: true } } },
       include: { images: imageSelect, property: { include: { images: imageSelect } } },
     });
     if (!room) return null;

@@ -61,24 +61,8 @@ async def eligibility(req: EligibilityRequest) -> EligibilityResponse:
 
 
 async def verify_documents(req: DocVerificationRequest) -> DocVerificationResponse:
-    user = json.dumps(req.model_dump(), default=str)
-    try:
-        data = await chat_json(prompts.DOC_VERIFY_SYSTEM, user, budget="blocking")
-        status = str(data.get("overallStatus", "PENDING")).upper()
-        return DocVerificationResponse(
-            source="NVIDIA_AI",
-            overallStatus=status if status in _VALID_DOC_STATUS else "PENDING",  # type: ignore[arg-type]
-            consistencyScore=_clamp_int(data.get("consistencyScore", 60)),
-            extractedFields=data.get("extractedFields") or {},
-            inconsistencies=[str(x) for x in data.get("inconsistencies", [])][:20],
-            missingDocuments=[str(x) for x in data.get("missingDocuments", [])][:20],
-            notes=data.get("notes"),
-            model=data.get("_model"),
-            raw=data,
-        )
-    except NvidiaUnavailable as exc:
-        log.warning("verify_documents falling back to rules: %s", exc)
-        return fallback.verify_documents(req)
+    from .document_review import verify_documents as inspect_content
+    return await inspect_content(req)
 
 
 async def summarize_application(payload: dict) -> SummaryResponse:

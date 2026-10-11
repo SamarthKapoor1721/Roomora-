@@ -28,10 +28,10 @@ flowchart LR
 
 ```json
 {
-  "email": "maintenance@srms.test",
-  "password": "Password123",
-  "fullName": "Max Maintenance",
-  "phone": "9990004444",
+  "email": "maintenance@example.com",
+  "password": "ChangeMeToAStrongSecret9",
+  "fullName": "Maintenance colleague",
+  "phone": "9990000000",
   "staffType": "MAINTENANCE",
   "skills": ["plumbing", "electrical"]
 }

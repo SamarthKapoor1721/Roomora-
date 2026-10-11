@@ -13,11 +13,26 @@ Auth: `Authorization: Bearer <accessToken>` on every route except `/auth/*` and 
 | --- | --- | --- | --- |
 | POST | `/auth/register` | `email, password, fullName, role?(OWNER\|TENANT)` | self-service; STAFF not allowed |
 | POST | `/auth/login` | `email, password` | returns `accessToken, refreshToken, user` |
+| POST | `/auth/google` | `credential, role?(OWNER\|TENANT)` | verifies a Google ID token and returns a session |
+| POST | `/auth/google/link` | `credential` | authenticated user links a matching Google account |
 | POST | `/auth/refresh` | `refreshToken` | rotates the refresh token |
 | POST | `/auth/logout` | `refreshToken` | revokes one session |
 | POST | `/auth/logout-all` | — | revokes all sessions |
 | GET | `/auth/me` | — | current user |
 | POST | `/auth/change-password` | `currentPassword, newPassword` | revokes other sessions |
+
+## Super admin — `/admin`
+
+All routes require a verified, allowlisted super admin session.
+
+| Method | Path | Notes |
+| --- | --- | --- |
+| GET | `/overview` | platform counts, Google configuration, AI health, recent audit activity |
+| GET | `/users` | search and paginate; filter by role with `?q=&role=&page=` |
+| POST | `/users` | create an owner or tenant with a temporary password |
+| PATCH | `/users/:id` | edit name, email, phone, or eligible owner/tenant role |
+| PATCH | `/users/:id/status` | `{ isActive: boolean }`; revokes sessions when disabling an account |
+| DELETE | `/users/:id` | `{ confirmEmail }`; only accounts without business records can be deleted |
 
 ## Common
 

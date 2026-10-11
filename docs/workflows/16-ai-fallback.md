@@ -127,3 +127,12 @@ reporting `NVIDIA_AI` when calls succeed, and automatically reverts to
 | AI service process down | backend `aiClient` local fallback; workflows still complete |
 | Intermittent NVIDIA errors | per-call decision — some results `NVIDIA_AI`, some `RULE_BASED_FALLBACK` |
 | Owner re-runs screening after fixing the key | fresh results, now `NVIDIA_AI` |
+
+## Application screening evidence
+
+Application screening now inspects actual files before scoring; see
+[05 · AI screening](05-ai-screening.md). Eligibility is calculated by deterministic
+backend rules from document-supported income, valid proofs, and occupancy fit.
+Document inspection failures give zero proof credit and require manual review;
+file presence and self-reported income cannot produce a strong recommendation.
+The legacy standalone eligibility endpoint is not used by application screening.

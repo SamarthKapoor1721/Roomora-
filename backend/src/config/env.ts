@@ -33,6 +33,8 @@ if (process.env.NODE_ENV === 'production') {
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
   isProd: process.env.NODE_ENV === 'production',
+  googleClientId: process.env.GOOGLE_CLIENT_ID ?? '',
+  superAdminEmails: (process.env.SUPER_ADMIN_EMAILS ?? '').split(',').map((email) => email.trim().toLowerCase()).filter(Boolean),
   port: num('PORT', 4000),
   corsOrigin: (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
     .split(',')

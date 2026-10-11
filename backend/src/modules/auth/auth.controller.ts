@@ -21,6 +21,18 @@ export const authController = {
     ok(res, result);
   }),
 
+  google: asyncHandler(async (req: Request, res: Response) => {
+    const result = await authService.google(req.body, meta(req));
+    await audit({ actorId: result.user.id, action: 'auth.google', entityType: 'User', entityId: result.user.id, req });
+    ok(res, result);
+  }),
+
+  linkGoogle: asyncHandler(async (req: Request, res: Response) => {
+    const user = await authService.linkGoogle(req.user!.id, req.body.credential);
+    await audit({ action: 'auth.google.link', entityType: 'User', entityId: user.id, req });
+    ok(res, user);
+  }),
+
   refresh: asyncHandler(async (req: Request, res: Response) => {
     const result = await authService.refresh(req.body.refreshToken, meta(req));
     ok(res, result);

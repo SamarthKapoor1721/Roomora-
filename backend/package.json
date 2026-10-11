@@ -12,15 +12,11 @@
     "db:generate": "prisma generate",
     "db:migrate": "npm run db:push",
     "db:deploy": "npm run db:push",
-    "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio",
     "test": "vitest run",
     "lint": "eslint src --ext .ts",
     "db:push": "prisma db push && tsx prisma/setup.ts",
     "db:check": "tsx prisma/check.ts"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.1.0",
@@ -29,6 +25,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-rate-limit": "^7.4.1",
+    "google-auth-library": "^10.9.1",
     "helmet": "^8.0.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",

@@ -124,11 +124,12 @@ export default function TenantApplicationDetail() {
               <li className="px-4 py-6 text-center text-sm text-ink-400">No documents uploaded yet.</li>
             )}
             {data.documents.map(
-              (d: { id: string; type: string; originalName: string; path: string; verification: string }) => (
+              (d: { id: string; type: string; originalName: string; path: string; verification: string; extractedData?: { reviewReason?: string } }) => (
                 <li key={d.id} className="flex items-center justify-between gap-3 px-4 py-3">
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-ink-800">{d.type.replaceAll('_', ' ')}</p>
                     <p className="truncate text-xs text-ink-400">{d.originalName}</p>
+                    {d.extractedData?.reviewReason && <p className="mt-1 text-xs text-ink-500">{d.extractedData.reviewReason}</p>}
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge>{d.verification}</Badge>
@@ -204,10 +205,10 @@ export default function TenantApplicationDetail() {
             {elig && (
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-display text-2xl font-semibold text-violet-700">{elig.score}%</span>
-                  <span className="text-xs text-ink-500">{elig.scoreLabel}</span>
+                  <span className="font-display text-2xl font-semibold text-violet-700">{elig.scoreLabel === 'Evidence-based criteria match' ? `${elig.score}%` : 'Needs re-screening'}</span>
+                  <span className="text-xs text-ink-500">{elig.scoreLabel === 'Evidence-based criteria match' ? elig.scoreLabel : 'The owner needs to re-run document screening.'}</span>
                 </div>
-                {elig.warnings?.length > 0 && (
+                {elig.scoreLabel === 'Evidence-based criteria match' && elig.warnings?.length > 0 && (
                   <ul className="mt-2 space-y-1 text-sm text-amber-600">
                     {elig.warnings.map((w: string, i: number) => (
                       <li key={i} className="flex gap-1.5">
@@ -219,10 +220,10 @@ export default function TenantApplicationDetail() {
                 )}
               </div>
             )}
-            {docv && (
+            {docv && elig?.scoreLabel === 'Evidence-based criteria match' && (
               <p className="flex flex-wrap items-center gap-2 text-sm text-ink-700">
                 Documents: <Badge>{docv.overallStatus}</Badge>
-                <span className="text-ink-500">consistency {docv.consistencyScore}%</span>
+                <span className="text-ink-500">{docv.source === 'RULE_BASED_FALLBACK' ? 'Content inspection unavailable; manual review required' : `proof checks passed ${docv.consistencyScore}%`}</span>
               </p>
             )}
           </Card>

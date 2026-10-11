@@ -39,9 +39,11 @@ export interface EligibilityResponse {
 export interface DocVerificationRequest {
   applicant: { fullName: string; currentAddress?: string | null; monthlyIncome?: number | null };
   documents: Array<{
+    id?: string;
     type: string;
     originalName: string;
-    // best-effort text the backend may pass (OCR is out of scope here; may be empty)
+    mimeType?: string;
+    contentBase64?: string;
     extractedText?: string;
   }>;
   requiredDocuments: string[];
@@ -57,6 +59,13 @@ export interface DocVerificationResponse {
   notes?: string;
   model?: string;
   raw?: unknown;
+  documentResults?: Array<{
+    id: string;
+    type: string;
+    status: DocVerificationResponse['overallStatus'];
+    reason: string;
+    extractedFields: Record<string, unknown>;
+  }>;
 }
 
 export interface SummaryResponse {
@@ -267,11 +276,15 @@ function localDocFallback(payload: DocVerificationRequest): DocVerificationRespo
   return {
     source: 'RULE_BASED_FALLBACK',
     overallStatus: missing.length === 0 ? 'PENDING' : 'INCONSISTENT',
-    consistencyScore: missing.length === 0 ? 70 : Math.max(20, 70 - missing.length * 15),
+    consistencyScore: 0,
     extractedFields: {},
     inconsistencies: [],
     missingDocuments: missing,
     notes: 'Automated document check unavailable; manual verification recommended.',
+    documentResults: payload.documents.map((doc) => ({
+      id: doc.id ?? '', type: doc.type, status: 'PENDING',
+      reason: 'Document content could not be inspected. Manual review required.', extractedFields: {},
+    })),
   };
 }
 

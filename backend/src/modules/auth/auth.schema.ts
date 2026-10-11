@@ -20,6 +20,11 @@ export const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+export const googleSchema = z.object({
+  credential: z.string().min(100),
+  role: z.enum(['OWNER', 'TENANT']).default('TENANT'),
+});
+
 export const refreshSchema = z.object({
   refreshToken: z.string().min(10),
 });
@@ -37,3 +42,4 @@ export const changePasswordSchema = z.object({
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type GoogleInput = z.infer<typeof googleSchema>;

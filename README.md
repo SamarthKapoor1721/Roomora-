@@ -43,26 +43,17 @@ The AI **never** approves or rejects. It only advises; the owner always decides.
 
 ## AI provider & fallback
 
-Every AI call in [`ai-service/app/services.py`](ai-service/app/services.py) tries **NVIDIA NIM** first
-([`nvidia_client.py`](ai-service/app/nvidia_client.py)). If the key is missing, or the call
-times out / rate-limits / errors, it automatically switches to a
-**rule-based / keyword-matching fallback** ([`fallback.py`](ai-service/app/fallback.py)).
+AI features use NVIDIA NIM with fallbacks on provider errors. Application screening
+first inspects actual uploaded images and PDF pages using the vision model configured
+by `NVIDIA_NIM_VISION_MODEL`. It checks proof type and applicant consistency and saves
+per-file explanations. Failed or unavailable inspection never verifies a document.
 
-Every AI result carries a `source` field — `NVIDIA_AI` or `RULE_BASED_FALLBACK` — and the UI
-shows a **"NVIDIA AI"** / **"Rule-Based Fallback"** tag on every result.
+Eligibility is a deterministic **evidence-based criteria match**, using document-supported
+income (50 points), valid required proofs (30), and occupancy fit (20). Missing or invalid
+proofs force manual review. It is not a probability of approval. See
+[AI screening](docs/workflows/05-ai-screening.md) for scoring and file limits.
 
-For eligibility, the fallback percentage is a **criteria match** (how well the applicant
-matches letting criteria), *not* a probability of approval:
-
-```
-NVIDIA AI unavailable
-        ↓
-Keyword + rule matching
-        ↓
-Criteria Match: 82%
-```
-
-AI is used for: eligibility, document extraction/consistency, application summary,
+AI is used for document extraction/consistency, application summaries,
 maintenance classification & priority, lease summary, the owner AI assistant, and
 management insights.
 
@@ -103,7 +94,6 @@ cp backend/.env.example backend/.env
 npm run db:generate
 npm run db:push                   # sync collections/indexes; MongoDB uses no SQL migrations
 npm run db:check                  # verify connection and database reads
-npm run db:seed                   # optional demo data + accounts
 ```
 
 Keep database credentials in the ignored `backend/.env` file. Atlas must allow your
@@ -136,15 +126,19 @@ npm run dev
 
 `npm run dev` creates the Python venv on first run and installs `ai-service/requirements.txt`.
 
-### Demo accounts (password `Password123`)
+### Google sign-in and super admin
 
-| Role                 | Email                    |
-| -------------------- | ------------------------ |
-| Owner                | `owner@srms.test`        |
-| Tenant (no room)     | `tenant@srms.test`       |
-| Tenant (assigned)    | `tenant2@srms.test`      |
-| Maintenance staff    | `maintenance@srms.test`  |
-| Cleaning staff       | `cleaning@srms.test`     |
+Create a Google OAuth **Web application** client. Add the frontend origin (for example
+`http://localhost:5173` and the production site origin) to its authorized JavaScript
+origins. Set the same client ID as `GOOGLE_CLIENT_ID` on the API and
+`VITE_GOOGLE_CLIENT_ID` on the frontend. Set `SUPER_ADMIN_EMAILS` on the API to a
+comma-separated list of verified Google email addresses allowed to administer the
+platform. An allowlisted account becomes a super admin on its first Google sign-in;
+admin accounts cannot sign in with a password. Run `npm run db:push` after deploying
+the updated Prisma schema. The `/super_admin` portal lets admins review platform
+activity, add owner and tenant accounts, edit user details, and deactivate or reactivate
+accounts. Permanent deletion requires the email as confirmation and is blocked for
+accounts with property, tenancy, or task records; deactivate those accounts instead.
 
 ---
 

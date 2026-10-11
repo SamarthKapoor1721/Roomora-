@@ -1,5 +1,6 @@
 import type { NextFunction, Request, Response } from 'express';
 import { verifyAccessToken } from '../lib/auth';
+import { env } from '../config/env';
 import { unauthorized } from '../lib/errors';
 import { prisma } from '../lib/prisma';
 
@@ -22,7 +23,7 @@ export async function authenticate(req: Request, _res: Response, next: NextFunct
       where: { id: claims.sub },
       select: { id: true, email: true, role: true, fullName: true, isActive: true },
     });
-    if (!user || !user.isActive) {
+    if (!user || !user.isActive || claims.role !== user.role || claims.email !== user.email || (user.role === 'SUPER_ADMIN' && !env.superAdminEmails.includes(user.email))) {
       throw unauthorized('Account is inactive');
     }
 
@@ -43,7 +44,7 @@ export async function optionalAuthenticate(req: Request, _res: Response, next: N
       where: { id: claims.sub },
       select: { id: true, email: true, role: true, fullName: true, isActive: true },
     });
-    if (user?.isActive) {
+    if (user?.isActive && claims.role === user.role && claims.email === user.email && (user.role !== 'SUPER_ADMIN' || env.superAdminEmails.includes(user.email))) {
       req.user = { id: user.id, email: user.email, role: user.role, fullName: user.fullName };
     }
   } catch {

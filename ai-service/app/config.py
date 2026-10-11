@@ -10,6 +10,7 @@ def _b(name: str, default: bool) -> bool:
 
 
 class Settings:
+    nvidia_vision_model: str = os.getenv("NVIDIA_NIM_VISION_MODEL", "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning")
     nvidia_api_key: str = os.getenv("NVIDIA_NIM_API_KEY", "").strip()
     nvidia_base_url: str = os.getenv(
         "NVIDIA_NIM_BASE_URL", "https://integrate.api.nvidia.com/v1"

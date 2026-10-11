@@ -5,6 +5,7 @@ import { validate } from '../../middleware/validate';
 import { authController } from './auth.controller';
 import {
   changePasswordSchema,
+  googleSchema,
   loginSchema,
   refreshSchema,
   registerSchema,
@@ -14,6 +15,8 @@ export const authRoutes = Router();
 
 authRoutes.post('/register', authLimiter, validate({ body: registerSchema }), authController.register);
 authRoutes.post('/login', authLimiter, validate({ body: loginSchema }), authController.login);
+authRoutes.post('/google', authLimiter, validate({ body: googleSchema }), authController.google);
+authRoutes.post('/google/link', authenticate, validate({ body: googleSchema.pick({ credential: true }) }), authController.linkGoogle);
 authRoutes.post('/refresh', authLimiter, validate({ body: refreshSchema }), authController.refresh);
 authRoutes.post('/logout', validate({ body: refreshSchema }), authController.logout);
 authRoutes.post('/logout-all', authenticate, authController.logoutAll);

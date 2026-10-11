@@ -1,4 +1,6 @@
 import fs from 'node:fs';
+import path from 'node:path';
+import { env } from '../../config/env';
 import type { Prisma } from '@prisma/client';
 import { ownerApplicationOrThrow } from '../../lib/access';
 import { aiClient } from '../../lib/aiClient';
@@ -9,6 +11,7 @@ import { prisma } from '../../lib/prisma';
 import { effectiveFood } from '../rooms/rooms.service';
 import { assignmentsService } from '../assignments/assignments.service';
 import { REQUIRED_DOCUMENTS } from './applications.schema';
+import { assessEligibility } from './screening';
 
 const ACTIVE_STATUSES: Prisma.ApplicationWhereInput['status'][] = [
   'SUBMITTED',
@@ -105,10 +108,10 @@ export const applicationsService = {
     relPath: string,
   ) {
     const app = await this.tenantAppOrThrow(tenantId, id);
-    if (['APPROVED', 'REJECTED', 'WITHDRAWN'].includes(app.status)) {
+    if (!['DOCS_PENDING', 'SUBMITTED'].includes(app.status)) {
       // clean up the just-uploaded file
       fs.promises.unlink(file.path).catch(() => undefined);
-      throw conflict('Cannot add documents to a finalised application');
+      throw conflict('Documents are locked once screening has started');
     }
     return prisma.applicationDocument.create({
       data: {
@@ -313,10 +316,9 @@ export const applicationsService = {
 };
 
 /**
- * Runs the three advisory AI steps and persists results. Each aiClient call
- * degrades to a rule-based fallback on failure, so this never throws for AI
- * reasons. On completion the application moves to OWNER_REVIEW — never
- * auto-approved or auto-rejected.
+ * Inspects document content, calculates evidence-based eligibility, and writes
+ * an advisory summary. AI failures leave proofs unverified. On completion the
+ * application moves to OWNER_REVIEW; the owner decides.
  */
 export async function runAiScreening(applicationId: string): Promise<void> {
   const app = await prisma.application.findUnique({
@@ -332,70 +334,30 @@ export async function runAiScreening(applicationId: string): Promise<void> {
   const providedDocs = app.documents.map((d) => d.type);
   const room = app.room;
 
-  // NVIDIA's public tier throttles bursts; a small gap between the three
-  // sequential calls reduces 429/503s.
+  // Leave a small gap between document inspection and the summary call.
   const gap = () => new Promise((r) => setTimeout(r, 800));
 
-  // 1. Eligibility (advisory score / criteria match)
-  const eligibility = await aiClient.eligibility({
-    applicant: {
-      fullName: app.tenant.fullName,
-      monthlyIncome: app.monthlyIncome ? Number(app.monthlyIncome) : null,
-      employmentStatus: app.employmentStatus,
-      employerName: app.employerName,
-      occupants: app.occupants,
-      hasPets: app.hasPets,
-      smoker: app.smoker,
-      notes: app.notes,
-    },
-    room: {
-      name: room.name,
-      monthlyRent: Number(room.monthlyRent),
-      capacity: room.capacity,
-      roommatesLimit: room.roommatesLimit,
-      foodEnabled: room.foodEnabled || room.property.foodEnabled,
-    },
-    requiredDocuments: [...REQUIRED_DOCUMENTS],
-    providedDocuments: providedDocs,
-  });
-
-  await prisma.eligibilityAssessment.upsert({
-    where: { applicationId },
-    create: {
-      applicationId,
-      source: eligibility.source,
-      score: eligibility.score,
-      scoreLabel: eligibility.scoreLabel,
-      recommendation: eligibility.recommendation,
-      reasons: eligibility.reasons,
-      warnings: eligibility.warnings,
-      missingRequirements: eligibility.missingRequirements,
-      rawResponse: eligibility.raw as never,
-      model: eligibility.model,
-    },
-    update: {
-      source: eligibility.source,
-      score: eligibility.score,
-      scoreLabel: eligibility.scoreLabel,
-      recommendation: eligibility.recommendation,
-      reasons: eligibility.reasons,
-      warnings: eligibility.warnings,
-      missingRequirements: eligibility.missingRequirements,
-      rawResponse: eligibility.raw as never,
-      model: eligibility.model,
-    },
-  });
-
-  await gap();
-
-  // 2. Document verification (extraction + consistency)
+  // 1. Document verification (content extraction + applicant consistency)
   const docVerify = await aiClient.verifyDocuments({
     applicant: {
       fullName: app.tenant.fullName,
       currentAddress: app.currentAddress,
       monthlyIncome: app.monthlyIncome ? Number(app.monthlyIncome) : null,
     },
-    documents: app.documents.map((d) => ({ type: d.type, originalName: d.originalName })),
+    documents: await Promise.all(app.documents.map(async (d) => {
+      let contentBase64: string | undefined;
+      const absolute = path.resolve(env.upload.dir, d.path);
+      const relative = path.relative(env.upload.dir, absolute);
+      if (!relative.startsWith('..') && !path.isAbsolute(relative)) {
+        try {
+          const stat = await fs.promises.stat(absolute);
+          if (stat.isFile() && stat.size <= env.upload.maxBytes) {
+            contentBase64 = (await fs.promises.readFile(absolute)).toString('base64');
+          }
+        } catch { /* Missing files remain unverified; never infer from the filename. */ }
+      }
+      return { id: d.id, type: d.type, originalName: d.originalName, mimeType: d.mimeType, contentBase64 };
+    })),
     requiredDocuments: [...REQUIRED_DOCUMENTS],
   });
 
@@ -426,14 +388,50 @@ export async function runAiScreening(applicationId: string): Promise<void> {
     },
   });
 
-  // Reflect per-document status where we can
-  if (docVerify.overallStatus === 'INCONSISTENT') {
-    await prisma.applicationDocument.updateMany({
-      where: { applicationId, verification: 'PENDING' },
-      data: { verification: 'INCONSISTENT' },
+  // Persist fresh per-file results, including resetting stale results on a re-run.
+  for (const document of app.documents) {
+    const result = docVerify.documentResults?.find((item) => item.id === document.id && item.type === document.type);
+    await prisma.applicationDocument.update({
+      where: { id: document.id },
+      data: {
+        verification: result?.status ?? 'PENDING',
+        extractedData: result ? { ...result.extractedFields, reviewReason: result.reason } as Prisma.InputJsonValue : {},
+      },
     });
   }
 
+  // 2. Eligibility is calculated only after inspecting actual document content.
+  const eligibility = assessEligibility(
+    { monthlyIncome: app.monthlyIncome ? Number(app.monthlyIncome) : null, occupants: app.occupants },
+    { monthlyRent: Number(room.monthlyRent), capacity: room.capacity, roommatesLimit: room.roommatesLimit },
+    docVerify,
+  );
+  await prisma.eligibilityAssessment.upsert({
+    where: { applicationId },
+    create: {
+      applicationId,
+      source: eligibility.source,
+      score: eligibility.score,
+      scoreLabel: eligibility.scoreLabel,
+      recommendation: eligibility.recommendation,
+      reasons: eligibility.reasons,
+      warnings: eligibility.warnings,
+      missingRequirements: eligibility.missingRequirements,
+      rawResponse: eligibility.raw as never,
+      model: eligibility.model,
+    },
+    update: {
+      source: eligibility.source,
+      score: eligibility.score,
+      scoreLabel: eligibility.scoreLabel,
+      recommendation: eligibility.recommendation,
+      reasons: eligibility.reasons,
+      warnings: eligibility.warnings,
+      missingRequirements: eligibility.missingRequirements,
+      rawResponse: eligibility.raw as never,
+      model: eligibility.model,
+    },
+  });
   await gap();
 
   // 3. Application summary
@@ -451,7 +449,7 @@ export async function runAiScreening(applicationId: string): Promise<void> {
     },
     room: { name: room.name, monthlyRent: Number(room.monthlyRent) },
     eligibility: { score: eligibility.score, recommendation: eligibility.recommendation, warnings: eligibility.warnings },
-    documents: { provided: providedDocs, missing: eligibility.missingRequirements },
+    documents: { uploaded: providedDocs, missing: eligibility.missingRequirements, overallStatus: docVerify.overallStatus, results: docVerify.documentResults },
   });
 
   await prisma.applicationSummary.upsert({

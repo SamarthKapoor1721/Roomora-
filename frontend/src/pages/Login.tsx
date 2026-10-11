@@ -1,35 +1,61 @@
-import { useState } from 'react';
-import { Link, Navigate, useNavigate } from 'react-router-dom';
-import { apiErrorMessage } from '../lib/api';
+import { useEffect, useState } from 'react';
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { apiErrorMessage, warmApi } from '../lib/api';
 import { useAuth } from '../lib/auth';
-import { ErrorBanner, Field } from '../components/ui';
-
-const demoAccounts = [
-  { label: 'Owner', email: 'owner@srms.test', detail: 'Properties and applications', number: '01' },
-  { label: 'Tenant', email: 'tenant2@srms.test', detail: 'Lease and payments', number: '02' },
-  { label: 'New tenant', email: 'tenant@srms.test', detail: 'Browse and apply', number: '03' },
-  { label: 'Maintenance', email: 'maintenance@srms.test', detail: 'Assigned repairs', number: '04' },
-  { label: 'Cleaning', email: 'cleaning@srms.test', detail: 'Assigned cleaning', number: '05' },
-];
+import { ErrorBanner } from '../components/ui';
+import GoogleSignIn from '../components/GoogleSignIn';
+import { Icon } from '../components/Icon';
+import './Login.css';
 
 export default function Login() {
-  const { user, login } = useAuth();
+  const { user, login, googleLogin } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('owner@srms.test');
-  const [password, setPassword] = useState('Password123');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedRole = searchParams.get('role') === 'OWNER' ? 'OWNER' : 'TENANT';
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [slowConnection, setSlowConnection] = useState(false);
+
+  useEffect(() => { warmApi(); }, []);
+  useEffect(() => {
+    if (!busy) {
+      setSlowConnection(false);
+      return;
+    }
+    const timer = window.setTimeout(() => setSlowConnection(true), 8_000);
+    return () => window.clearTimeout(timer);
+  }, [busy]);
+
+  const chooseRole = (role: 'TENANT' | 'OWNER') => {
+    setSearchParams({ role });
+    setError('');
+  };
 
   if (user) return <Navigate to={`/${user.role.toLowerCase()}`} replace />;
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setBusy(true);
     setError('');
     try {
-      const u = await login(email, password);
-      navigate(`/${u.role.toLowerCase()}`);
+      const signedIn = await login(email, password);
+      navigate(`/${signedIn.role.toLowerCase()}`);
+    } catch (err) {
+      setError(apiErrorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const signInWithGoogle = async (credential: string) => {
+    setBusy(true);
+    setError('');
+    try {
+      const signedIn = await googleLogin(credential, selectedRole);
+      navigate(`/${signedIn.role.toLowerCase()}`);
     } catch (err) {
       setError(apiErrorMessage(err));
     } finally {
@@ -38,76 +64,64 @@ export default function Login() {
   };
 
   return (
-    <main className="min-h-screen bg-[#f7f7f2] lg:grid lg:grid-cols-[minmax(0,0.93fr)_minmax(0,1.07fr)]">
-      <section className="relative isolate hidden min-h-screen flex-col justify-between overflow-hidden bg-[#153d30] px-8 py-9 text-white lg:flex xl:px-14 xl:py-11" aria-label="About Roomora">
-        <img src="/images/login-rental-home.jpg" alt="" className="absolute inset-0 -z-20 h-full w-full object-cover object-center" />
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-[#112c23]/65 via-[#112c23]/15 to-[#10291f]/95" />
-        <Link to="/" className="relative z-10 w-fit font-wordmark text-3xl font-bold tracking-tight text-white xl:text-4xl">Roomora</Link>
-
-        <div className="relative z-10 mt-auto max-w-[620px] pb-12 pt-24">
-          <p className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-[#c5e5ad]">Rental management, connected</p>
-          <h1 className="mt-5 font-display text-5xl font-semibold leading-[1.06] tracking-tight xl:text-6xl">
-            Every rental has a story.<br /><span className="text-[#c5e5ad]">Keep yours moving.</span>
-          </h1>
-          <p className="mt-5 max-w-md text-base leading-relaxed text-white/85 xl:text-lg">
-            List rooms, review applications, manage leases and rent, and stay on top of maintenance in one workspace.
-          </p>
+    <main className="login-shell">
+      <section className="login-story" aria-label="About Roomora">
+        <img className="login-story-image" src="/images/login-rental-home.jpg" alt="A bright rental home with two people reviewing documents at a table" />
+        <div className="login-story-shade" />
+        <div className="login-story-top">
+          <Link to="/welcome" className="login-wordmark">Roomora</Link>
+          <span className="login-story-edition">The rental workspace</span>
         </div>
-        <p className="relative z-10 border-t border-white/30 pt-5 text-sm text-white/80">From the first application to the everyday work of keeping a home running.</p>
+        <div className="login-story-copy">
+          <span className="login-story-rule" />
+          <p className="login-story-kicker">A more thoughtful way to rent</p>
+          <h1>Home is in<br /><em>the details.</em></h1>
+          <p className="login-story-description">Everything from the first viewing to the everyday details, beautifully in hand.</p>
+        </div>
+        <div className="login-story-bottom"><span>ROOMORA / 01</span><span>Made for the places we live.</span></div>
       </section>
 
-      <section className="flex min-h-screen items-center justify-center px-5 py-10 sm:px-10 lg:px-12 xl:px-20" aria-label="Sign in">
-        <div className="w-full max-w-[540px]">
-          <Link to="/" className="mb-10 block w-fit font-wordmark text-3xl font-bold tracking-tight text-[#153d30] lg:hidden">Roomora</Link>
-          <p className="font-mono text-xs font-semibold uppercase tracking-[0.22em] text-brand-700">Welcome back</p>
-          <h2 className="mt-3 font-display text-4xl font-semibold tracking-tight text-ink-900 sm:text-5xl">Sign in to Roomora</h2>
-          <p className="mt-3 text-base text-ink-500">Pick a demo workspace or use your own account.</p>
-
-          <form onSubmit={submit} className="mt-9 space-y-5">
-            {error && <ErrorBanner message={error} />}
-            <Field label="Email address">
-              <input className="input h-12 bg-white text-base" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </Field>
-            <Field label="Password">
-              <div className="relative">
-                <input className="input h-12 bg-white pr-20 text-base" type={showPassword ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                <button type="button" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute inset-y-0 right-3 px-2 text-sm font-medium text-brand-700 hover:text-brand-800">
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
-              </div>
-            </Field>
-            <button className="btn-primary flex h-12 w-full items-center justify-center gap-3 text-base" disabled={busy}>
-              {busy ? 'Signing in…' : 'Enter workspace'}<span aria-hidden="true">↗</span>
-            </button>
-          </form>
-
-          <p className="mt-5 text-sm text-ink-500">New to Roomora? <Link to="/register" className="font-semibold text-brand-700 underline-offset-4 hover:underline">Create an account</Link></p>
-
-          <div className="mt-9 border-t border-slate-300 pt-6">
-            <div className="flex items-baseline justify-between gap-3">
-              <h3 className="font-display text-xl font-semibold text-ink-900">Explore a workspace</h3>
-              <span className="font-mono text-[0.65rem] uppercase tracking-widest text-ink-400">Demo access</span>
-            </div>
-            <p className="mt-1 text-sm text-ink-500">Select a role to fill in its demo credentials.</p>
-            <div className="mt-4 divide-y divide-slate-200 border-y border-slate-200">
-              {demoAccounts.map((account) => (
-                <button
-                  key={account.email}
-                  type="button"
-                  aria-pressed={email === account.email && password === 'Password123'}
-                  className={`group grid w-full grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-3 py-2.5 text-left transition-colors hover:bg-brand-50 focus-visible:bg-brand-50 sm:grid-cols-[2rem_minmax(0,1fr)_minmax(0,1fr)_1rem] ${email === account.email && password === 'Password123' ? 'text-brand-700' : 'text-ink-800'}`}
-                  onClick={() => { setEmail(account.email); setPassword('Password123'); setError(''); }}
-                >
-                  <span className="font-mono text-xs text-brand-600">{account.number}</span>
-                  <span className="font-medium">{account.label}</span>
-                  <span className="hidden text-sm text-ink-500 sm:block">{account.detail}</span>
-                  <span className="text-lg leading-none text-brand-600 transition-transform group-hover:translate-x-1" aria-hidden="true">↗</span>
-                </button>
-              ))}
-            </div>
-            <p className="mt-3 font-mono text-xs text-ink-400">All demo roles use Password123</p>
+      <section className="login-access" aria-label="Sign in">
+        <div className="login-access-top"><span>ROOMORA&nbsp; / &nbsp;ACCOUNT ACCESS</span></div>
+        <div className="login-card">
+          <div className="login-card-heading">
+            <Link to="/welcome" className="login-card-wordmark">Roomora</Link>
+            <p className="login-eyebrow">Your rental workspace</p>
+            <h2>Welcome back<span className="login-heading-dot">.</span></h2>
+            <p className="login-subtitle">Pick up right where you left off.</p>
           </div>
+
+          <div className="login-role-section">
+            <p className="login-role-label">I’m signing in as</p>
+            <div className="login-role-options" role="group" aria-label="Choose account type">
+              <button type="button" className={`login-role-option ${selectedRole === 'TENANT' ? 'is-selected' : ''}`} aria-pressed={selectedRole === 'TENANT'} onClick={() => chooseRole('TENANT')} disabled={busy}>
+                <Icon name="home" size={18} /><span>Tenant</span>
+              </button>
+              <button type="button" className={`login-role-option ${selectedRole === 'OWNER' ? 'is-selected' : ''}`} aria-pressed={selectedRole === 'OWNER'} onClick={() => chooseRole('OWNER')} disabled={busy}>
+                <Icon name="building" size={18} /><span>Property owner</span>
+              </button>
+            </div>
+            <p className="login-role-hint">New Google accounts use this role. Existing accounts keep their assigned workspace.</p>
+          </div>
+
+          {error && <div className="login-error"><ErrorBanner message={error} /></div>}
+          {slowConnection && <p className="login-connection-note" role="status">Still connecting to the server. Your sign-in is in progress.</p>}
+          <div className="login-google"><GoogleSignIn onCredential={signInWithGoogle} disabled={busy} /></div>
+          {import.meta.env.VITE_GOOGLE_CLIENT_ID && <div className="login-divider"><span />or sign in with email<span /></div>}
+
+          <form onSubmit={submit} className="login-form">
+            <label className="login-label" htmlFor="login-email">Email address</label>
+            <input id="login-email" className="login-input" type="email" autoComplete="username" placeholder="you@example.com" value={email} onChange={(event) => setEmail(event.target.value)} required />
+            <label className="login-label login-password-label" htmlFor="login-password">Password</label>
+            <div className="login-password-wrap">
+              <input id="login-password" className="login-input" type={showPassword ? 'text' : 'password'} autoComplete="current-password" placeholder="Enter your password" value={password} onChange={(event) => setPassword(event.target.value)} required />
+              <button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? 'Hide' : 'Show'}</button>
+            </div>
+            <button className="login-submit" disabled={busy}><span>{busy ? 'Signing in…' : 'Sign in to your workspace'}</span><span className="login-submit-arrow" aria-hidden="true">↗</span></button>
+          </form>
+          <div className="login-card-footer"><span>New to Roomora?</span><Link to={`/register?role=${selectedRole}`}>Create an account <span aria-hidden="true">↗</span></Link></div>
         </div>
+        <div className="login-access-bottom"><span>One place for every part of home.</span><span>© Roomora</span></div>
       </section>
     </main>
   );

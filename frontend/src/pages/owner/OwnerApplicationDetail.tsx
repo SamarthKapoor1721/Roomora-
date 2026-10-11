@@ -62,6 +62,7 @@ export default function OwnerApplicationDetail() {
   const elig = data.eligibility;
   const docv = data.docVerification;
   const summary = data.summary;
+  const currentScreening = elig?.scoreLabel === 'Evidence-based criteria match';
   const finalised = ['APPROVED', 'REJECTED', 'WITHDRAWN'].includes(data.status);
 
   return (
@@ -99,11 +100,12 @@ export default function OwnerApplicationDetail() {
         <Card pad={false}>
           <ul className="divide-y divide-slate-100">
             {data.documents.map(
-              (d: { id: string; type: string; originalName: string; path: string; verification: string }) => (
+              (d: { id: string; type: string; originalName: string; path: string; verification: string; extractedData?: { reviewReason?: string } }) => (
                 <li key={d.id} className="flex items-center justify-between gap-3 px-4 py-3">
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-ink-800">{d.type.replaceAll('_', ' ')}</p>
                     <p className="truncate text-xs text-ink-400">{d.originalName}</p>
+                    {d.extractedData?.reviewReason && <p className="mt-1 text-xs text-ink-500">{d.extractedData.reviewReason}</p>}
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge>{d.verification}</Badge>
@@ -133,14 +135,17 @@ export default function OwnerApplicationDetail() {
             ) : (
               <>
                 <div className="flex items-end gap-2">
-                  <span className="font-display text-3xl font-semibold text-violet-700">{elig.score}%</span>
+                  <span className="font-display text-3xl font-semibold text-violet-700">{elig.scoreLabel === 'Evidence-based criteria match' ? `${elig.score}%` : 'Needs re-screening'}</span>
                   <span className="pb-1 text-xs text-ink-500">
-                    {elig.scoreLabel} · {elig.recommendation}
+                    {currentScreening ? `${elig.scoreLabel} · ${elig.recommendation}` : 'Earlier screening did not inspect document content.'}
                   </span>
                 </div>
-                <List title="Reasons" items={elig.reasons} tone="text-ink-600" />
-                <List title="Warnings" items={elig.warnings} tone="text-amber-600" />
-                <List title="Missing requirements" items={elig.missingRequirements} tone="text-rose-600" />
+                <p className="mt-2 text-xs text-ink-500">Score uses document-supported income, required proofs, and occupancy fit. It is not a probability of approval.</p>
+                {currentScreening && <>
+                  <List title="Reasons" items={elig.reasons} tone="text-ink-600" />
+                  <List title="Warnings" items={elig.warnings} tone="text-amber-600" />
+                  <List title="Missing requirements" items={elig.missingRequirements} tone="text-rose-600" />
+                </>}
               </>
             )}
           </Card>
@@ -149,13 +154,13 @@ export default function OwnerApplicationDetail() {
             <div className="mb-3">
               <h3 className="text-sm font-semibold text-ink-900">Document verification</h3>
             </div>
-            {!docv ? (
-              <p className="text-sm text-ink-400">Not screened yet.</p>
+            {!docv || !currentScreening ? (
+              <p className="text-sm text-ink-400">Document content has not been screened yet.</p>
             ) : (
               <>
                 <p className="flex items-center gap-2">
                   <Badge>{docv.overallStatus}</Badge>
-                  <span className="text-sm text-ink-500">consistency {docv.consistencyScore}%</span>
+                  <span className="text-sm text-ink-500">{docv.source === 'RULE_BASED_FALLBACK' ? 'Content inspection unavailable' : `proof checks passed ${docv.consistencyScore}%`}</span>
                 </p>
                 <List title="Inconsistencies" items={docv.inconsistencies} tone="text-rose-600" />
                 <List title="Missing documents" items={docv.missingDocuments} tone="text-amber-600" />
@@ -165,7 +170,7 @@ export default function OwnerApplicationDetail() {
           </Card>
         </div>
 
-        {summary && (
+        {summary && currentScreening && (
           <Card className="mt-4">
             <div className="mb-2">
               <h3 className="text-sm font-semibold text-ink-900">Summary</h3>
@@ -181,6 +186,7 @@ export default function OwnerApplicationDetail() {
 
       {!finalised ? (
         <Section title="Your decision">
+          {rerun.error && <ErrorBanner message={apiErrorMessage(rerun.error)} />}
           <InlineNote>
             The screening above is advisory. You make the final call: approving creates the assignment and lease.
           </InlineNote>

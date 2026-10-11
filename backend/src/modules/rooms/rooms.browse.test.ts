@@ -11,7 +11,7 @@ describe('tenant room visibility', () => {
     expect(result.items[0]).toMatchObject({ id: 'new-room', applicationsOpen: false, spotsAvailable: 1, property: { name: 'GREEN CITY' } });
     const where = db.room.findMany.mock.calls[0][0].where;
     expect(where.applicationsOpen).toBeUndefined();
-    expect(where.property).toEqual({ isActive: true });
+    expect(where.property).toEqual({ isActive: true, owner: { isActive: true } });
     expect(where.status.in).not.toContain('INACTIVE');
   });
 });

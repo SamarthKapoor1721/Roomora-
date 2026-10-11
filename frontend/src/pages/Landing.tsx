@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon, type IconName } from '../components/Icon';
+import FeatureShowcase from '../components/FeatureShowcase';
+import { warmApi } from '../lib/api';
 
 const features: { icon: IconName; title: string; desc: string }[] = [
   {
@@ -97,70 +99,8 @@ const workflowSteps: { title: string; description: string; image: string }[] = [
   },
 ];
 
-function FeaturePreview({ index }: { index: number }) {
-  return (
-    <div className="feature-visual mt-5 max-w-xl border-y border-[#b9c7b5] py-3 sm:mt-7 sm:py-4" aria-hidden="true">
-      <svg viewBox="0 0 560 270" className="h-[180px] w-full sm:h-[250px]" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <g stroke="#d2ddcc" strokeWidth="1"><path d="M0 0H560M0 269H560" /><path d="M0 0V270M559 0V270" /></g>
-        {index === 0 && <>
-          <path className="feature-draw" d="M105 134H215M345 134H455" stroke="#7ca66d" strokeWidth="2" />
-          <path d="M199 128L215 134L199 140M439 128L455 134L439 140" stroke="#7ca66d" strokeWidth="2" />
-          <g stroke="#3f7d36" strokeWidth="2"><path d="M43 75H115L134 94V188H43V75Z" /><path d="M115 75V94H134" /><path d="M61 113H112M61 128H101M61 143H109" /></g>
-          <circle cx="280" cy="134" r="62" fill="#e8f2e1" stroke="#83b477" strokeWidth="2" />
-          <circle className="feature-pulse" cx="280" cy="134" r="48" stroke="#83b477" strokeWidth="1.5" strokeDasharray="3 6" />
-          <text x="280" y="131" textAnchor="middle" fill="#1d4c35" fontSize="16" fontWeight="700">REVIEW</text>
-          <text x="280" y="153" textAnchor="middle" fill="#577564" fontSize="11">with reasons</text>
-          <path d="M450 81H518V189H450V81Z" stroke="#3f7d36" strokeWidth="2" /><path d="M465 113L475 123L496 100M465 145H501M465 158H489" stroke="#3f7d36" strokeWidth="2" />
-          <text x="43" y="219" fill="#60776a" fontSize="11">DOCUMENTS</text><text x="444" y="219" fill="#60776a" fontSize="11">OWNER DECIDES</text>
-        </>}
-        {index === 1 && <>
-          <path d="M98 32H462V238H98V32Z" stroke="#2d6145" strokeWidth="3" />
-          <path d="M98 117H337M337 32V238M98 179H337M337 146H462" stroke="#2d6145" strokeWidth="2" />
-          <path d="M160 117V134M238 179V162M337 95H354M337 190H354" stroke="#f7f7f2" strokeWidth="5" />
-          <path d="M120 53H313V98H120V53Z" fill="#dcebcf" /><path d="M358 53H441V127H358V53Z" fill="#e8f2e1" />
-          <text x="138" y="81" fill="#276345" fontSize="14" fontWeight="700">ROOM 101</text><text x="358" y="101" fill="#276345" fontSize="13" fontWeight="700">ROOM 102</text>
-          <text x="126" y="155" fill="#67806e" fontSize="11">OCCUPIED</text><text x="363" y="173" fill="#67806e" fontSize="11">OPEN</text>
-          <circle className="feature-pulse" cx="412" cy="188" r="17" stroke="#4c8c40" strokeWidth="2" /><circle cx="412" cy="188" r="5" fill="#4c8c40" />
-          <text x="103" y="259" fill="#60776a" fontSize="11">ONE PROPERTY · EVERY ROOM IN VIEW</text>
-        </>}
-        {index === 2 && <>
-          <path d="M42 62H205V219H42V62Z" stroke="#346b47" strokeWidth="2" /><path d="M59 83H170M59 103H187M59 123H179M59 165C85 145 92 183 118 164C140 149 151 180 185 159" stroke="#346b47" strokeWidth="2" />
-          <text x="59" y="207" fill="#5e7867" fontSize="11">LEASE</text>
-          <path className="feature-draw" d="M210 139H351" stroke="#83b477" strokeWidth="2" /><path d="M339 133L352 139L339 145" stroke="#83b477" strokeWidth="2" />
-          <circle cx="404" cy="139" r="60" stroke="#4c8c40" strokeWidth="2" fill="#e8f2e1" /><path d="M377 139L396 158L432 119" stroke="#3f7d36" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-          <text x="348" y="228" fill="#60776a" fontSize="11">PAYMENTS TRACKED</text>
-          <path d="M42 38H518" stroke="#b9c7b5" /><text x="42" y="28" fill="#60776a" fontSize="11">APPROVAL</text><text x="417" y="28" fill="#60776a" fontSize="11">TENANCY</text>
-        </>}
-        {index === 3 && <>
-          <path d="M44 200H517" stroke="#b9c7b5" strokeWidth="2" />
-          <path className="feature-draw" d="M83 200V118H255V200M255 200V70H429V200" stroke="#4c8c40" strokeWidth="3" />
-          <circle cx="83" cy="118" r="10" fill="#f7f7f2" stroke="#4c8c40" strokeWidth="3" /><circle cx="255" cy="70" r="10" fill="#f7f7f2" stroke="#4c8c40" strokeWidth="3" /><circle className="feature-pulse" cx="429" cy="94" r="22" fill="#dcebcf" stroke="#4c8c40" strokeWidth="2" />
-          <path d="M419 94L426 101L439 87" stroke="#2d6145" strokeWidth="3" strokeLinecap="round" />
-          <text x="45" y="235" fill="#3f7d36" fontSize="12" fontWeight="700">REQUESTED</text><text x="215" y="235" fill="#3f7d36" fontSize="12" fontWeight="700">ASSIGNED</text><text x="389" y="235" fill="#3f7d36" fontSize="12" fontWeight="700">RESOLVED</text>
-          <text x="44" y="37" fill="#60776a" fontSize="11">A CLEAR PATH FROM REPORT TO REPAIR</text>
-        </>}
-        {index === 4 && <>
-          <circle cx="279" cy="135" r="103" stroke="#c7d8c0" strokeWidth="1.5" /><circle cx="279" cy="135" r="72" stroke="#c7d8c0" strokeWidth="1.5" /><circle cx="279" cy="135" r="40" fill="#e8f2e1" stroke="#4c8c40" strokeWidth="2" />
-          <path className="feature-draw" d="M279 135L204 65M279 135L365 102M279 135L321 218" stroke="#78a86c" strokeWidth="1.5" />
-          <circle className="feature-pulse" cx="204" cy="65" r="10" fill="#4c8c40" /><circle className="feature-pulse" cx="365" cy="102" r="10" fill="#4c8c40" /><circle className="feature-pulse" cx="321" cy="218" r="10" fill="#4c8c40" />
-          <text x="279" y="139" textAnchor="middle" fill="#276345" fontSize="13" fontWeight="700">ALERTS</text>
-          <text x="113" y="59" fill="#60776a" fontSize="12">RENT</text><text x="386" y="105" fill="#60776a" fontSize="12">LEASES</text><text x="339" y="235" fill="#60776a" fontSize="12">TASKS</text>
-        </>}
-        {index === 5 && <>
-          <text x="31" y="45" fill="#60776a" fontSize="11">ASK</text><text x="439" y="45" fill="#60776a" fontSize="11">ANSWER</text>
-          <path d="M31 66H193V138H31V66Z" stroke="#3f7d36" strokeWidth="2" /><text x="49" y="94" fill="#276345" fontSize="14" fontWeight="700">Which rooms</text><text x="49" y="115" fill="#276345" fontSize="14" fontWeight="700">need attention?</text>
-          <path className="feature-draw" d="M193 102H254M254 102V48H352M254 102V137H352M254 102V222H352M352 48H395M352 137H395M352 222H395" stroke="#75a467" strokeWidth="2" />
-          <circle cx="352" cy="48" r="6" fill="#4c8c40" /><circle cx="352" cy="137" r="6" fill="#4c8c40" /><circle cx="352" cy="222" r="6" fill="#4c8c40" />
-          <text x="274" y="43" fill="#60776a" fontSize="11">ROOMS</text><text x="274" y="132" fill="#60776a" fontSize="11">RENT</text><text x="274" y="217" fill="#60776a" fontSize="11">TASKS</text>
-          <path d="M395 73H529V199H395V73Z" fill="#e8f2e1" stroke="#4c8c40" strokeWidth="2" /><path d="M412 105H508M412 125H490M412 145H503M412 165H473" stroke="#4c8c40" strokeWidth="2" />
-          <text x="31" y="251" fill="#60776a" fontSize="11">AN ANSWER GROUNDED IN YOUR PROPERTY RECORDS</text>
-        </>}
-      </svg>
-    </div>
-  );
-}
-
 export default function Landing() {
+  useEffect(() => { warmApi(); }, []);
   const landingRef = useRef<HTMLDivElement>(null);
   const brandRef = useRef<HTMLSpanElement>(null);
   const introRef = useRef<HTMLDivElement>(null);
@@ -426,7 +366,7 @@ export default function Landing() {
 
       {/* ── Workflow card deck ─────────────────────────────────────── */}
       <section id="how-it-works" className="scroll-mt-14 bg-white px-4 py-12 sm:px-6 sm:py-16">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-[1360px]">
           <div className="mb-8 text-center sm:mb-10">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-700">How it works</p>
             <h2 className="mt-2 font-display text-2xl font-semibold text-ink-900 sm:text-3xl">
@@ -452,7 +392,7 @@ export default function Landing() {
               }
             }}
           >
-            <div className="relative mx-auto h-[300px] max-w-[960px] overflow-hidden sm:h-[490px]">
+            <div className="relative mx-auto h-[300px] max-w-[1120px] overflow-hidden sm:h-[490px]">
               {Array.from({ length: workflowSteps.length * 3 }, (_, slot) => {
                 const position = slot - deckSlot;
                 if (Math.abs(position) > 2) return null;
@@ -469,7 +409,7 @@ export default function Landing() {
                     aria-current={active ? 'step' : undefined}
                     tabIndex={Math.abs(position) <= 1 ? 0 : -1}
                     aria-hidden={Math.abs(position) > 1}
-                    className={`group absolute left-1/2 top-1/2 flex h-[270px] w-[64vw] max-w-[430px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-[0_16px_36px_rgba(15,23,42,0.16)] sm:h-[430px] sm:p-8 ${deckTransition ? 'transition-[transform,opacity] duration-500 ease-in-out motion-reduce:transition-none' : ''}`}
+                    className={`group absolute left-1/2 top-1/2 flex h-[270px] w-[64vw] max-w-[500px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-[0_16px_36px_rgba(15,23,42,0.16)] sm:h-[430px] sm:p-8 ${deckTransition ? 'transition-[transform,opacity] duration-500 ease-in-out motion-reduce:transition-none' : ''}`}
                     style={{
                       zIndex: 10 - Math.abs(position),
                       opacity: Math.abs(position) > 1 ? 0 : 1,
@@ -527,9 +467,10 @@ export default function Landing() {
 
       {/* ── Scroll-driven features ─────────────────────────────── */}
       <section
+        id="features"
         ref={featureSectionRef}
         className="relative border-b border-slate-200 bg-[#f7f7f2]"
-        style={{ height: `${features.length * 55 + 70}svh` }}
+        style={{ height: `${features.length * 45 + 65}svh` }}
       >
         <svg
           className="pointer-events-none absolute inset-x-0 top-0 h-12 w-full text-white sm:h-20"
@@ -540,8 +481,8 @@ export default function Landing() {
         >
           <path d="M0 0 H1440 Q720 120 0 0 Z" />
         </svg>
-        <div className="sticky top-0 flex h-[100svh] items-center px-4 sm:px-6 lg:top-[15svh] lg:h-[70svh]">
-          <div className="mx-auto grid w-full max-w-6xl gap-8 py-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-20">
+        <div className="sticky top-0 flex h-[100svh] items-center px-4 sm:px-6 lg:top-[7svh] lg:h-[86svh] lg:px-10">
+          <div className="mx-auto grid w-full max-w-[1400px] gap-6 py-4 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-12">
             <div>
               <p className="text-base font-semibold uppercase tracking-[0.2em] text-brand-700 sm:text-xl">Features</p>
               <h2 className="mt-3 max-w-xl font-display text-3xl font-semibold leading-tight text-ink-900 sm:text-5xl">
@@ -550,24 +491,29 @@ export default function Landing() {
               <p className="mt-4 hidden max-w-md text-base text-ink-500 sm:block">
                 Follow each part of your rental workflow in one place.
               </p>
-              <ul className="mt-6 grid grid-cols-2 gap-x-2 border-l border-slate-200 lg:mt-10 lg:block lg:space-y-1">
+              <ul className="mt-7 grid grid-cols-2 gap-2 lg:mt-9 lg:grid-cols-1 lg:gap-1.5" aria-label="Explore Roomora features">
                 {features.map((feature, index) => (
                   <li key={feature.title}>
                     <button
                       type="button"
                       onClick={() => scrollToFeature(index)}
                       aria-current={activeFeature === index ? 'true' : undefined}
-                      className={`flex w-full items-center gap-3 border-l-2 px-3 py-2 text-left text-xs transition-colors sm:text-sm lg:px-4 lg:py-2.5 ${activeFeature === index ? '-ml-px border-brand-600 font-semibold text-brand-700' : '-ml-px border-transparent text-ink-500 hover:text-ink-900'}`}
+                      className={`group flex min-h-[62px] w-full items-center gap-2.5 rounded-xl border px-3 py-3 text-left transition-[background,border-color,box-shadow,transform] duration-200 sm:gap-3 lg:min-h-[54px] lg:px-4 lg:py-2.5 ${activeFeature === index ? 'border-[#bfd8b9] bg-[#e8f3e4] text-[#245a37] shadow-[0_4px_14px_rgba(55,104,58,0.08)]' : 'border-transparent bg-white/55 text-[#5d7265] hover:-translate-y-0.5 hover:border-[#dce8d9] hover:bg-white hover:text-[#234e34]'}`}
                     >
-                      <span className={`h-2 w-2 shrink-0 rounded-full ${activeFeature === index ? 'bg-brand-600' : 'bg-slate-300'}`} />
-                      {feature.title}
+                      <span className={`shrink-0 text-[10px] font-bold tracking-[.08em] sm:text-xs ${activeFeature === index ? 'text-[#397d45]' : 'text-[#9aaa9e]'}`}>
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <span className="min-w-0 flex-1 text-xs font-semibold leading-snug sm:text-sm lg:text-[15px]">{feature.title}</span>
+                      <span className={`hidden h-7 w-7 shrink-0 items-center justify-center rounded-full transition-colors lg:flex ${activeFeature === index ? 'bg-white text-[#397d45]' : 'text-[#97aa9a] group-hover:bg-[#f0f6ed] group-hover:text-[#397d45]'}`} aria-hidden="true">
+                        <Icon name="arrowUpRight" size={15} />
+                      </span>
                     </button>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="min-h-[280px] [perspective:900px] sm:min-h-[480px]" aria-live="polite">
+            <div className="min-h-[280px] sm:min-h-[480px]" aria-live="polite">
               <article key={activeFeature} className="feature-stage-in flex h-full flex-col justify-center">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-700">
                   {String(activeFeature + 1).padStart(2, '0')} / {String(features.length).padStart(2, '0')}
@@ -576,7 +522,7 @@ export default function Landing() {
                   {features[activeFeature].title}
                 </h3>
                 <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink-600 sm:text-base">{features[activeFeature].desc}</p>
-                <FeaturePreview index={activeFeature} />
+                <FeatureShowcase index={activeFeature} />
               </article>
               <div className="mt-4 h-0.5 w-full bg-slate-200" aria-hidden="true">
                 <div className="h-full bg-brand-600 transition-[width] duration-500" style={{ width: `${((activeFeature + 1) / features.length) * 100}%` }} />
@@ -719,7 +665,7 @@ export default function Landing() {
                   Create your account <span aria-hidden="true">↗</span>
                 </Link>
                 <Link to="/login" className="inline-flex min-h-12 items-center justify-center gap-5 rounded-lg border border-white/45 px-6 py-3 text-sm font-semibold text-white transition-colors hover:border-white hover:bg-white/10 focus-visible:ring-white">
-                  Explore the demo <span aria-hidden="true">↗</span>
+                  Sign in <span aria-hidden="true">↗</span>
                 </Link>
               </div>
             </div>

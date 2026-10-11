@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { api, tokenStore } from './api';
+import { AUTH_TIMEOUT_MS, api, tokenStore } from './api';
 
-export type Role = 'OWNER' | 'TENANT' | 'STAFF';
+export type Role = 'SUPER_ADMIN' | 'OWNER' | 'TENANT' | 'STAFF';
 
 export interface User {
   id: string;
@@ -10,12 +10,14 @@ export interface User {
   role: Role;
   phone?: string | null;
   staffType?: string | null;
+  googleConnected?: boolean;
 }
 
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<User>;
+  googleLogin: (credential: string, role?: 'OWNER' | 'TENANT') => Promise<User>;
   register: (input: { email: string; password: string; fullName: string; role: 'OWNER' | 'TENANT' }) => Promise<User>;
   logout: () => Promise<void>;
 }
@@ -33,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     api
-      .get('/auth/me')
+      .get('/auth/me', { timeout: AUTH_TIMEOUT_MS })
       .then((res) => {
         if (!cancelled) setUser(res.data.data);
       })
@@ -50,7 +52,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    const res = await api.post('/auth/login', { email, password }, { timeout: 10_000 });
+    const res = await api.post('/auth/login', { email, password }, { timeout: AUTH_TIMEOUT_MS });
+    const { accessToken, refreshToken, user: u } = res.data.data;
+    tokenStore.set(accessToken, refreshToken);
+    setUser(u);
+    return u as User;
+  }, []);
+
+  const googleLogin = useCallback(async (credential: string, role: 'OWNER' | 'TENANT' = 'TENANT') => {
+    const res = await api.post('/auth/google', { credential, role }, { timeout: AUTH_TIMEOUT_MS });
     const { accessToken, refreshToken, user: u } = res.data.data;
     tokenStore.set(accessToken, refreshToken);
     setUser(u);
@@ -59,7 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = useCallback(
     async (input: { email: string; password: string; fullName: string; role: 'OWNER' | 'TENANT' }) => {
-      const res = await api.post('/auth/register', input);
+      const res = await api.post('/auth/register', input, { timeout: AUTH_TIMEOUT_MS });
       const { accessToken, refreshToken, user: u } = res.data.data;
       tokenStore.set(accessToken, refreshToken);
       setUser(u);
@@ -79,8 +89,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, loading, login, register, logout }),
-    [user, loading, login, register, logout],
+    () => ({ user, loading, login, googleLogin, register, logout }),
+    [user, loading, login, googleLogin, register, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

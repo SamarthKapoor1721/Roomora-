@@ -129,7 +129,7 @@ function StaffForm({ onSubmit, pending, error }: { onSubmit: (b: unknown) => voi
   const [f, setF] = useState({
     fullName: '',
     email: '',
-    password: 'Password123',
+    password: '',
     phone: '',
     staffType: 'MAINTENANCE',
     skills: '',
@@ -149,7 +149,7 @@ function StaffForm({ onSubmit, pending, error }: { onSubmit: (b: unknown) => voi
       <div className="grid gap-3 md:grid-cols-2">
         <input className="input" placeholder="Full name" value={f.fullName} onChange={(e) => setF({ ...f, fullName: e.target.value })} required />
         <input className="input" placeholder="Email" type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} required />
-        <input className="input" placeholder="Temp password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} required />
+        <input className="input" placeholder="Temporary password" type="password" minLength={8} autoComplete="new-password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} required />
         <input className="input" placeholder="Phone" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} />
         <select className="input" value={f.staffType} onChange={(e) => setF({ ...f, staffType: e.target.value })}>
           {['MAINTENANCE', 'CLEANING', 'GENERAL'].map((x) => <option key={x}>{x}</option>)}

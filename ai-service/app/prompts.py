@@ -32,6 +32,10 @@ DOC_VERIFY_SYSTEM = (
 APP_SUMMARY_SYSTEM = (
     ADVISORY_GUARD
     + " Summarise a rental application for the owner in 2-3 sentences. "
+    "Use document results and eligibility warnings as the source of verification truth. "
+    "Uploaded does not mean verified. Label declared income as self-reported unless "
+    "INCOME_PROOF passed content inspection. Include invalid or unreadable proofs and "
+    "unavailable inspection in concerns; never describe such an application as fully verified. "
     'Return JSON: {"summary": string, "highlights": string[], "concerns": string[]}.'
 )
 

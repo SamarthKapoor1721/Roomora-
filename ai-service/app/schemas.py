@@ -48,8 +48,11 @@ class EligibilityResponse(BaseModel):
 
 # ---------- Document verification ----------
 class DocInput(BaseModel):
+    id: str = ""
     type: str
     originalName: str
+    mimeType: str | None = None
+    contentBase64: str | None = Field(default=None, max_length=14_000_000)
     extractedText: str | None = None
 
 
@@ -69,6 +72,7 @@ class DocVerificationResponse(BaseModel):
     notes: str | None = None
     model: str | None = None
     raw: Any | None = None
+    documentResults: list[dict[str, Any]] = Field(default_factory=list)
 
 
 # ---------- Summaries ----------

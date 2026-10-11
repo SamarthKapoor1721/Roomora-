@@ -1,4 +1,6 @@
-type FileViewer = { id: string; role: 'OWNER' | 'TENANT' | 'STAFF' };
+import type { Role } from '@prisma/client';
+
+type FileViewer = { id: string; role: Role };
 
 export function canViewApplicationDocument(viewer: FileViewer, tenantId: string, ownerId: string): boolean {
   return (viewer.role === 'TENANT' && viewer.id === tenantId) || (viewer.role === 'OWNER' && viewer.id === ownerId);

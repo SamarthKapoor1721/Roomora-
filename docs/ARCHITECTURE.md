@@ -63,8 +63,8 @@ withdraw the tenant's other pending apps for that room → recompute room occupa
 
 `fallback.py` implements:
 
-- **eligibility** — weighted criteria (income-to-rent 40, documents 30, employment 15, occupancy fit 10, lifestyle 5) → a **Criteria Match %**, plus reasons/warnings/missing.
-- **verify_documents** — presence + naïve name-matching → status + consistency score.
+- **eligibility** — the screening backend calculates evidence-based criteria after document inspection: supported income 50, valid proofs 30, occupancy fit 20. Missing or invalid evidence forces review.
+- **verify_documents** — vision inspection of actual uploaded images and PDF pages → per-file content/consistency results and extracted fields; unavailable inspection earns no credit.
 - **classify_maintenance** — keyword rules → category + priority, with an urgency-language bump; safety keywords force `URGENT`.
 - **assistant** — formats the real DB context the backend passed in into a markdown answer; never invents data.
 - **insights** — turns dashboard metrics into insights / risks / opportunities.
@@ -87,7 +87,7 @@ independently fault-tolerant; a production deployment would move it to a job que
 
 ## Known simplifications
 
-- Document OCR is out of scope — the AI verifies presence/consistency from filenames and applicant fields, not authenticity.
+- Document content is inspected using a vision model; authenticity is not established. Unsupported, encrypted, or lengthy documents require manual review.
 - Payments record intent; no real payment-gateway integration.
 - AI screening is synchronous (see above).
 - Refresh tokens are stored per-session but not bound to a device fingerprint.

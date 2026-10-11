@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { adminRoutes } from './modules/admin/admin.routes';
 import { ownerTenancyRoutes, tenantTenancyRoutes } from './modules/tenancy/tenancy.routes';
 import { aiRoutes } from './modules/ai/ai.routes';
 import { analyticsRoutes } from './modules/analytics/analytics.routes';
@@ -33,6 +34,7 @@ export const apiRouter = Router();
 
 // Auth & profile
 apiRouter.use('/auth', authRoutes);
+apiRouter.use('/admin', adminRoutes);
 apiRouter.use('/files', filesRoutes);
 apiRouter.use('/users', usersRoutes);
 apiRouter.use('/notifications', notificationsRoutes);

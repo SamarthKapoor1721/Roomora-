@@ -20,7 +20,16 @@ async function main() {
       partialFilterExpression: { isActive: true },
     }],
   });
-  console.log('MongoDB application and active tenancy indexes ready.');
+  await prisma.$runCommandRaw({
+    createIndexes: 'User',
+    indexes: [{
+      key: { googleId: 1 },
+      name: 'User_googleId_partial_unique',
+      unique: true,
+      partialFilterExpression: { googleId: { $type: 'string' } },
+    }],
+  });
+  console.log('MongoDB application, active tenancy and Google account indexes ready.');
 }
 
 main().catch(() => {

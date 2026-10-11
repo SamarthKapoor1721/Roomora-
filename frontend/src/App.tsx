@@ -5,6 +5,7 @@ import { useAuth, type Role } from './lib/auth';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Account from './pages/Account';
 import OwnerDashboard from './pages/owner/OwnerDashboard';
 import OwnerProperties from './pages/owner/OwnerProperties';
 import OwnerApplications from './pages/owner/OwnerApplications';
@@ -24,6 +25,7 @@ import TenantMaintenance from './pages/tenant/TenantMaintenance';
 import StaffDashboard from './pages/staff/StaffDashboard';
 import StaffMaintenance from './pages/staff/StaffMaintenance';
 import StaffCleaning from './pages/staff/StaffCleaning';
+import AdminPortal from './pages/admin/AdminPortal';
 
 function Protected({ roles, children }: { roles: Role[]; children: JSX.Element }) {
   const { user, loading } = useAuth();
@@ -49,6 +51,8 @@ export default function App() {
       <Route path="/" element={<HomeRedirect />} />
 
       <Route element={<Layout />}>
+        <Route path="/account" element={<Protected roles={['SUPER_ADMIN', 'OWNER', 'TENANT', 'STAFF']}><Account /></Protected>} />
+        <Route path="/super_admin" element={<Protected roles={['SUPER_ADMIN']}><AdminPortal /></Protected>} />
         {/* Owner */}
         <Route path="/owner" element={<Protected roles={['OWNER']}><OwnerDashboard /></Protected>} />
         <Route path="/owner/properties" element={<Protected roles={['OWNER']}><OwnerProperties /></Protected>} />

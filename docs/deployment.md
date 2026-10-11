@@ -17,7 +17,7 @@ Create a Blueprint from the repository's [`render.yaml`](../render.yaml). It def
 
 Render prompts for `DATABASE_URL` and `CORS_ORIGIN`. Set `CORS_ORIGIN` to the exact Vercel production origin, such as `https://roomora.example.com`, with no trailing slash. Render generates separate JWT secrets. Once the services exist, optionally set `NVIDIA_NIM_API_KEY` on `roomora-ai` for NVIDIA inference. The backend receives the AI service's private host and port automatically.
 
-The Blueprint uses paid compute and a persistent disk. The disk is necessary because uploads are currently stored on the API server's filesystem. Do not remove it unless uploads are moved to object storage. Database setup uses `prisma db push` and the custom index setup script; it does not seed demo users.
+The Blueprint uses paid compute and a persistent disk. The disk is necessary because uploads are currently stored on the API server's filesystem. Do not remove it unless uploads are moved to object storage. Database setup uses `prisma db push` and the custom index setup script; no sample accounts are created.
 
 ## 3. Create the Vercel project
 
@@ -35,6 +35,12 @@ When the final Vercel domain is known, update `CORS_ORIGIN` on Render if it diff
 4. Upload an application document and verify that an authorized owner or tenant can open it, while the public `/uploads/application-documents/...` path returns 404.
 5. Restart or redeploy the API and confirm the uploaded file is still available.
 
-Only seed the sample accounts in an isolated demo database. `npm run db:seed` creates accounts with a publicly documented password.
+Configure `GOOGLE_CLIENT_ID` and `SUPER_ADMIN_EMAILS` on Render and
+`VITE_GOOGLE_CLIENT_ID` on Vercel to enable Google sign-in and the admin portal. Add
+the Vercel site origin to the Google OAuth web client's authorized JavaScript origins.
 
 For Atlas IP access and host configuration, see [MongoDB Atlas network access](https://www.mongodb.com/docs/atlas/security/ip-access-list/). For the deployment settings, see [Render Blueprints](https://render.com/docs/blueprint-spec), [Render persistent disks](https://render.com/docs/disks), and [Vercel Vite deployments](https://vercel.com/docs/frameworks/frontend/vite).
+
+## Slow first sign-in
+
+If the first API `/health` request after inactivity takes tens of seconds but a repeat request is fast, check the API service's **actual instance plan** in Render. Free web services spin down while idle and can take about a minute to wake. The Blueprint above specifies paid compute for the API, but a manually created service can have a different plan. The frontend starts a health request as soon as the welcome or sign-in page opens and allows a longer auth request for a sleeping API; an always-on Render plan is the way to remove the wake-up delay. The AI service's cold start does not affect sign-in.

@@ -17,7 +17,6 @@
     "build": "npm --workspace backend run build && npm --workspace frontend run build",
     "db:generate": "npm --workspace backend run db:generate",
     "db:migrate": "npm --workspace backend run db:migrate",
-    "db:seed": "npm --workspace backend run db:seed",
     "test": "npm --workspace backend run test",
     "db:push": "npm --workspace backend run db:push",
     "db:check": "npm --workspace backend run db:check"

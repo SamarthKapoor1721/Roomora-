@@ -1,7 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../lib/api';
 import { Icon } from '../../components/Icon';
+import ModalOverlay from '../../components/ModalOverlay';
 import {
   Card,
   EmptyState,
@@ -13,6 +15,7 @@ import {
   StatLine,
   money,
 } from '../../components/ui';
+import './OwnerDashboard.css';
 
 interface Dashboard {
   properties: { total: number };
@@ -38,14 +41,29 @@ interface Insights {
 }
 
 export default function OwnerDashboard() {
+  const [insightsOpen, setInsightsOpen] = useState(false);
+  const [insights, setInsights] = useState<Insights | null>(null);
   const { data, isLoading, error } = useQuery({
     queryKey: ['owner', 'dashboard'],
     queryFn: async () => (await api.get('/analytics/owner/dashboard')).data.data as Dashboard,
   });
-  const { data: insights, isLoading: insightsLoading } = useQuery({
-    queryKey: ['owner', 'insights'],
-    queryFn: async () => (await api.get('/analytics/owner/insights')).data.data as Insights,
+  const insightsRequest = useMutation({
+    mutationFn: async () => {
+      const started = Date.now();
+      try {
+        return (await api.get('/analytics/owner/insights', { timeout: 150_000 })).data.data as Insights;
+      } finally {
+        const remaining = 1600 - (Date.now() - started);
+        if (remaining > 0) await new Promise((resolve) => window.setTimeout(resolve, remaining));
+      }
+    },
+    onSuccess: setInsights,
   });
+
+  const generateInsights = () => {
+    setInsightsOpen(true);
+    insightsRequest.mutate();
+  };
 
   if (error) return <ErrorBanner message={apiErrorMessage(error)} />;
 
@@ -184,13 +202,22 @@ export default function OwnerDashboard() {
           {/* AI INSIGHTS */}
           <Section
             title="AI insights"
-            description="What the data says, what to watch, and where the openings are."
+            description="A fresh look at your portfolio, whenever you need it."
+            actions={
+              <button className="insights-trigger" type="button" onClick={generateInsights} disabled={insightsRequest.isPending}>
+                <Icon name="sparkles" size={17} />
+                <span>{insightsRequest.isPending ? 'Analyzing…' : insights ? 'Refresh insights' : 'Generate insights'}</span>
+                <span aria-hidden="true">↗</span>
+              </button>
+            }
           >
-            {insightsLoading || !insights ? (
-              <div className="grid gap-4 lg:grid-cols-3">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <Skeleton key={i} className="h-40" />
-                ))}
+            {!insights ? (
+              <div className="insights-prompt">
+                <div className="insights-prompt-icon"><Icon name="sparkles" size={25} /></div>
+                <div>
+                  <h3>Your portfolio, in perspective.</h3>
+                  <p>Generate a current summary of insights, risks and opportunities when you’re ready.</p>
+                </div>
               </div>
             ) : insights.ai.insights.length === 0 &&
               insights.ai.risks.length === 0 &&
@@ -229,7 +256,98 @@ export default function OwnerDashboard() {
           </Section>
         </>
       )}
+
+      {insightsOpen && (
+        <InsightsExperience
+          insights={insights}
+          loading={insightsRequest.isPending}
+          error={insightsRequest.error}
+          onClose={() => setInsightsOpen(false)}
+          onRetry={generateInsights}
+        />
+      )}
     </div>
+  );
+}
+
+const analysisSteps = [
+  'Reading your portfolio',
+  'Looking for patterns',
+  'Finding what matters',
+];
+
+function InsightsExperience({
+  insights,
+  loading,
+  error,
+  onClose,
+  onRetry,
+}: {
+  insights: Insights | null;
+  loading: boolean;
+  error: Error | null;
+  onClose: () => void;
+  onRetry: () => void;
+}) {
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    if (!loading) return;
+    setStep(0);
+    const timer = window.setInterval(() => setStep((current) => (current + 1) % analysisSteps.length), 2800);
+    return () => window.clearInterval(timer);
+  }, [loading]);
+
+  return (
+    <ModalOverlay onClose={onClose} labelledBy="insights-experience-title">
+      <div className="insights-experience">
+        <div className="insights-experience-glow" aria-hidden="true" />
+        <div className="insights-experience-top">
+          <span className="insights-experience-brand">ROOMORA <span>/</span> INTELLIGENCE</span>
+          <button type="button" className="insights-experience-close" onClick={onClose} aria-label="Close insights">
+            <Icon name="x" size={18} />
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="insights-experience-loading" role="status" aria-live="polite">
+            <div className="insights-orb" aria-hidden="true">
+              <span className="insights-orb-halo" />
+              <span className="insights-orb-ring insights-orb-ring-one" />
+              <span className="insights-orb-ring insights-orb-ring-two" />
+              <span className="insights-orb-core" />
+            </div>
+            <p className="insights-experience-kicker">A CLOSER LOOK</p>
+            <h2 id="insights-experience-title" key={step}>{analysisSteps[step]}<span>.</span></h2>
+            <p className="insights-experience-caption">Turning your latest rental data into a clearer picture.</p>
+            <div className="insights-experience-progress" aria-hidden="true"><span /></div>
+          </div>
+        ) : error ? (
+          <div className="insights-experience-message" role="alert">
+            <div className="insights-experience-symbol"><Icon name="alert" size={30} /></div>
+            <p className="insights-experience-kicker">ANALYSIS INTERRUPTED</p>
+            <h2 id="insights-experience-title">We couldn’t finish this time.</h2>
+            <p>{apiErrorMessage(error)}</p>
+            <button type="button" className="insights-experience-primary" onClick={onRetry}>Try again <span aria-hidden="true">↗</span></button>
+          </div>
+        ) : insights ? (
+          <div className="insights-experience-results">
+            <div className="insights-results-heading">
+              <span className="insights-results-mark"><Icon name="sparkles" size={24} /></span>
+              <p className="insights-experience-kicker">YOUR PORTFOLIO, IN PERSPECTIVE</p>
+              <h2 id="insights-experience-title">Here’s what stands out<span>.</span></h2>
+              <p>Insights based on your latest properties, leases, payments and operations.</p>
+            </div>
+            <div className="insights-results-grid">
+              <InsightPanel icon="info" title="Insights" items={insights.ai.insights} accent="border-l-slate-300" chip="bg-slate-100 text-ink-500" />
+              <InsightPanel icon="alert" title="Risks" items={insights.ai.risks} accent="border-l-rose-400" chip="bg-rose-50 text-rose-600" emphasis />
+              <InsightPanel icon="arrowUpRight" title="Opportunities" items={insights.ai.opportunities} accent="border-l-emerald-400" chip="bg-emerald-50 text-emerald-600" />
+            </div>
+            <button type="button" className="insights-experience-primary" onClick={onClose}>Back to dashboard <span aria-hidden="true">↗</span></button>
+          </div>
+        ) : null}
+      </div>
+    </ModalOverlay>
   );
 }
 

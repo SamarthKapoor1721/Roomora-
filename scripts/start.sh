@@ -3,10 +3,9 @@
 # One command to run the whole project from a clean checkout.
 #
 #   ./scripts/start.sh            # set up everything, then run all 3 services
-# Demo data is opt-in with npm run db:seed.
 #
 # Does: install deps, create .env files, synchronize MongoDB indexes,
-# seed (first run), create the Python venv + install AI deps, then launch
+# create the Python venv + install AI deps, then launch
 # backend + frontend + ai-service together.
 #
 set -euo pipefail
@@ -53,7 +52,6 @@ say "Generating Prisma client and synchronizing MongoDB indexes"
 npm --workspace backend run db:generate
 npm --workspace backend run db:push
 npm --workspace backend run db:check
-# Demo data is opt-in: npm run db:seed.
 
 # ---------------------------------------------------------------------------
 # 5. Python venv + AI-service deps
@@ -81,10 +79,6 @@ cat <<'EOF'
   Frontend    http://localhost:5173
   Backend API http://localhost:4000/api/v1   (health: /health)
   AI service  http://localhost:8001          (health: /health)
-
-  Demo logins (after npm run db:seed; password: Password123)
-    owner@srms.test · tenant@srms.test · tenant2@srms.test
-    maintenance@srms.test · cleaning@srms.test
 
   Press Ctrl+C to stop all three.
 

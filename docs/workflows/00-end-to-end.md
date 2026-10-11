@@ -59,17 +59,14 @@ the advisory result is produced (NVIDIA NIM, or rule-based "Criteria Match %").
 ## Try it end-to-end
 
 ```bash
-npm start          # Postgres + backend + frontend + AI service
+npm start          # MongoDB connection + backend + frontend + AI service
 ```
 
-Then, signed in as the seeded accounts (password `Password123`):
+Then use real accounts:
 
-1. **owner@srms.test** — create a property & room, open applications.
-2. **tenant@srms.test** — browse, apply, upload 3 docs, submit for screening.
-3. **owner@srms.test** — open the application, read the AI results, approve with lease terms.
-4. **tenant@srms.test** — see the room, roommates, lease, food on the dashboard; pay rent.
-5. **tenant2@srms.test** — raise a maintenance request (already has overdue rent seeded).
-6. **owner@srms.test** — assign it to **maintenance@srms.test**; run the AI assistant ("Which tenants have overdue rent?"); run a warning scan.
-7. **maintenance@srms.test** — progress the task, upload an AFTER photo, complete it.
-
-`scripts/../smoke test` in the repo history exercises exactly this path via the API.
+1. Sign up as an **owner**, create a property and room, and open applications.
+2. Sign up as a **tenant**, browse, apply, upload documents, and submit for screening.
+3. As the owner, review the AI results and decide with lease terms.
+4. As the tenant, view the lease and pay rent.
+5. As the owner, create a staff account and assign a maintenance task.
+6. As staff, progress and complete the assigned task.

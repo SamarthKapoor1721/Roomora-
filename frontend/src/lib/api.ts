@@ -21,9 +21,21 @@ export const tokenStore = {
 };
 
 const apiOrigin = (import.meta.env.VITE_API_ORIGIN ?? '').replace(/\/$/, '');
+export const AUTH_TIMEOUT_MS = 90_000;
 
 /** Local Vite proxy in development; an explicit API origin in production. */
 export const api = axios.create({ baseURL: `${apiOrigin}/api/v1`, timeout: 20_000 });
+
+let warming: Promise<void> | null = null;
+
+/** Start a sleeping hosted API while the visitor browses or enters sign-in details. */
+export function warmApi(): void {
+  if (!import.meta.env.PROD || !apiOrigin || warming) return;
+  warming = fetch(`${apiOrigin}/health`, { cache: 'no-store' })
+    .then(() => undefined)
+    .catch(() => undefined)
+    .finally(() => { warming = null; });
+}
 
 export function assetUrl(relativeUrl: string): string {
   return `${apiOrigin}${relativeUrl}`;
@@ -61,7 +73,7 @@ let refreshing: Promise<string> | null = null;
 
 /** Endpoints that must never trigger the refresh-and-retry dance. */
 function isAuthRoute(url?: string) {
-  return !!url && /\/auth\/(login|register|refresh|logout)/.test(url);
+  return !!url && /\/auth\/(login|google|register|refresh|logout)(?:\?|$)/.test(url);
 }
 
 api.interceptors.response.use(
@@ -81,7 +93,7 @@ api.interceptors.response.use(
     original!._retry = true;
     try {
       refreshing ??= api
-        .post('/auth/refresh', { refreshToken: tokenStore.refresh })
+        .post('/auth/refresh', { refreshToken: tokenStore.refresh }, { timeout: AUTH_TIMEOUT_MS })
         .then((res) => {
           const { accessToken, refreshToken } = res.data.data;
           tokenStore.set(accessToken, refreshToken);

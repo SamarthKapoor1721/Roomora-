@@ -52,11 +52,12 @@ def _client_for(timeout: float) -> AsyncOpenAI:
 
 async def chat_json(
     system_prompt: str,
-    user_prompt: str,
+    user_prompt: str | list[dict[str, Any]],
     *,
     budget: Budget = "blocking",
     temperature: float | None = None,
     max_tokens: int = 4096,
+    model: str | None = None,
 ) -> dict[str, Any]:
     """Call NVIDIA NIM and parse the assistant message as a JSON object.
 
@@ -71,18 +72,23 @@ async def chat_json(
     client = _client_for(timeout)
 
     extra_body: dict[str, Any] = {}
-    if settings.nvidia_reasoning_effort:
+    if not model and settings.nvidia_reasoning_effort:
         # DeepSeek/reasoning models accept this; others 400 on it, so only send
         # it when explicitly configured.
         extra_body["reasoning_effort"] = settings.nvidia_reasoning_effort
     # Nemotron 3.5 leaks its chain-of-thought into `content` unless disabled.
-    extra_body["chat_template_kwargs"] = {"enable_thinking": settings.nvidia_thinking}
+    if not model:
+        extra_body["chat_template_kwargs"] = {"enable_thinking": settings.nvidia_thinking}
+    elif "nemotron-3-nano-omni" in model:
+        # Leave output tokens for the JSON evidence instead of spending the
+        # synchronous document-review budget on an extended reasoning trace.
+        extra_body["reasoning_budget"] = 256
 
     last_err: Exception | None = None
     for attempt in range(settings.max_retries + 1):
         try:
             completion = await client.chat.completions.create(
-                model=settings.nvidia_model,
+                model=model or settings.nvidia_model,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
@@ -105,7 +111,9 @@ async def chat_json(
                     or ""
                 )
             parsed = _extract_json(content)
-            parsed.setdefault("_model", settings.nvidia_model)
+            if not isinstance(parsed, dict):
+                raise ValueError("Expected a JSON object")
+            parsed.setdefault("_model", model or settings.nvidia_model)
             return parsed
 
         except RateLimitError as exc:
@@ -148,7 +156,9 @@ def _extract_json(content: str) -> dict[str, Any]:
         return json.loads(content)
     except json.JSONDecodeError:
         start = content.find("{")
-        end = content.rfind("}")
-        if start != -1 and end != -1 and end > start:
-            return json.loads(content[start : end + 1])
+        if start != -1:
+            # Some vision models append a closing marker or repeat their answer.
+            # Decode the complete first JSON value rather than merging responses.
+            parsed, _ = json.JSONDecoder().raw_decode(content[start:])
+            return parsed
         raise

@@ -6,13 +6,12 @@ import { useAuth } from '../lib/auth';
 import { useGlobalRipple } from '../lib/ripple';
 import { Icon, type IconName } from './Icon';
 import AssistantWidget from './AssistantWidget';
-import GutterDecor from './GutterDecor';
-import NavbarAccent from './NavbarAccent';
 import { RouteTransition } from './RouteTransition';
 
 type NavItem = { to: string; label: string; icon: IconName; end?: boolean };
 
 const NAV: Record<string, NavItem[]> = {
+  SUPER_ADMIN: [{ to: '/super_admin', label: 'Control room', icon: 'dashboard', end: true }, { to: '/account', label: 'Account', icon: 'key' }],
   OWNER: [
     { to: '/owner', label: 'Dashboard', icon: 'dashboard', end: true },
     { to: '/owner/properties', label: 'Properties', icon: 'building' },
@@ -23,6 +22,7 @@ const NAV: Record<string, NavItem[]> = {
     { to: '/owner/cleaning', label: 'Cleaning', icon: 'broom' },
     { to: '/owner/staff', label: 'Staff', icon: 'users' },
     { to: '/owner/warnings', label: 'Warnings', icon: 'alert' },
+    { to: '/account', label: 'Account', icon: 'key' },
   ],
   TENANT: [
     { to: '/tenant', label: 'Dashboard', icon: 'home', end: true },
@@ -30,11 +30,13 @@ const NAV: Record<string, NavItem[]> = {
     { to: '/tenant/applications', label: 'My applications', icon: 'inbox' },
     { to: '/tenant/payments', label: 'Rent & payments', icon: 'wallet' },
     { to: '/tenant/maintenance', label: 'Maintenance', icon: 'wrench' },
+    { to: '/account', label: 'Account', icon: 'key' },
   ],
   STAFF: [
     { to: '/staff', label: 'Dashboard', icon: 'dashboard', end: true },
     { to: '/staff/maintenance', label: 'Maintenance tasks', icon: 'wrench' },
     { to: '/staff/cleaning', label: 'Cleaning tasks', icon: 'broom' },
+    { to: '/account', label: 'Account', icon: 'key' },
   ],
 };
 
@@ -67,27 +69,22 @@ export default function Layout() {
     enabled: !!user,
   });
 
-  const roleLabel = { OWNER: 'Property owner', TENANT: 'Tenant', STAFF: 'Staff' }[
+  const roleLabel = { SUPER_ADMIN: 'Super admin', OWNER: 'Property owner', TENANT: 'Tenant', STAFF: 'Staff' }[
     user?.role ?? 'TENANT'
   ];
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium
-     transition-[transform,background-color,color] duration-150 ease-[cubic-bezier(0.34,1.56,0.64,1)]
-     active:scale-95 ${
+    `group flex items-center gap-3 rounded-xl px-3.5 py-3 text-sm font-medium
+     transition-[background-color,color,transform] duration-150 active:scale-[0.98] ${
       isActive
         ? 'bg-brand-600 text-white shadow-sm'
-        : 'text-ink-700 hover:-translate-y-px hover:bg-brand-50 hover:text-brand-700'
+        : 'text-ink-600 hover:bg-brand-50 hover:text-brand-700'
     }`;
 
   return (
     <div className="min-h-screen">
-      {/* ── Top navbar ─────────────────────────────────────────── */}
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white relative">
-        {/* row 1: brand + account */}
-        <NavbarAccent side="left" icon="building" />
-        <NavbarAccent side="right" icon="key" />
-        <div className="relative mx-auto flex h-14 max-w-6xl items-center gap-3 px-4 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-lg">
+        <div className="mx-auto flex h-16 max-w-[1500px] items-center gap-3 px-4 sm:px-6 lg:px-8">
           <span className="font-wordmark text-3xl font-bold tracking-tight text-ink-900">Roomora</span>
 
           <div className="ml-auto flex items-center gap-2.5">
@@ -119,7 +116,7 @@ export default function Layout() {
 
             {/* mobile nav toggle */}
             <button
-              className="btn-ghost btn-sm -mr-2 md:hidden"
+              className="btn-ghost btn-sm -mr-2 xl:hidden"
               onClick={() => setMobileNav((v) => !v)}
               aria-label="Toggle navigation"
               aria-expanded={mobileNav}
@@ -129,30 +126,9 @@ export default function Layout() {
           </div>
         </div>
 
-        {/* row 2: horizontal nav (desktop) */}
-        <nav className="hidden border-t border-slate-100 md:block">
-          <div className="mx-auto flex max-w-6xl gap-2.5 overflow-x-auto px-3 py-1.5 sm:px-5 lg:px-7">
-            {items.map((n) => (
-              <NavLink key={n.to} to={n.to} end={n.end} className={navLinkClass}>
-                {({ isActive }) => (
-                  <>
-                    <Icon
-                      key={String(isActive)}
-                      name={n.icon}
-                      size={16}
-                      className={isActive ? 'nav-pop' : 'text-ink-400'}
-                    />
-                    {n.label}
-                  </>
-                )}
-              </NavLink>
-            ))}
-          </div>
-        </nav>
-
         {/* mobile nav panel */}
         {mobileNav && (
-          <nav className="border-t border-slate-100 bg-white px-3 py-2 md:hidden">
+          <nav className="max-h-[calc(100vh-4rem)] overflow-y-auto border-t border-slate-100 bg-white px-3 py-2 xl:hidden" aria-label="Workspace navigation">
             <div className="grid gap-0.5">
               {items.map((n) => (
                 <NavLink
@@ -179,14 +155,38 @@ export default function Layout() {
         )}
       </header>
 
-      <GutterDecor />
       <RouteTransition nav={navLookup} />
 
-      <main className="relative z-10 mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
-        <div key={featureKey} className="route-page-in">
-          <Outlet />
-        </div>
-      </main>
+      <div className="relative z-10 mx-auto grid max-w-[1500px] gap-8 px-4 py-6 sm:px-6 lg:px-8 xl:grid-cols-[15rem_minmax(0,1fr)] xl:py-8">
+        <aside className="hidden xl:block">
+          <nav className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-2xl border border-[#dfe8da] bg-[#fbfcf9] p-3 shadow-[0_12px_32px_rgba(30,58,42,0.05)]" aria-label="Workspace navigation">
+            <div className="px-3.5 pb-3 pt-2">
+              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.18em] text-brand-700">Workspace</p>
+              <p className="mt-1 text-sm text-ink-500">{roleLabel}</p>
+            </div>
+            <div className="grid gap-1">
+              {items.map((n) => (
+                <div key={n.to} className={n.to === '/account' ? 'mt-3 border-t border-slate-200 pt-3' : ''}>
+                  <NavLink to={n.to} end={n.end} className={navLinkClass}>
+                    {({ isActive }) => (
+                      <>
+                        <Icon name={n.icon} size={18} className={isActive ? 'nav-pop' : 'text-ink-400 group-hover:text-brand-700'} />
+                        <span>{n.label}</span>
+                      </>
+                    )}
+                  </NavLink>
+                </div>
+              ))}
+            </div>
+          </nav>
+        </aside>
+
+        <main className="min-w-0">
+          <div key={featureKey} className="route-page-in">
+            <Outlet />
+          </div>
+        </main>
+      </div>
 
       {user?.role === 'OWNER' && <AssistantWidget />}
     </div>

@@ -1,6 +1,6 @@
 # 01 · Authentication & sessions
 
-**Actors:** anyone (Owner, Tenant self-register; Staff created by Owner — see [12](12-staff-management.md))
+**Actors:** Owner and Tenant self-register; Staff are created by an Owner; Super admins sign in with an allowlisted Google account.
 **Code:** `backend/src/modules/auth/*`, `backend/src/lib/auth.ts`, `backend/src/middleware/authenticate.ts`, `authorize.ts`
 **Frontend:** `frontend/src/pages/Login.tsx`, `Register.tsx`, `frontend/src/lib/auth.tsx`, `lib/api.ts`
 
@@ -13,7 +13,7 @@ sequenceDiagram
   participant U as User
   participant FE as Frontend
   participant API as Backend
-  participant DB as PostgreSQL
+  participant DB as MongoDB
 
   U->>FE: email + password
   FE->>API: POST /auth/login
@@ -46,6 +46,21 @@ sequenceDiagram
 - Rate limited: 20 attempts / 15 min / IP (`authLimiter`).
 - Returns `{ user, accessToken, refreshToken }`.
 - Audit: `auth.login`.
+
+## Google sign-in `[public]`
+
+`POST /auth/google` — body `{ credential, role?: "OWNER"|"TENANT" }`
+
+- The browser receives an ID token from Google Identity Services. The API uses Google's
+  verifier to check the signature, issuer, expiry, and configured audience; the email
+  must be verified.
+- New accounts use the selected owner/tenant role. The server ignores the selected role
+  for existing accounts. An email in `SUPER_ADMIN_EMAILS` receives the super admin role.
+- An existing password account with the same email is only linked automatically when
+  that email is in the admin allowlist. Other users can sign in with their password,
+  then connect the same Google email from the Account page (`POST /auth/google/link`).
+- Super admin password login is disabled. Promoting an account revokes its previous
+  refresh tokens; access tokens with an old role are rejected.
 
 ## Tokens
 
@@ -91,7 +106,7 @@ with a single in-flight promise. If refresh fails it clears tokens and redirects
 
 1. Requires `Authorization: Bearer <jwt>` → `401` if absent.
 2. Verifies the JWT signature/expiry → `401` on failure.
-3. Re-loads the user from the DB on **every request** and checks `isActive` → `401` if the account was deactivated.
+3. Re-loads the user from the DB on **every request** and checks `isActive`, role consistency, and the admin allowlist → `401` when access is no longer valid.
 4. Attaches `req.user = { id, email, role, fullName }`.
 
 `optionalAuthenticate` does the same but never fails — used where a route is nicer with a user but works without one.
