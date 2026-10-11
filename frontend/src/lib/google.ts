@@ -3,4 +3,4 @@
 // build-time environment variable is missing.
 export const googleClientId =
   (import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined)?.trim() ||
-  '837905525311-6lph3sokr9rl37ls8e5qhkcbjgh6b7c1.apps.googleusercontent.com';
+  '837905525311-rg905kb4o0mn3e92k0ul9187qoa0766k.apps.googleusercontent.com';
