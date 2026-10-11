@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Icon, type IconName } from '../components/Icon';
 import FeatureShowcase from '../components/FeatureShowcase';
 import { warmApi } from '../lib/api';
+import './Landing.css';
 
 const features: { icon: IconName; title: string; desc: string }[] = [
   {
@@ -170,6 +171,7 @@ export default function Landing() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const featureSectionRef = useRef<HTMLElement>(null);
+  const mobileFeaturesRef = useRef<HTMLDivElement>(null);
   const aiSectionRef = useRef<HTMLElement>(null);
   const [aiVisible, setAiVisible] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
@@ -215,7 +217,7 @@ export default function Landing() {
     let frame = 0;
     const updateFeature = () => {
       const section = featureSectionRef.current;
-      if (!section) return;
+      if (!section || window.matchMedia('(max-width: 767px)').matches) return;
       const scrollRange = Math.max(1, section.offsetHeight - window.innerHeight);
       const progress = Math.min(1, Math.max(0, -section.getBoundingClientRect().top / scrollRange));
       setActiveFeature(Math.min(features.length - 1, Math.floor(progress * features.length)));
@@ -266,7 +268,7 @@ export default function Landing() {
   };
 
   return (
-    <div ref={landingRef} className={`min-h-screen bg-[#f7f7f2] ${introActive ? 'roomora-intro-active' : ''}`}>
+    <div ref={landingRef} className={`landing-page min-h-screen bg-[#f7f7f2] ${introActive ? 'roomora-intro-active' : ''}`}>
       {introActive && (
         <div ref={introRef} className="roomora-intro" aria-hidden="true">
           <div className="roomora-intro-icons">
@@ -327,7 +329,7 @@ export default function Landing() {
             <span className="text-brand-300">properties, tenants</span> and{' '}
             <span className="text-brand-300">rent</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-white/85">
+          <p className="mobile-secondary-copy mx-auto mt-6 max-w-2xl text-lg text-white/85">
             Manage rental properties with intelligent screening, automatic lease creation,
             payment tracking, maintenance workflows, and proactive warnings in one
             modern platform.
@@ -436,10 +438,6 @@ export default function Landing() {
               })}
             </div>
 
-            <p className="mx-auto mb-5 max-w-lg text-center text-sm text-ink-600 sm:hidden" aria-live="polite">
-              {workflowSteps[activeStep].description}
-            </p>
-
             <div className="relative z-40 flex items-center justify-center gap-5">
               <button
                 type="button"
@@ -466,10 +464,11 @@ export default function Landing() {
       </section>
 
       {/* ── Scroll-driven features ─────────────────────────────── */}
+      <div id="features">
       <section
-        id="features"
+        id="desktop-features"
         ref={featureSectionRef}
-        className="relative border-b border-slate-200 bg-[#f7f7f2]"
+        className="hidden relative border-b border-slate-200 bg-[#f7f7f2] md:block"
         style={{ height: `${features.length * 45 + 65}svh` }}
       >
         <svg
@@ -532,13 +531,32 @@ export default function Landing() {
         </div>
       </section>
 
+      <section className="mobile-features md:hidden" aria-label="Roomora features">
+        <div className="mobile-features-heading">
+          <h2>Features</h2>
+          <div className="mobile-feature-controls">
+            <button type="button" aria-label="Previous feature" onClick={() => mobileFeaturesRef.current?.scrollBy({ left: -mobileFeaturesRef.current.clientWidth, behavior: 'smooth' })}>←</button>
+            <button type="button" aria-label="Next feature" onClick={() => mobileFeaturesRef.current?.scrollBy({ left: mobileFeaturesRef.current.clientWidth, behavior: 'smooth' })}>→</button>
+          </div>
+        </div>
+        <div ref={mobileFeaturesRef} className="mobile-feature-gallery" tabIndex={0} aria-label="Swipe to explore features">
+          {features.map((feature, index) => (
+            <figure key={feature.title} className="mobile-feature-slide">
+              <FeatureShowcase index={index} />
+              <figcaption className="sr-only">{feature.title}: {feature.desc}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+      </div>
+
       {/* ── Roles ──────────────────────────────────────────────────── */}
-      <section className="border-t-[10px] border-[#a8db8b] bg-[#123d31] px-4 py-16 sm:px-6 sm:py-20">
+      <section className="landing-roles border-t-[10px] border-[#a8db8b] bg-[#123d31] px-4 py-16 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-6xl">
           <div className="max-w-2xl">
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-brand-300">Made for every role</p>
             <h2 className="mt-3 font-display text-3xl font-semibold text-white sm:text-4xl">A workspace that fits your day.</h2>
-            <p className="mt-4 text-white/70">Take a look inside Roomora from each point of view.</p>
+            <p className="mobile-secondary-copy mt-4 text-white/70">Take a look inside Roomora from each point of view.</p>
           </div>
           <div className="mt-10 grid grid-cols-3 gap-1.5 rounded-2xl border border-white/15 bg-white/10 p-1.5 sm:gap-2 sm:p-2" role="tablist" aria-label="Choose a workspace">
             {roles.map((role, index) => (
@@ -549,7 +567,7 @@ export default function Landing() {
             ))}
           </div>
           <div id="workspace-panel" role="tabpanel" aria-labelledby={`workspace-tab-${activeRole}`} key={activeRole} className="feature-stage-in mt-6 grid gap-10 rounded-[1.75rem] bg-[#f7f9f4] p-6 shadow-[0_24px_50px_rgba(0,0,0,0.16)] sm:p-10 lg:grid-cols-[0.72fr_1.28fr] lg:items-center lg:gap-16 lg:p-12">
-            <div>
+            <div className="role-introduction">
               <p className="font-mono text-xs font-semibold uppercase tracking-[0.18em] text-brand-700">{roles[activeRole].title} workspace</p>
               <h3 className="mt-4 font-display text-3xl font-semibold leading-tight text-ink-900 sm:text-4xl">{roles[activeRole].action}</h3>
               <p className="mt-5 max-w-md text-base leading-relaxed text-ink-500">{roles[activeRole].description}</p>
@@ -573,7 +591,7 @@ export default function Landing() {
                 <div className="p-5 sm:p-7">
                   <p className="text-xs font-medium text-ink-500">{roles[activeRole].screen}</p>
                   <h4 className="mt-1 font-display text-xl font-semibold text-ink-900">{roles[activeRole].subject}</h4>
-                  <div className="mt-6 flex items-center justify-between gap-3 rounded-lg bg-[#edf5e9] px-4 py-4">
+                  <div className="role-preview-status mt-6 flex items-center justify-between gap-3 rounded-lg bg-[#edf5e9] px-4 py-4">
                     <span className="text-sm font-semibold text-brand-800">{roles[activeRole].highlight}</span>
                     <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[10px] font-semibold text-brand-700">{roles[activeRole].status}</span>
                   </div>
@@ -598,7 +616,7 @@ export default function Landing() {
               <h2 className="mt-4 max-w-md font-display text-3xl font-semibold leading-tight sm:text-4xl">
                 AI gives the insight. You make the call.
               </h2>
-              <p className="mt-5 max-w-md text-base leading-relaxed text-white/75">
+              <p className="mobile-secondary-copy mt-5 max-w-md text-base leading-relaxed text-white/75">
                 Screening brings the important details together so an owner can review each applicant with confidence.
                 Recommendations always stay advisory.
               </p>
@@ -627,14 +645,14 @@ export default function Landing() {
                     </span>
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-semibold sm:text-base">{item.title}</span>
-                      <span className="block text-xs text-white/60 sm:text-sm">{item.detail}</span>
+                      <span className="mobile-secondary-copy block text-xs text-white/60 sm:text-sm">{item.detail}</span>
                     </span>
                     <span className="self-start text-xs font-medium tabular-nums text-white/35">{item.step}</span>
                     {index === 1 && <span className={aiVisible ? 'ai-flow-scan' : 'hidden'} aria-hidden="true" />}
                   </div>
                 ))}
               </div>
-              <p className="mt-5 text-center text-xs text-white/55">The AI advises. The owner decides.</p>
+              <p className="mobile-secondary-copy mt-5 text-center text-xs text-white/55">The AI advises. The owner decides.</p>
             </div>
           </div>
         </div>
@@ -657,7 +675,7 @@ export default function Landing() {
               More room for<br /><span className="text-[#b6df9a]">what matters.</span>
             </h2>
             <div className="max-w-md lg:pb-2">
-              <p className="text-lg leading-relaxed text-white/75 sm:text-xl">
+              <p className="mobile-secondary-copy text-lg leading-relaxed text-white/75 sm:text-xl">
                 Bring your properties, people and everyday work into one calm place.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
@@ -675,7 +693,7 @@ export default function Landing() {
         <footer className="mx-auto flex max-w-6xl flex-col gap-5 px-5 py-8 sm:flex-row sm:items-end sm:justify-between sm:px-8 sm:py-10">
           <div>
             <Link to="/" className="font-wordmark text-3xl font-bold tracking-tight text-white sm:text-4xl">Roomora</Link>
-            <p className="mt-2 text-sm text-white/55">A better way to keep rentals moving.</p>
+            <p className="mobile-secondary-copy mt-2 text-sm text-white/55">A better way to keep rentals moving.</p>
           </div>
           <nav aria-label="Footer" className="flex flex-wrap gap-x-7 gap-y-2 text-sm text-white/70">
             <Link to="/login" className="hover:text-white">Sign in</Link>

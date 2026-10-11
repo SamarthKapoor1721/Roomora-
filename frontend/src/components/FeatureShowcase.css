@@ -15,3 +15,40 @@
 .feature-scene--assistant{display:flex;flex-direction:column;gap:11px;padding:18px 24px}.feature-chat-header{display:flex;align-items:center;gap:9px}.feature-chat-header>span:nth-child(2){flex:1}.feature-chat-header strong{display:block;font-size:12px}.feature-bot-icon{display:grid;width:34px;height:34px;place-items:center;border-radius:10px;background:#d9edda;color:#468854}.feature-chat-question{align-self:flex-end;border-radius:12px 12px 2px 12px;background:#24543b;padding:10px 13px;color:white;font-size:11px}.feature-chat-answer{width:88%;border:1px solid #dce9d9;border-radius:2px 13px 13px 13px;background:white;padding:12px}.feature-answer-title{display:flex;align-items:center;gap:6px;color:#3c7d4b;font-size:11px}.feature-answer-row{display:flex;align-items:center;gap:9px;margin-top:7px;border-top:1px solid #ebf0e9;padding-top:7px}.feature-answer-row>span{color:#79a580;font-size:9px;font-weight:800}.feature-answer-row p{flex:1;margin:0}.feature-answer-row b{display:block;font-size:10px}.feature-answer-row>svg{color:#83a68a}.feature-chat-input{display:flex;align-items:center;justify-content:space-between;margin-top:auto;border:1px solid #dce7da;border-radius:9px;background:white;padding:9px 11px;color:#9aa89c;font-size:10px}.feature-chat-input svg{color:#4e9160}
 
 @media(max-width:640px){.feature-showcase{margin-top:16px;padding:8px 8px 7px;border-radius:15px}.feature-window{height:280px;border-radius:10px}.feature-window-bar{height:31px;padding:0 10px;font-size:7px}.feature-scene{height:248px;padding:12px}.feature-showcase-foot{font-size:7px}.feature-scene--screening{gap:6px;padding:13px}.feature-illustration-sheet{padding:10px}.feature-review-orbit{width:150px;height:150px}.feature-review-core{width:111px;height:111px}.feature-review-core strong{font-size:11px}.feature-review-core span{font-size:7px}.feature-review-footer,.feature-float{display:none}.feature-document{font-size:7px}.feature-scene--property,.feature-scene--maintenance{gap:8px;padding:10px}.feature-property-content{padding:1px}.feature-property-content>strong{margin:10px 0 7px;font-size:15px}.feature-room-row{gap:5px;padding:5px 0}.feature-room-row small,.feature-maintenance-ticket small{font-size:8px}.feature-room-icon{width:22px;height:22px}.feature-scene--lease{gap:5px;padding:8px}.feature-lease-paper,.feature-payment-panel{height:222px;padding:9px}.feature-payment-panel .feature-badge{font-size:7px}.feature-scene--maintenance .feature-maintenance-ticket{padding:8px}.feature-ticket-heading strong{font-size:14px}.feature-ticket-steps{margin:24px 0 19px}.feature-assignee .feature-badge{display:none}.feature-scene--alerts{padding:8px}.feature-alerts-main{padding:9px 14px}.feature-alert-row{padding:7px 0}.feature-scene--assistant{gap:7px;padding:10px}.feature-chat-answer{padding:8px}.feature-answer-row{margin-top:5px;padding-top:5px}.feature-chat-input{padding:7px}}
+@media(max-width:767px){
+  .mobile-feature-slide .feature-showcase{padding:8px;border-radius:15px}
+  .mobile-feature-slide .feature-window{height:auto}
+  .mobile-feature-slide .feature-window-bar{height:31px;font-size:7px;padding:0 10px}
+  .mobile-feature-slide .feature-scene{height:248px}
+  .mobile-feature-slide .feature-showcase-foot{font-size:7px}
+  .mobile-feature-slide .feature-scene--screening,
+  .mobile-feature-slide .feature-scene--property,
+  .mobile-feature-slide .feature-scene--maintenance{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:8px;padding:10px}
+  .mobile-feature-slide .feature-scene--screening{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .mobile-feature-slide .feature-review-orbit{width:100%;max-width:150px;height:auto;aspect-ratio:1}
+  .mobile-feature-slide .feature-review-core{width:75%;height:auto;aspect-ratio:1}
+  .mobile-feature-slide .feature-review-core svg{width:23px;height:23px}
+  .mobile-feature-slide .feature-review-core strong{font-size:10px}
+  .mobile-feature-slide .feature-review-core span{display:none}
+  .mobile-feature-slide .feature-review-footer,
+  .mobile-feature-slide .feature-float,
+  .mobile-feature-slide .feature-section-label .feature-badge{display:none}
+  .mobile-feature-slide .feature-screening-person{transform:none;padding:10px}
+  .mobile-feature-slide .feature-screening-person>strong{font-size:12px}
+  .mobile-feature-slide .feature-document{gap:4px;font-size:7px}
+  .mobile-feature-slide .feature-document svg{width:12px;flex-shrink:0}
+  .mobile-feature-slide .feature-section-label{font-size:7px;letter-spacing:.06em}
+  .mobile-feature-slide .feature-lease-paper,
+  .mobile-feature-slide .feature-payment-panel{flex:1;min-width:0;width:auto;transform:none;height:222px;padding:9px}
+  .mobile-feature-slide .feature-scene--lease{gap:8px;padding:10px}
+  .mobile-feature-slide .feature-property-content>strong{font-size:15px}
+  .mobile-feature-slide .feature-maintenance-ticket{padding:8px}
+  .mobile-feature-slide .feature-ticket-heading{gap:5px}
+  .mobile-feature-slide .feature-ticket-heading strong{font-size:13px}
+  .mobile-feature-slide .feature-assignee .feature-badge{display:none}
+  .mobile-feature-slide .feature-chat-answer{width:100%}
+  .mobile-feature-slide .feature-scene--assistant{gap:7px;padding:10px}
+  .mobile-feature-slide .feature-chat-answer{padding:8px}
+  .mobile-feature-slide .feature-answer-row{margin-top:5px;padding-top:5px}
+  .mobile-feature-slide .feature-chat-input{display:none}
+}

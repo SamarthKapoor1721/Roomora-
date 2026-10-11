@@ -1,0 +1,26 @@
+@media (max-width: 767px) {
+  .landing-page .mobile-secondary-copy { display: none; }
+
+  .mobile-features { padding: 28px 16px 16px; background: #f7f7f2; }
+  .mobile-features-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .mobile-features-heading h2 { color: #20372d; font-size: 26px; font-weight: 700; letter-spacing: -.04em; }
+  .mobile-feature-controls { display: flex; gap: 8px; }
+  .mobile-feature-controls button { display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid #d5dfd0; border-radius: 50%; background: #fffefa; color: #244431; }
+  .mobile-feature-controls button:focus-visible { outline: 2px solid #448c50; outline-offset: 3px; }
+  .mobile-feature-gallery { display: flex; overflow-x: auto; gap: 12px; scroll-snap-type: x mandatory; scrollbar-width: none; padding: 12px 0 24px; }
+  .mobile-feature-gallery::-webkit-scrollbar { display: none; }
+  .mobile-feature-slide { position: relative; flex: 0 0 100%; min-width: 0; margin: 0; scroll-snap-align: start; }
+  .mobile-feature-slide .feature-showcase { margin-top: 0; box-shadow: none; }
+
+  .landing-roles { border-top-width: 4px; padding-top: 32px; padding-bottom: 32px; }
+  .landing-roles h2 { font-size: 28px; line-height: 1.15; }
+  .landing-roles [role="tablist"] { margin-top: 24px; }
+  .landing-roles #workspace-panel { padding: 12px; margin-top: 16px; gap: 0; border-radius: 20px; }
+  .landing-roles .role-introduction { display: none; }
+  .landing-roles .role-preview-status { flex-direction: column; align-items: flex-start; gap: 8px; margin-top: 16px; padding: 12px; }
+  .landing-roles .role-preview-status > span:first-child { font-size: 13px; }
+  .landing-roles #workspace-panel h4 { font-size: 18px; overflow-wrap: anywhere; }
+  .landing-roles #workspace-panel .min-h-\[310px\] { min-height: 0; grid-template-columns: minmax(0, 1fr); }
+  .landing-roles #workspace-panel .min-h-\[310px\] > div:first-child { display: none; }
+  .landing-roles #workspace-panel .min-h-\[310px\] > div:last-child { padding: 16px; }
+}
