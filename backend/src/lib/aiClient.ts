@@ -1,4 +1,5 @@
 import { env } from '../config/env';
+import { assistantFallback } from './assistantFallback';
 
 export type AiSource = 'NVIDIA_AI' | 'RULE_BASED_FALLBACK';
 
@@ -139,6 +140,14 @@ class AiClient {
         throw new Error(`AI service ${pathname} responded ${res.status}`);
       }
       return (await res.json()) as T;
+    } catch (error) {
+      // Do not log prompts, applicant documents, or authentication credentials.
+      console.warn('AI service request failed', {
+        service: new URL(this.baseUrl).origin,
+        endpoint: pathname,
+        reason: error instanceof Error ? error.message : 'Unknown request error',
+      });
+      throw error;
     } finally {
       clearTimeout(timer);
     }
@@ -191,11 +200,7 @@ class AiClient {
   }
 
   assistant(payload: AssistantRequest): Promise<AssistantResponse> {
-    return this.post<AssistantResponse>('/ai/assistant', payload).catch(() => ({
-      source: 'RULE_BASED_FALLBACK' as const,
-      answer:
-        'The AI assistant is currently unavailable. The data you asked about is shown in the relevant dashboard section.',
-    }));
+    return this.post<AssistantResponse>('/ai/assistant', payload).catch(() => assistantFallback(payload));
   }
 
   insights(payload: InsightsRequest): Promise<InsightsResponse> {
