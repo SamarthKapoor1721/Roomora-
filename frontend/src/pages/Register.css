@@ -1,0 +1,37 @@
+.register-shell .login-story-image { object-position: 42% center; }
+.register-shell .login-story-copy h1 { font-size: clamp(44px, 4.5vw, 72px); }
+.register-shell .login-story-copy h1 em { display: inline-block; max-width: 540px; }
+.register-shell .login-access { justify-content: center; padding-top: 28px; }
+.register-topbar { display: flex; width: min(100%, 526px); justify-content: space-between; align-items: center; gap: 16px; font-size: 12px; font-weight: 600; color: #49634e; }
+.register-topbar a { display: inline-flex; align-items: center; gap: 7px; }
+.register-topbar a:hover { color: #244431; }
+.register-card { margin: 26px auto 18px; padding: 32px clamp(24px, 3vw, 42px); }
+.register-card .login-card-wordmark { margin-bottom: 18px; }
+.register-card h2 { font-size: clamp(32px, 3vw, 42px); }
+.register-card .login-role-section { margin-top: 24px; }
+.register-card .login-google { margin-top: 20px; }
+.register-card .login-divider { margin: 20px 0; }
+.register-next-label { margin-top: 16px; }
+.register-password-requirements { display: flex; flex-wrap: wrap; gap: 7px 12px; margin-top: 10px; color: #526957; font-size: 10px; }
+.register-password-requirements > span { display: inline-flex; align-items: center; gap: 4px; }
+.register-password-requirements svg { opacity: .35; flex-shrink: 0; }
+.register-password-requirements .is-met { color: #347644; }
+.register-password-requirements .is-met svg { opacity: 1; }
+.register-card .login-submit { margin-top: 22px; }
+.register-card .login-card-footer { margin-top: 22px; padding-top: 19px; }
+.register-staff-note { color: #526957; font-size: 11px; text-align: center; }
+
+@media (max-width: 1023px) {
+  .register-shell .login-access { padding-top: 0; }
+  .register-topbar { display: none; }
+  .register-card { margin-top: -22px; }
+}
+
+@media (max-width: 767px) {
+  .register-card { margin: -18px auto 0; padding: 24px 18px; }
+  .register-card .login-card-wordmark { margin-bottom: 14px; }
+  .register-card h2 { font-size: clamp(29px, 7.7vw, 38px); line-height: 1.1; }
+  .register-card .login-role-section { margin-top: 20px; }
+  .register-password-requirements { gap: 6px 10px; }
+  .register-staff-note { display: none; }
+}
