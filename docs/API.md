@@ -20,6 +20,7 @@ Auth: `Authorization: Bearer <accessToken>` on every route except `/auth/*` and 
 | POST | `/auth/logout-all` | — | revokes all sessions |
 | GET | `/auth/me` | — | current user |
 | POST | `/auth/change-password` | `currentPassword, newPassword` | revokes other sessions |
+| POST | `/auth/set-password` | `password` | authenticated Google account with no password; returns updated public user |
 
 ## Super admin — `/admin`
 

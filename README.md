@@ -34,9 +34,10 @@ Optional food charges can be enabled per property or room. A tenant can opt in w
 ## Sign-in and access
 
 - Owners and tenants can create an account with email and password, or use Google sign-in when OAuth is configured. New Google users choose the owner or tenant role; existing users retain their assigned role.
-- A password account can connect a Google account with the same email from **Account → Google sign-in**.
+- Google accounts without a password must create a backup password before entering their workspace. They can then sign in with Google or email/password. Existing Google accounts without a password see the same setup screen on their next visit.
+- A password account can connect a Google account with the same email from **Account → Google sign-in**. Passwords can be changed from **Account → Change password**.
 - Owners create staff accounts. A staff member sees only assigned work.
-- Super admin access comes from verified Google accounts whose email is in `SUPER_ADMIN_EMAILS`. Super admins cannot sign in with a password.
+- Super admin access comes from verified Google accounts whose email is in `SUPER_ADMIN_EMAILS`. Once a backup password is set, super admins can also sign in with email/password. Removing their email from this list blocks both sign-in methods and existing authenticated requests.
 - The admin portal is at `/super_admin`. Deleting a user requires email confirmation and is blocked when the user has related property, tenancy or task records; deactivate that account instead.
 - No demo users are seeded by the normal database setup.
 
@@ -59,6 +60,12 @@ Document inspection can review supported uploaded images and PDF pages, but it c
 | Deployment | Vercel frontend, Render API and AI service, MongoDB Atlas |
 
 The API is served under `/api/v1`. Both server services expose `/health` for health checks. Listing images are public; application documents and work photos use authenticated file routes. The API also applies CORS, request limits, upload checks and audit logging for important actions.
+
+### Waking the API and AI service together
+
+The frontend requests the API's `/health` on welcome, login, and registration pages. The backend wakes the configured AI service in the background on startup, health requests, sign-in attempts, and authenticated activity. Concurrent wake requests are combined; a successful check is reused for one minute. If the AI is still starting, the backend retries up to three health checks without delaying sign-in.
+
+For the separately hosted Render services, set `AI_SERVICE_URL=https://roomora-9wyb.onrender.com` on **the backend**, then redeploy it. The API `/health` response includes `ai.status` (`warming`, `ready`, or `unavailable`) so you can check the connection. This starts waking AI as you enter the app; it does not guarantee an instant response after inactivity or remove AI provider delays.
 
 ## Run locally
 

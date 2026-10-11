@@ -40,6 +40,8 @@ export const changePasswordSchema = z.object({
     .regex(/[0-9]/),
 });
 
+export const setPasswordSchema = z.object({ password: registerSchema.shape.password });
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type GoogleInput = z.infer<typeof googleSchema>;

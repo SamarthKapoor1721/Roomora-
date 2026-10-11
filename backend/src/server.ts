@@ -1,6 +1,7 @@
 import { createApp } from './app';
 import { env } from './config/env';
 import { prisma } from './lib/prisma';
+import { aiClient } from './lib/aiClient';
 import { startScheduler } from './modules/warnings/scheduler';
 
 async function main() {
@@ -10,6 +11,7 @@ async function main() {
   const server = app.listen(env.port, () => {
     // eslint-disable-next-line no-console
     console.log(`[srms-backend] listening on http://localhost:${env.port} (${env.nodeEnv})`);
+    void aiClient.warmup();
   });
 
   const stopScheduler = startScheduler();

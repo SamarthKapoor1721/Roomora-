@@ -5,6 +5,7 @@ import { useAuth, type Role } from './lib/auth';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import PasswordSetup from './pages/PasswordSetup';
 import Account from './pages/Account';
 import OwnerDashboard from './pages/owner/OwnerDashboard';
 import OwnerProperties from './pages/owner/OwnerProperties';
@@ -31,6 +32,7 @@ function Protected({ roles, children }: { roles: Role[]; children: JSX.Element }
   const { user, loading } = useAuth();
   if (loading) return <Spinner />;
   if (!user) return <Navigate to="/login" replace />;
+  if (user.googleConnected && user.hasPassword === false) return <Navigate to="/set-password" replace />;
   if (!roles.includes(user.role)) return <Navigate to={`/${user.role.toLowerCase()}`} replace />;
   return children;
 }
@@ -39,6 +41,7 @@ function HomeRedirect() {
   const { user, loading } = useAuth();
   if (loading) return <Spinner />;
   if (!user) return <Navigate to="/welcome" replace />;
+  if (user.googleConnected && user.hasPassword === false) return <Navigate to="/set-password" replace />;
   return <Navigate to={`/${user.role.toLowerCase()}`} replace />;
 }
 
@@ -48,6 +51,7 @@ export default function App() {
       <Route path="/welcome" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/set-password" element={<PasswordSetup />} />
       <Route path="/" element={<HomeRedirect />} />
 
       <Route element={<Layout />}>

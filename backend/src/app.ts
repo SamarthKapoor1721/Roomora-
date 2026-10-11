@@ -7,6 +7,7 @@ import { env } from './config/env';
 import { errorHandler, notFoundHandler } from './middleware/error';
 import { globalLimiter } from './middleware/rateLimit';
 import { apiRouter } from './routes';
+import { aiClient } from './lib/aiClient';
 
 export function createApp() {
   const app = express();
@@ -25,7 +26,8 @@ export function createApp() {
   app.use(globalLimiter);
 
   app.get('/health', (_req, res) => {
-    res.json({ status: 'ok', service: 'srms-backend', time: new Date().toISOString() });
+    void aiClient.warmup();
+    res.json({ status: 'ok', service: 'srms-backend', time: new Date().toISOString(), ai: { status: aiClient.warmupStatus } });
   });
 
   // Listing images are public; documents and work photos use /api/v1/files.

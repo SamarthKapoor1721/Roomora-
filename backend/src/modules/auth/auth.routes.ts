@@ -9,6 +9,7 @@ import {
   loginSchema,
   refreshSchema,
   registerSchema,
+  setPasswordSchema,
 } from './auth.schema';
 
 export const authRoutes = Router();
@@ -21,6 +22,7 @@ authRoutes.post('/refresh', authLimiter, validate({ body: refreshSchema }), auth
 authRoutes.post('/logout', validate({ body: refreshSchema }), authController.logout);
 authRoutes.post('/logout-all', authenticate, authController.logoutAll);
 authRoutes.get('/me', authenticate, authController.me);
+authRoutes.post('/set-password', authenticate, authLimiter, validate({ body: setPasswordSchema }), authController.setPassword);
 authRoutes.post(
   '/change-password',
   authenticate,

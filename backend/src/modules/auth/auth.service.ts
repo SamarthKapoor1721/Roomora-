@@ -28,6 +28,7 @@ function toPublicUser(u: {
   phone: string | null;
   staffType: string | null;
   googleId: string | null;
+  passwordHash: string | null;
 }) {
   return {
     id: u.id,
@@ -37,6 +38,7 @@ function toPublicUser(u: {
     phone: u.phone,
     staffType: u.staffType,
     googleConnected: !!u.googleId,
+    hasPassword: !!u.passwordHash,
   };
 }
 
@@ -83,7 +85,7 @@ export const authService = {
 
   async login(input: LoginInput, meta: SessionMeta) {
     const user = await prisma.user.findUnique({ where: { email: input.email } });
-    if (!user || !user.isActive || !user.passwordHash || user.role === 'SUPER_ADMIN') throw unauthorized('Invalid email or password');
+    if (!user || !user.isActive || !user.passwordHash || (user.role === 'SUPER_ADMIN' && !env.superAdminEmails.includes(user.email))) throw unauthorized('Invalid email or password');
     const valid = await verifyPassword(input.password, user.passwordHash);
     if (!valid) throw unauthorized('Invalid email or password');
 
@@ -201,5 +203,18 @@ export const authService = {
       where: { userId, OR: [{ revokedAt: null }, { revokedAt: { isSet: false } }] },
       data: { revokedAt: new Date() },
     });
+  },
+
+  async setPassword(userId: string, password: string) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.isActive) throw unauthorized();
+    if (!user.googleId) throw badRequest('Sign in with Google before setting your first password');
+    if (user.passwordHash) throw conflict('A password is already set. Use Change password in your account.');
+    const updated = await prisma.user.updateMany({
+      where: { id: userId, isActive: true, OR: [{ passwordHash: null }, { passwordHash: { isSet: false } }] },
+      data: { passwordHash: await hashPassword(password) },
+    });
+    if (updated.count !== 1) throw conflict('A password is already set. Sign in with your password.');
+    return { ...toPublicUser(user), hasPassword: true };
   },
 };

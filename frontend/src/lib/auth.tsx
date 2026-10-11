@@ -11,6 +11,7 @@ export interface User {
   phone?: string | null;
   staffType?: string | null;
   googleConnected?: boolean;
+  hasPassword?: boolean;
 }
 
 interface AuthContextValue {
@@ -20,6 +21,7 @@ interface AuthContextValue {
   googleLogin: (credential: string, role?: 'OWNER' | 'TENANT') => Promise<User>;
   register: (input: { email: string; password: string; fullName: string; role: 'OWNER' | 'TENANT' }) => Promise<User>;
   logout: () => Promise<void>;
+  setPassword: (password: string) => Promise<User>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -78,6 +80,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const setPassword = useCallback(async (password: string) => {
+    const res = await api.post('/auth/set-password', { password }, { timeout: AUTH_TIMEOUT_MS });
+    setUser(res.data.data);
+    return res.data.data as User;
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       if (tokenStore.refresh) await api.post('/auth/logout', { refreshToken: tokenStore.refresh });
@@ -89,8 +97,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, loading, login, googleLogin, register, logout }),
-    [user, loading, login, googleLogin, register, logout],
+    () => ({ user, loading, login, googleLogin, register, logout, setPassword }),
+    [user, loading, login, googleLogin, register, logout, setPassword],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

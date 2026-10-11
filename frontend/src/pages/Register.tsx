@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
-import { apiErrorMessage } from '../lib/api';
+import { apiErrorMessage, warmApi } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { ErrorBanner } from '../components/ui';
 import GoogleSignIn from '../components/GoogleSignIn';
@@ -21,6 +21,8 @@ export default function Register() {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => { warmApi(); }, []);
 
   const chooseRole = (role: 'TENANT' | 'OWNER') => {
     setForm((current) => ({ ...current, role }));

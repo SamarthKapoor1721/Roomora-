@@ -59,8 +59,24 @@ sequenceDiagram
 - An existing password account with the same email is only linked automatically when
   that email is in the admin allowlist. Other users can sign in with their password,
   then connect the same Google email from the Account page (`POST /auth/google/link`).
-- Super admin password login is disabled. Promoting an account revokes its previous
-  refresh tokens; access tokens with an old role are rejected.
+- Public user responses include `googleConnected` and `hasPassword`. A Google account
+  without a password is routed to `/set-password` before entering its workspace.
+  Protected API requests are also blocked until setup is complete; identity lookup,
+  initial password setup, and sign-out remain available.
+- Super admins can use email/password once a password is set, provided their email
+  remains in `SUPER_ADMIN_EMAILS`. Promoting an account revokes its previous refresh
+  tokens; access tokens with an old role are rejected.
+
+## First password setup `[authenticated]`
+
+`POST /auth/set-password` — body `{ password }`
+
+- Requires an authenticated, active Google-connected account with no existing password.
+- Uses the same 8–128 character policy as registration and stores a bcrypt hash.
+- An atomic conditional update prevents concurrent requests from overwriting a password.
+- Returns the public user with `hasPassword: true`; hashes are never returned.
+- An existing password can only be changed via `/auth/change-password`, with the current password.
+- Audit: `auth.set_password`.
 
 ## Tokens
 

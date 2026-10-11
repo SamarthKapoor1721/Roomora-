@@ -3,6 +3,7 @@ import { api, apiErrorMessage } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import GoogleSignIn from '../components/GoogleSignIn';
 import { ErrorBanner } from '../components/ui';
+import PasswordForm from '../components/PasswordForm';
 
 export default function Account() {
   const { user } = useAuth();
@@ -23,6 +24,11 @@ export default function Account() {
     <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <h2 className="font-display text-xl font-semibold text-ink-900">Profile</h2>
       <dl className="mt-5 divide-y divide-slate-100 text-sm"><div className="flex justify-between gap-4 py-3"><dt className="text-ink-500">Name</dt><dd className="font-medium text-ink-900">{user?.fullName}</dd></div><div className="flex justify-between gap-4 py-3"><dt className="text-ink-500">Email</dt><dd className="break-all text-right font-medium text-ink-900">{user?.email}</dd></div><div className="flex justify-between gap-4 py-3"><dt className="text-ink-500">Workspace</dt><dd className="font-medium capitalize text-ink-900">{user?.role.toLowerCase().replace('_', ' ')}</dd></div></dl>
+    </section>
+    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <h2 className="font-display text-xl font-semibold text-ink-900">{user?.hasPassword === false ? 'Set a password' : 'Change password'}</h2>
+      <p className="mb-5 mt-2 text-sm text-ink-600">Use your email and password whenever Google sign-in is unavailable.</p>
+      <PasswordForm mode={user?.hasPassword === false ? 'setup' : 'change'} />
     </section>
     <section className="rounded-2xl border border-[#dfe7da] bg-[#f9fbf6] p-6 shadow-sm">
       <p className="font-mono text-[.65rem] font-semibold uppercase tracking-[.18em] text-brand-700">Secure access</p><h2 className="mt-2 font-display text-xl font-semibold text-ink-900">Google sign-in</h2>

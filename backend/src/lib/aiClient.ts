@@ -123,8 +123,42 @@ export interface InsightsResponse {
   model?: string;
 }
 
-class AiClient {
+export class AiClient {
   private baseUrl = env.ai.serviceUrl.replace(/\/$/, '');
+  private warmupPending: Promise<void> | null = null;
+  private nextWarmupAt = 0;
+  warmupStatus: 'idle' | 'warming' | 'ready' | 'unavailable' = 'idle';
+
+  /** Wake the AI service on app activity without holding up an API response. */
+  warmup(): Promise<void> {
+    if (this.warmupPending) return this.warmupPending;
+    if (Date.now() < this.nextWarmupAt) return Promise.resolve();
+    this.warmupStatus = 'warming';
+    this.warmupPending = this.tryWarmup()
+      .then((ready) => {
+        this.warmupStatus = ready ? 'ready' : 'unavailable';
+        this.nextWarmupAt = Date.now() + (ready ? 60_000 : 15_000);
+        if (ready) console.info('[roomora-ai] AI service is awake');
+        else console.warn('[roomora-ai] AI service did not wake; check AI_SERVICE_URL and the AI service logs');
+      })
+      .catch(() => {
+        this.warmupStatus = 'unavailable';
+        this.nextWarmupAt = Date.now() + 15_000;
+      })
+      .finally(() => { this.warmupPending = null; });
+    return this.warmupPending;
+  }
+
+  private async tryWarmup(): Promise<boolean> {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if ((await this.health(25_000))?.status === 'ok') return true;
+      if (attempt < 2) await new Promise<void>((resolve) => {
+        const timer = setTimeout(resolve, 5_000);
+        timer.unref();
+      });
+    }
+    return false;
+  }
 
   private async post<T>(pathname: string, body: unknown, timeoutMs = env.ai.timeoutMs): Promise<T> {
     const controller = new AbortController();
@@ -153,13 +187,18 @@ class AiClient {
     }
   }
 
-  async health(): Promise<{ status: string; nvidiaConfigured: boolean } | null> {
+  async health(timeoutMs = 5_000): Promise<{ status: string; nvidiaConfigured: boolean } | null> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    timer.unref();
     try {
-      const res = await fetch(`${this.baseUrl}/health`, { method: 'GET' });
+      const res = await fetch(`${this.baseUrl}/health`, { method: 'GET', signal: controller.signal });
       if (!res.ok) return null;
       return (await res.json()) as { status: string; nvidiaConfigured: boolean };
     } catch {
       return null;
+    } finally {
+      clearTimeout(timer);
     }
   }
 
