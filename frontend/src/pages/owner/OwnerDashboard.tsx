@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../lib/api';
@@ -37,22 +37,44 @@ interface Dashboard {
 }
 
 interface Insights {
-  ai: { insights: string[]; risks: string[]; opportunities: string[] };
+  ai: { source?: string; available?: boolean; insights: string[]; risks: string[]; opportunities: string[] };
 }
 
 export default function OwnerDashboard() {
   const [insightsOpen, setInsightsOpen] = useState(false);
   const [insights, setInsights] = useState<Insights | null>(null);
+  const insightsAbort = useRef<AbortController | null>(null);
+  useEffect(() => () => insightsAbort.current?.abort(), []);
   const { data, isLoading, error } = useQuery({
     queryKey: ['owner', 'dashboard'],
     queryFn: async () => (await api.get('/analytics/owner/dashboard')).data.data as Dashboard,
   });
   const insightsRequest = useMutation({
+    retry: false,
     mutationFn: async () => {
       const started = Date.now();
+      const controller = new AbortController();
+      insightsAbort.current = controller;
+      let deadline: number | undefined;
       try {
-        return (await api.get('/analytics/owner/insights', { timeout: 150_000 })).data.data as Insights;
+        const result = await Promise.race([
+          api.get('/analytics/owner/insights', { timeout: 45_000, signal: controller.signal }),
+          new Promise<never>((_, reject) => {
+            deadline = window.setTimeout(() => {
+              reject(new Error('Analysis is taking too long. The AI service may still be starting. Please try again shortly.'));
+              controller.abort();
+            }, 45_000);
+          }),
+        ]);
+        const response = result.data.data as Insights;
+        // Also handle older deployments that returned the outage as an insight.
+        if (response.ai.available === false || response.ai.insights.some((item) => item.startsWith('AI insight generation unavailable'))) {
+          throw new Error('The AI service could not respond. It may still be starting up. Please try again shortly; your dashboard data is still available.');
+        }
+        return response;
       } finally {
+        window.clearTimeout(deadline);
+        if (insightsAbort.current === controller) insightsAbort.current = null;
         const remaining = 1600 - (Date.now() - started);
         if (remaining > 0) await new Promise((resolve) => window.setTimeout(resolve, remaining));
       }
@@ -61,6 +83,8 @@ export default function OwnerDashboard() {
   });
 
   const generateInsights = () => {
+    if (insightsRequest.isPending) return;
+    setInsights(null);
     setInsightsOpen(true);
     insightsRequest.mutate();
   };
@@ -262,7 +286,7 @@ export default function OwnerDashboard() {
           insights={insights}
           loading={insightsRequest.isPending}
           error={insightsRequest.error}
-          onClose={() => setInsightsOpen(false)}
+          onClose={() => { insightsAbort.current?.abort(); setInsightsOpen(false); }}
           onRetry={generateInsights}
         />
       )}
@@ -329,6 +353,7 @@ function InsightsExperience({
             <h2 id="insights-experience-title">We couldn’t finish this time.</h2>
             <p>{apiErrorMessage(error)}</p>
             <button type="button" className="insights-experience-primary" onClick={onRetry}>Try again <span aria-hidden="true">↗</span></button>
+            <button type="button" className="insights-experience-secondary" onClick={onClose}>Back to dashboard</button>
           </div>
         ) : insights ? (
           <div className="insights-experience-results">
@@ -336,7 +361,7 @@ function InsightsExperience({
               <span className="insights-results-mark"><Icon name="sparkles" size={24} /></span>
               <p className="insights-experience-kicker">YOUR PORTFOLIO, IN PERSPECTIVE</p>
               <h2 id="insights-experience-title">Here’s what stands out<span>.</span></h2>
-              <p>Insights based on your latest properties, leases, payments and operations.</p>
+              <p>{insights.ai.source === 'RULE_BASED_FALLBACK' ? 'A summary based on your portfolio metrics. AI analysis is currently unavailable.' : 'Insights based on your latest properties, leases, payments and operations.'}</p>
             </div>
             <div className="insights-results-grid">
               <InsightPanel icon="info" title="Insights" items={insights.ai.insights} accent="border-l-slate-300" chip="bg-slate-100 text-ink-500" />
@@ -367,7 +392,7 @@ function InsightPanel({
   emphasis?: boolean;
 }) {
   return (
-    <div className={`rounded-xl border border-slate-200 border-l-4 bg-white p-5 shadow-card ${accent}`}>
+    <div className={`min-w-0 rounded-xl border border-slate-200 border-l-4 bg-white p-5 shadow-card ${accent}`}>
       <div className="mb-3 flex items-center gap-2">
         <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${chip}`}>
           <Icon name={icon} size={15} />
@@ -391,7 +416,7 @@ function InsightPanel({
                   emphasis ? 'bg-rose-400' : 'bg-slate-300'
                 }`}
               />
-              {i}
+              <span className="min-w-0 [overflow-wrap:anywhere]">{i}</span>
             </li>
           ))}
         </ul>

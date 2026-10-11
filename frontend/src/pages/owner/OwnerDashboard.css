@@ -54,6 +54,9 @@
   position: absolute;
   inset: 0;
   isolation: isolate;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
   overflow-y: auto;
   background: #0a1812;
   color: #f4fbf3;
@@ -101,6 +104,7 @@
 .insights-experience-brand span { margin: 0 .5rem; color: #6fac82; }
 
 .insights-experience-close {
+  flex-shrink: 0;
   display: grid;
   width: 2.65rem;
   height: 2.65rem;
@@ -177,6 +181,9 @@
 .insights-experience-loading h2,
 .insights-experience-message h2,
 .insights-results-heading h2 {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
   margin-top: .7rem;
   font-size: clamp(2rem, 5vw, 4.25rem);
   font-weight: 650;
@@ -199,7 +206,8 @@
 .insights-results-heading { margin-bottom: 2.75rem; }
 .insights-results-mark { display: grid; width: 3.5rem; height: 3.5rem; place-items: center; margin-bottom: 1.5rem; border: 1px solid rgba(158, 224, 169, .3); border-radius: 1rem; background: rgba(114, 184, 130, .12); color: #b0e5b7; }
 .insights-results-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
-.insights-results-grid > div { min-height: 15rem; border-radius: 1rem; }
+.insights-results-grid > div { min-width: 0; min-height: 15rem; border-radius: 1rem; }
+.insights-experience-secondary { margin-top: 1.25rem; color: #d9ebda; text-decoration: underline; text-underline-offset: .3em; }
 
 .insights-experience-primary {
   display: inline-flex;
@@ -227,6 +235,18 @@
   .insights-prompt { align-items: flex-start; padding: 1.2rem; }
   .insights-prompt-icon { width: 2.8rem; height: 2.8rem; }
   .insights-experience-brand { font-size: .6rem; }
+  .insights-experience-top { gap: .75rem; padding: 1rem; }
+  .insights-experience-brand { letter-spacing: .12em; }
+  .insights-experience-brand span { margin: 0 .2rem; }
+  .insights-experience-results { padding: 1.5rem 1rem 2rem; }
+  .insights-results-heading { margin-bottom: 1.5rem; }
+  .insights-results-heading h2,
+  .insights-experience-message h2,
+  .insights-experience-loading h2 { font-size: clamp(1.75rem, 8vw, 2.75rem); }
+  .insights-experience-kicker { font-size: .6rem; letter-spacing: .16em; }
+  .insights-results-heading > p:last-child { font-size: .875rem; }
+  .insights-results-mark { margin-bottom: 1rem; }
+  .insights-experience-primary { max-width: 100%; gap: 1rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

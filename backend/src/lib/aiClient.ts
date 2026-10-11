@@ -117,6 +117,7 @@ export interface InsightsRequest {
 
 export interface InsightsResponse {
   source: AiSource;
+  available?: boolean;
   insights: string[];
   risks: string[];
   opportunities: string[];
@@ -244,9 +245,10 @@ export class AiClient {
   }
 
   insights(payload: InsightsRequest): Promise<InsightsResponse> {
-    return this.post<InsightsResponse>('/ai/insights', payload).catch(() => ({
+    return this.post<InsightsResponse>('/ai/insights', payload, Math.min(env.ai.timeoutMs, 30_000)).catch(() => ({
       source: 'RULE_BASED_FALLBACK' as const,
-      insights: ['AI insight generation unavailable — showing raw metrics only.'],
+      available: false,
+      insights: [],
       risks: [],
       opportunities: [],
     }));
