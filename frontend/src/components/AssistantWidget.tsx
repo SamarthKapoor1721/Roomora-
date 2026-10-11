@@ -27,6 +27,8 @@ export default function AssistantWidget() {
   const [input, setInput] = useState('');
   const convo = useRef<string | undefined>(undefined);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const pendingRequest = useRef<AbortController | null>(null);
+  const [slowResponse, setSlowResponse] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -38,14 +40,47 @@ export default function AssistantWidget() {
   }, [open]);
 
   const ask = useMutation({
-    mutationFn: async (question: string) =>
-      // Allow the backend's 130-second AI budget plus database/network overhead.
-      (await api.post('/owner/assistant/ask', { question, conversationId: convo.current }, { timeout: 150_000 })).data.data,
+    retry: false,
+    mutationFn: async (question: string) => {
+      const controller = new AbortController();
+      pendingRequest.current = controller;
+      // Bound the entire request, including any authentication refresh.
+      const timer = window.setTimeout(() => controller.abort('timeout'), 45_000);
+      try {
+        const response = await Promise.race([
+          api.post('/owner/assistant/ask', { question, conversationId: convo.current }, {
+            timeout: 45_000, signal: controller.signal,
+          }),
+          new Promise<never>((_resolve, reject) => {
+            controller.signal.addEventListener('abort', () => reject(new Error('Request stopped')), { once: true });
+          }),
+        ]);
+        return response.data.data;
+      } catch (error) {
+        if (controller.signal.aborted) {
+          throw new Error(controller.signal.reason === 'cancelled'
+            ? 'Stopped waiting. You can retry your question.'
+            : 'The assistant took too long to respond. Please retry in a moment.');
+        }
+        throw error;
+      } finally {
+        window.clearTimeout(timer);
+        pendingRequest.current = null;
+      }
+    },
     onSuccess: (data) => {
       convo.current = data.conversationId;
       setMessages((m) => [...m, { role: 'assistant', content: data.message.content }]);
     },
   });
+
+  useEffect(() => {
+    if (!ask.isPending) { setSlowResponse(false); return; }
+    const timer = window.setTimeout(() => setSlowResponse(true), 8_000);
+    return () => window.clearTimeout(timer);
+  }, [ask.isPending]);
+
+  useEffect(() => () => pendingRequest.current?.abort('cancelled'), []);
 
   const send = (q: string) => {
     if (!q.trim() || ask.isPending) return;
@@ -123,12 +158,18 @@ export default function AssistantWidget() {
               </div>
             ))}
             {ask.isPending && (
-              <div className="flex items-center gap-2 px-1 text-xs text-ink-400">
-                <span className="h-3 w-3 animate-spin rounded-full border-2 border-slate-300 border-t-brand-500" />
-                Thinking…
+              <div className="space-y-2 px-1 text-xs text-ink-500" role="status">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 shrink-0 animate-spin rounded-full border-2 border-slate-300 border-t-brand-500" />
+                  {slowResponse ? 'The AI service is taking longer than usual…' : 'Thinking…'}
+                </div>
+                <button type="button" onClick={() => pendingRequest.current?.abort('cancelled')} className="rounded border border-slate-200 bg-white px-3 py-2 font-medium text-ink-700">Stop waiting</button>
               </div>
             )}
-            {ask.error && <ErrorBanner message={apiErrorMessage(ask.error)} />}
+            {ask.error && <div className="space-y-2">
+              <ErrorBanner message={apiErrorMessage(ask.error)} />
+              <button type="button" className="rounded-lg border border-brand-200 bg-white px-3 py-2 text-xs font-semibold text-brand-700" onClick={() => { if (ask.variables) ask.mutate(ask.variables); }}>Retry question</button>
+            </div>}
           </div>
 
           {/* input */}

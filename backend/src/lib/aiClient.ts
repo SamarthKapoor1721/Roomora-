@@ -126,9 +126,9 @@ export interface InsightsResponse {
 class AiClient {
   private baseUrl = env.ai.serviceUrl.replace(/\/$/, '');
 
-  private async post<T>(pathname: string, body: unknown): Promise<T> {
+  private async post<T>(pathname: string, body: unknown, timeoutMs = env.ai.timeoutMs): Promise<T> {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), env.ai.timeoutMs);
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const res = await fetch(`${this.baseUrl}${pathname}`, {
         method: 'POST',
@@ -200,7 +200,8 @@ class AiClient {
   }
 
   assistant(payload: AssistantRequest): Promise<AssistantResponse> {
-    return this.post<AssistantResponse>('/ai/assistant', payload).catch(() => assistantFallback(payload));
+    return this.post<AssistantResponse>('/ai/assistant', payload, Math.min(env.ai.timeoutMs, 30_000))
+      .catch(() => assistantFallback(payload));
   }
 
   insights(payload: InsightsRequest): Promise<InsightsResponse> {
