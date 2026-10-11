@@ -35,9 +35,12 @@ When the final Vercel domain is known, update `CORS_ORIGIN` on Render if it diff
 4. Upload an application document and verify that an authorized owner or tenant can open it, while the public `/uploads/application-documents/...` path returns 404.
 5. Restart or redeploy the API and confirm the uploaded file is still available.
 
-Configure `GOOGLE_CLIENT_ID` and `SUPER_ADMIN_EMAILS` on Render and
-`VITE_GOOGLE_CLIENT_ID` on Vercel to enable Google sign-in and the admin portal. Add
-the Vercel site origin to the Google OAuth web client's authorized JavaScript origins.
+Roomora includes its public Google OAuth web client ID in the frontend and API as a
+default, so the Google button remains available if a Vercel build omits the optional
+client ID variable. To use another client, set `GOOGLE_CLIENT_ID` on Render and
+`VITE_GOOGLE_CLIENT_ID` on Vercel to the same value. Set `SUPER_ADMIN_EMAILS` on
+Render to enable the admin portal. Add the Vercel site origin to the Google OAuth
+web client's authorized JavaScript origins, then redeploy both services.
 
 For Atlas IP access and host configuration, see [MongoDB Atlas network access](https://www.mongodb.com/docs/atlas/security/ip-access-list/). For the deployment settings, see [Render Blueprints](https://render.com/docs/blueprint-spec), [Render persistent disks](https://render.com/docs/disks), and [Vercel Vite deployments](https://vercel.com/docs/frameworks/frontend/vite).
 

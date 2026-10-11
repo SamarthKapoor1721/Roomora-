@@ -1,195 +1,140 @@
 # Roomora
 
-Deployment instructions: [docs/deployment.md](docs/deployment.md).
+Roomora is a rental management web app for property owners, tenants, staff, and platform administrators. Owners can take a room from listing through application, screening, approval, lease, rent, and everyday maintenance in one workspace. AI helps explain documents and portfolio data, while people make the decisions.
 
-Full-stack rental management platform with **AI-assisted (advisory-only) tenant screening**.
-(Internal service slugs and the database still use the earlier `srms` name.)
+The repository is an npm workspace for the React frontend and Express API, plus a separate Python AI service. Some internal names still use the original `srms` project name.
 
-**Brand:** white surfaces · Roomora green `#76C457` · cream accent `#FFF8CF`.
+## What the app does
 
-| Layer      | Stack                                             |
-| ---------- | ------------------------------------------------- |
-| Frontend   | React 18 + TypeScript + Tailwind CSS + Vite       |
-| Backend    | Node.js + Express + TypeScript                    |
-| Database   | MongoDB Atlas + Prisma ORM                           |
-| AI service | Python + FastAPI, **NVIDIA NIM** primary provider |
+| Workspace | Main capabilities |
+| --- | --- |
+| **Property owner** | Manage properties and rooms, control applications, review tenant documents and AI screening, approve or reject applications, assign rooms, create leases, generate rent invoices, track payments, coordinate maintenance and cleaning, manage staff and warnings, and use an AI assistant. |
+| **Tenant** | Browse rooms open for applications, apply and submit documents, follow application status, view a room, roommates and lease, record payments against invoices, report maintenance with photos, and read warnings and notifications. |
+| **Staff** | See assigned maintenance and cleaning work, update progress, add notes, and upload before and after photos. |
+| **Super admin** | View platform counts, integration status and recent activity; search and filter users; create owner or tenant accounts; edit, deactivate, reactivate or delete eligible accounts. |
 
-Monorepo via npm workspaces: [`backend/`](backend), [`frontend/`](frontend), plus the standalone Python [`ai-service/`](ai-service).
+The owner dashboard shows occupancy, revenue, pending approvals, expiring leases, warnings and open work. **AI Insights run only when the owner selects Generate insights**; a full screen analysis view then presents insights, risks and opportunities. The owner can refresh them on demand.
 
----
+The responsive workspace uses a left sidebar on desktop and a menu on smaller screens. Public welcome, registration and sign-in pages sit outside the workspace.
 
-## Roles
+## Rental workflow
 
-- **Owner** — properties & rooms, open/close applications, review AI results, **make the final approve/reject decision**, assign tenants & roommates, manage leases, rent, payments, maintenance, cleaning, staff, warnings, analytics, AI assistant.
-- **Tenant** — browse open rooms, apply, upload documents, track screening, view room/roommates/lease/food, pay rent, raise maintenance with photos, see warnings & notifications.
-- **Staff** — view assigned maintenance & cleaning tasks, update status, add notes, upload **before/after** photos as proof.
+1. An owner creates a property and rooms, sets capacity and rent, and opens a room for applications.
+2. A tenant applies, uploads the required documents, and submits the application for screening.
+3. Roomora produces an advisory eligibility assessment, document review, and application summary. Missing or unsupported evidence is flagged for manual review.
+4. The **owner makes the final approve or reject decision**. Approval assigns the tenant to a room and creates a lease.
+5. The owner generates rent invoices and manages payments, maintenance, cleaning, staff and warnings throughout the tenancy.
 
-## Tenant application workflow
+AI never approves or rejects an application. The screening score is a criteria match based on document-supported income, required proofs and occupancy fit; it is not a probability of approval. See [AI screening](docs/workflows/05-ai-screening.md) and the [end-to-end workflow](docs/workflows/00-end-to-end.md).
 
-```
-Owner opens applications for a room
-  → Tenant applies
-  → Tenant uploads required documents (ID, address, income)
-  → Tenant submits for screening
-      → AI eligibility assessment   (advisory score + reasons/warnings/missing)
-      → AI document verification    (extraction + consistency)
-      → AI application summary
-  → Results shown to Owner
-  → Owner manually reviews and approves / rejects   ← the ONLY decision point
-  → If approved: tenant assigned to room, lease created, occupancy & roommates updated
-```
+Optional food charges can be enabled per property or room. A tenant can opt in where food is available, and the charge is included in the lease and generated invoices. The owner can also run warning scans manually; an hourly scan checks for overdue rent, lease expiry, missing documents, delayed tasks and related issues.
 
-The AI **never** approves or rejects. It only advises; the owner always decides.
+**Payments are records within Roomora, not real money transfers.** The app has no payment gateway integration. Tenants can record a payment method and amount against an invoice, and owners can track the resulting balance.
 
-## AI provider & fallback
+## Sign-in and access
 
-AI features use NVIDIA NIM with fallbacks on provider errors. Application screening
-first inspects actual uploaded images and PDF pages using the vision model configured
-by `NVIDIA_NIM_VISION_MODEL`. It checks proof type and applicant consistency and saves
-per-file explanations. Failed or unavailable inspection never verifies a document.
+- Owners and tenants can create an account with email and password, or use Google sign-in when OAuth is configured. New Google users choose the owner or tenant role; existing users retain their assigned role.
+- A password account can connect a Google account with the same email from **Account → Google sign-in**.
+- Owners create staff accounts. A staff member sees only assigned work.
+- Super admin access comes from verified Google accounts whose email is in `SUPER_ADMIN_EMAILS`. Super admins cannot sign in with a password.
+- The admin portal is at `/super_admin`. Deleting a user requires email confirmation and is blocked when the user has related property, tenancy or task records; deactivate that account instead.
+- No demo users are seeded by the normal database setup.
 
-Eligibility is a deterministic **evidence-based criteria match**, using document-supported
-income (50 points), valid required proofs (30), and occupancy fit (20). Missing or invalid
-proofs force manual review. It is not a probability of approval. See
-[AI screening](docs/workflows/05-ai-screening.md) for scoring and file limits.
+Role checks run on the API as well as in the frontend. Authentication uses short-lived access tokens, rotating refresh tokens and hashed passwords. See [authentication](docs/workflows/01-authentication.md) and the [API reference](docs/API.md).
 
-AI is used for document extraction/consistency, application summaries,
-maintenance classification & priority, lease summary, the owner AI assistant, and
-management insights.
+## AI features
 
-## Food
+The Python service uses NVIDIA NIM when configured and falls back to rule-based responses when the provider is unavailable. Its features include document inspection, application summaries, maintenance classification, lease summaries, an owner assistant, and on-demand portfolio insights. The backend has a further fallback if the AI service cannot be reached.
 
-Food is optional, controlled per **property** and per **room** (`effective = property.foodEnabled || room.foodEnabled`).
-When enabled, tenants can opt in and the food charge is added to rent on the lease and every generated invoice.
-When disabled, food options are hidden and no charge is added.
+Document inspection can review supported uploaded images and PDF pages, but it cannot establish authenticity. The owner must inspect uncertain evidence and make the final decision. See [AI fallback](docs/workflows/16-ai-fallback.md) and [architecture notes](docs/ARCHITECTURE.md).
 
-## Warnings (automatic)
+## Technology
 
-An hourly scanner ([`warnings/scheduler.ts`](backend/src/modules/warnings/scheduler.ts) →
-[`runWarningScan`](backend/src/modules/warnings/warnings.service.ts)) raises de-duplicated warnings for:
-upcoming/overdue rent, repeated late payments, lease expiry, missing documents,
-maintenance delays, and cleaning delays. Owners can also run it on demand and create manual warnings.
+| Layer | Stack |
+| --- | --- |
+| Frontend | React 18, TypeScript, React Router, TanStack Query, Tailwind CSS, Vite |
+| API | Node.js, Express, TypeScript, Zod, JWT |
+| Data | MongoDB Atlas or a MongoDB replica set, Prisma ORM |
+| AI service | Python, FastAPI, NVIDIA NIM with rule-based fallback |
+| Deployment | Vercel frontend, Render API and AI service, MongoDB Atlas |
 
----
+The API is served under `/api/v1`. Both server services expose `/health` for health checks. Listing images are public; application documents and work photos use authenticated file routes. The API also applies CORS, request limits, upload checks and audit logging for important actions.
 
-## Getting started
+## Run locally
 
-### Prerequisites
+### Requirements
 
-- Node.js 20+
+- Node.js 20+ and npm
 - Python 3.11+
-- MongoDB Atlas (or MongoDB configured as a replica set)
+- A MongoDB Atlas database or MongoDB replica set
 
-### 1. Install
+Use a separate development database. Configure the connection string with a database name, for example `/srms` before its query parameters. Atlas must allow your machine's IP and the database user needs read/write access.
 
-```bash
-npm install                       # installs backend + frontend workspaces
-```
-
-### 2. Database
+### First run
 
 ```bash
 cp backend/.env.example backend/.env
-# Set DATABASE_URL to your MongoDB Atlas URI, including /srms before the query.
-npm run db:generate
-npm run db:push                   # sync collections/indexes; MongoDB uses no SQL migrations
-npm run db:check                  # verify connection and database reads
-```
-
-Keep database credentials in the ignored `backend/.env` file. Atlas must allow your
-machine's IP address, and the database user needs read/write access to `srms`.
-Existing PostgreSQL data is not copied automatically. SQL migrations are retained
-as historical files and are not used by the MongoDB setup.
-
-MongoDB stores monetary fields as numbers; payment calculations round to two decimal
-places. IDs remain CUID strings mapped to MongoDB `_id`, preserving API ID formats.
-The setup script adds a partial unique index for application assignments, allowing
-multiple manual assignments without an application.
-
-### 3. AI service
-
-```bash
 cp ai-service/.env.example ai-service/.env
-# optional: set NVIDIA_NIM_API_KEY in ai-service/.env  (get one at https://build.nvidia.com/)
-# without a key it runs fully on the rule-based fallback
 ```
 
-### 4. Run everything
+Set `DATABASE_URL` and replace the JWT example secrets in `backend/.env`. You can leave `NVIDIA_NIM_API_KEY` empty to use the rule-based AI fallback. Roomora includes its public Google OAuth web client ID in the app and API as a default; `GOOGLE_CLIENT_ID` and `VITE_GOOGLE_CLIENT_ID` can override it when using a different client. Add `http://localhost:5173` to the Google OAuth web client's authorized JavaScript origins. Set `SUPER_ADMIN_EMAILS` in the backend environment for admin access.
+
+Then run:
 
 ```bash
-npm run dev
+npm start
 ```
 
-- Frontend  → http://localhost:5173
-- Backend   → http://localhost:4000  (`/api/v1`, `/health`)
-- AI service → http://localhost:8001  (`/health`)
+`npm start` installs Node and Python dependencies when needed, generates the Prisma client, synchronizes the MongoDB schema and indexes, checks the database connection, and starts all three services. It does **not** seed sample users. Once set up, `npm run dev` starts the services without repeating the setup steps.
 
-`npm run dev` creates the Python venv on first run and installs `ai-service/requirements.txt`.
+| Service | Local address |
+| --- | --- |
+| Web app | `http://localhost:5173` |
+| API | `http://localhost:4000/api/v1` |
+| API health | `http://localhost:4000/health` |
+| AI service | `http://localhost:8001` |
+| AI health | `http://localhost:8001/health` |
 
-### Google sign-in and super admin
+The frontend uses a Vite proxy for local API requests. `VITE_API_ORIGIN` is only needed when the frontend calls a separately hosted API.
 
-Create a Google OAuth **Web application** client. Add the frontend origin (for example
-`http://localhost:5173` and the production site origin) to its authorized JavaScript
-origins. Set the same client ID as `GOOGLE_CLIENT_ID` on the API and
-`VITE_GOOGLE_CLIENT_ID` on the frontend. Set `SUPER_ADMIN_EMAILS` on the API to a
-comma-separated list of verified Google email addresses allowed to administer the
-platform. An allowlisted account becomes a super admin on its first Google sign-in;
-admin accounts cannot sign in with a password. Run `npm run db:push` after deploying
-the updated Prisma schema. The `/super_admin` portal lets admins review platform
-activity, add owner and tenant accounts, edit user details, and deactivate or reactivate
-accounts. Permanent deletion requires the email as confirmation and is blocked for
-accounts with property, tenancy, or task records; deactivate those accounts instead.
+### Useful commands
 
----
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start frontend, API and AI service after setup |
+| `npm run build` | Build the API and frontend |
+| `npm test` | Run backend tests |
+| `npm run db:generate` | Generate the Prisma client |
+| `npm run db:push` | Sync the MongoDB schema and custom indexes |
+| `npm run db:check` | Verify database connectivity |
 
-## Security
+There are no SQL migrations for the current MongoDB setup. Historical SQL migration files do not run during `db:push`.
 
-- JWT access tokens (15 min) + rotating refresh tokens; only SHA-256 hashes of refresh tokens are stored.
-- Passwords hashed with bcrypt (cost 12); password change revokes all sessions.
-- Role-based access control middleware on every route; ownership checks in services
-  (owner → property → room → application/lease/payment/task).
-- Zod validation on every body/query/param; unknown keys stripped.
-- File uploads: MIME allow-list (images + PDF), size cap, random stored filenames,
-  path-traversal rejection, `X-Content-Type-Options: nosniff` on static serving.
-- `helmet`, CORS allow-list, global + auth + AI rate limiters.
-- Audit log for every state-changing action.
+## Environment variables
 
-## Project layout
+The templates are [backend/.env.example](backend/.env.example), [frontend/.env.example](frontend/.env.example) and [ai-service/.env.example](ai-service/.env.example). Keep credentials out of Git.
 
-```
-backend/
-  prisma/schema.prisma        all entities & enums
-  src/
-    config/        env
-    lib/           prisma, auth, errors, http, audit, notify, access, aiClient
-    middleware/    authenticate, authorize, validate, upload, rateLimit, error
-    modules/       auth, users, properties, rooms, applications, assignments,
-                   leases, payments, maintenance, cleaning, staff, warnings,
-                   notifications, analytics, assistant, ai
-    routes.ts      API router
-    app.ts, server.ts
-frontend/
-  src/
-    lib/           api (axios + refresh), auth context, hooks
-    components/     Layout, ui primitives
-    pages/owner/*   dashboard, properties, applications, leases, payments,
-                    maintenance, cleaning, staff, warnings, assistant
-    pages/tenant/*  dashboard, browse, applications, payments, maintenance
-    pages/staff/*   dashboard, maintenance, cleaning
-ai-service/
-  app/
-    nvidia_client.py   NVIDIA NIM chat client (raises NvidiaUnavailable)
-    fallback.py        rule-based engine (criteria match, classification, assistant, insights)
-    services.py        NVIDIA-first, fallback-on-failure, tags source
-    prompts.py         advisory-only system prompts
-    main.py            FastAPI endpoints
+| Service | Key settings |
+| --- | --- |
+| API | `DATABASE_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `CORS_ORIGIN`, `GOOGLE_CLIENT_ID`, `SUPER_ADMIN_EMAILS`, `UPLOAD_DIR`, `AI_SERVICE_URL` or `AI_SERVICE_HOSTPORT` |
+| Frontend | `VITE_API_ORIGIN` for hosted API access; `VITE_GOOGLE_CLIENT_ID` for Google sign-in |
+| AI | Optional `NVIDIA_NIM_API_KEY`; model and timeout settings in its example environment file |
+
+## Deployment
+
+See the [deployment guide](docs/deployment.md) for Atlas, Render, Vercel, OAuth origins, upload storage and verification steps. The checked-in [Render Blueprint](render.yaml) specifies paid compute and a persistent disk for uploaded files. A manually created Free Render service can have different behavior, including sleeping after inactivity; its actual instance plan is set in Render, not by the README.
+
+For production, set the Vercel origin in the API's `CORS_ORIGIN`, the public API URL in Vercel's `VITE_API_ORIGIN`, and add the Vercel origin to the Google OAuth client's authorized JavaScript origins. If overriding the built-in public Google client ID, set the same ID on both sides. The frontend uses SPA routing rules in [frontend/vercel.json](frontend/vercel.json). Uploads currently live on the API server's filesystem, so a persistent disk or an object-storage migration is needed to retain them across restarts.
+
+## Repository map
+
+```text
+backend/       Express API, Prisma schema, authentication and business modules
+frontend/      React pages for public, owner, tenant, staff and admin workspaces
+ai-service/    FastAPI endpoints, NVIDIA client and rule-based fallbacks
+docs/          Deployment, API, architecture and workflow guides
+scripts/       Local startup script
+render.yaml    Render service definition
 ```
 
-## Documentation
-
-- [`docs/workflows/`](docs/workflows/) — one document per end-to-end flow (auth, application,
-  AI screening, owner decision, assignment, leases, rent, maintenance, cleaning, staff,
-  warnings, notifications, AI assistant, AI fallback, dashboards, food, audit). Start with
-  [`docs/workflows/00-end-to-end.md`](docs/workflows/00-end-to-end.md).
-- [`docs/API.md`](docs/API.md) — endpoint reference.
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — design notes & known simplifications.
+For deeper detail, start with [docs/workflows/README.md](docs/workflows/README.md), then use the [API reference](docs/API.md) and [architecture guide](docs/ARCHITECTURE.md).

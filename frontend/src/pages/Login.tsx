@@ -107,7 +107,7 @@ export default function Login() {
           {error && <div className="login-error"><ErrorBanner message={error} /></div>}
           {slowConnection && <p className="login-connection-note" role="status">Still connecting to the server. Your sign-in is in progress.</p>}
           <div className="login-google"><GoogleSignIn onCredential={signInWithGoogle} disabled={busy} /></div>
-          {import.meta.env.VITE_GOOGLE_CLIENT_ID && <div className="login-divider"><span />or sign in with email<span /></div>}
+          <div className="login-divider"><span />or sign in with email<span /></div>
 
           <form onSubmit={submit} className="login-form">
             <label className="login-label" htmlFor="login-email">Email address</label>

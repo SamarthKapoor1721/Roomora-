@@ -63,7 +63,7 @@ export default function Register() {
             </select>
           </Field>
           <GoogleSignIn onCredential={signUpWithGoogle} disabled={busy} />
-          {import.meta.env.VITE_GOOGLE_CLIENT_ID && <p className="text-center text-xs uppercase tracking-widest text-ink-400">or create a password account</p>}
+          <p className="text-center text-xs uppercase tracking-widest text-ink-400">or create a password account</p>
           <form onSubmit={submit} className="space-y-4">
           <Field label="Full name">
             <input
