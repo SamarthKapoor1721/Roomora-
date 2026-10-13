@@ -6,6 +6,7 @@
   "main": "dist/server.js",
   "scripts": {
     "images:sync": "tsx prisma/sync-listing-images.ts",
+    "images:check": "tsx prisma/check-listing-images.ts",
     "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/server.js",
