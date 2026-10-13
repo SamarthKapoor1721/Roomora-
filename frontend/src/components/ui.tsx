@@ -626,12 +626,12 @@ export function ImageGallery({
 }) {
   const [active, setActive] = useState(0);
   if (images.length === 0) return null;
-  const box = size === 'lg' ? 'h-48 sm:h-60' : 'h-24';
+  const box = size === 'lg' ? 'aspect-[16/9]' : 'h-24';
   const current = images[Math.min(active, images.length - 1)];
   return (
     <div className={className}>
       <div className={`overflow-hidden rounded-lg border border-slate-200 bg-slate-50 ${box}`}>
-        <img src={assetUrl(current.url)} alt={current.name ?? ''} className="h-full w-full object-cover" />
+        <img src={assetUrl(current.url)} alt={current.name ?? ''} className={`h-full w-full ${size === 'lg' ? 'object-contain' : 'object-cover'}`} />
       </div>
       {images.length > 1 && (
         <div className="mt-1.5 flex flex-wrap gap-1.5">

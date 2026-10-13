@@ -71,7 +71,7 @@ export default function TenantBrowse() {
         />
       ) : (
         property ? <>
-          {property.images.length > 0 && <div className="mb-6"><ImageGallery images={property.images} size="lg" /><button type="button" className="btn-secondary mt-3" onClick={() => setGallery({ title: `${property.name} photos`, images: property.images })}>Open property photos</button></div>}
+          {property.images.length > 0 && <div className="mb-6 max-w-5xl"><ImageGallery images={property.images} size="lg" /><button type="button" className="btn-secondary mt-3" onClick={() => setGallery({ title: `${property.name} photos`, images: property.images })}>Open property photos</button></div>}
           <h2 className="mb-4 text-lg font-semibold text-ink-900">Rooms at {property.name}</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {visibleRooms.map((r) => {
@@ -80,7 +80,7 @@ export default function TenantBrowse() {
             <div key={r.id} className="flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-card">
               {photos.length > 0 ? (
                 <button type="button" className="relative w-full text-left" onClick={() => setGallery({ title: `${r.property.name} · ${r.name}`, images: photos })} aria-label={`Open photos of ${r.name}`}>
-                  <img src={assetUrl(photos[0].url)} alt={r.name} className="h-40 w-full object-cover" />
+                  <img src={assetUrl(photos[0].url)} alt={r.name} className="aspect-[4/3] w-full bg-slate-50 object-contain" />
                   <span className="absolute bottom-2 right-2 rounded bg-white/90 px-2 py-1 text-xs font-semibold text-ink-900">View {photos.length} photo{photos.length === 1 ? '' : 's'}</span>
                 </button>
               ) : (
@@ -134,7 +134,7 @@ export default function TenantBrowse() {
             const rooms = (data?.data ?? []).filter((room) => room.property.id === item.id);
             const rents = rooms.map((room) => room.monthlyRent);
             return <article key={item.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-card">
-              {item.images.length > 0 ? <img src={assetUrl(item.images[0].url)} alt={item.name} className="h-44 w-full object-cover" /> : <div className="flex h-44 items-center justify-center bg-slate-50 text-ink-300"><Icon name="building" size={32} /></div>}
+              {item.images.length > 0 ? <img src={assetUrl(item.images[0].url)} alt={item.name} className="aspect-[16/9] w-full bg-slate-50 object-contain" /> : <div className="flex aspect-[16/9] items-center justify-center bg-slate-50 text-ink-300"><Icon name="building" size={32} /></div>}
               <div className="p-5">
                 <h2 className="text-lg font-semibold text-ink-900">{item.name}</h2>
                 <p className="mt-1 text-sm text-ink-500">{item.addressLine1}, {item.city}</p>
