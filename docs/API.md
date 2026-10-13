@@ -109,7 +109,7 @@ Answers only from real DB data retrieved by deterministic tools.
 | --- | --- |
 | `GET /tenant/rooms` | browse open rooms (`?city=&minRent=&maxRent=&foodEnabled=`) |
 | `GET /tenant/rooms/:id` | one open room |
-| `POST /tenant/applications` | `{ roomId, monthlyIncome?, employmentStatus?, employerName?, currentAddress?, moveInDate?, occupants?, hasPets?, smoker?, notes?, foodOptIn? }` |
+| `POST /tenant/applications` | `{ roomId, applicantName, dateOfBirth, currentAddress, monthlyIncome?, employmentStatus?, employerName?, moveInDate?, occupants?, hasPets?, smoker?, notes?, foodOptIn? }` |
 | `GET /tenant/applications` · `GET /tenant/applications/:id` | |
 | `PATCH /tenant/applications/:id` | edit while `DOCS_PENDING` |
 | `POST /tenant/applications/:id/withdraw` | |

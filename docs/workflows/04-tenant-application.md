@@ -41,10 +41,12 @@ Each row: rent, deposit, `spotsAvailable`, `roommatesLimit`, amenities, and
 ```json
 {
   "roomId": "cuid...",
+  "applicantName": "Test Applicant",
+  "dateOfBirth": "2000-02-29",
   "monthlyIncome": 48000,
   "employmentStatus": "Salaried full-time",
   "employerName": "Acme",
-  "currentAddress": "…",
+  "currentAddress": "10 Market Road, Delhi",
   "moveInDate": "2026-10-01",
   "occupants": 1,
   "hasPets": false,
@@ -54,7 +56,10 @@ Each row: rent, deposit, `spotsAvailable`, `roommatesLimit`, amenities, and
 }
 ```
 
-Only `roomId` is required; `occupants` defaults to 1, booleans to `false`.
+`roomId`, legal `applicantName`, ISO `dateOfBirth`, and `currentAddress` are required
+for new applications. `occupants` defaults to 1, booleans to `false`. Older
+applications without the new fields remain readable and need manual review when
+re-screened.
 
 Guards (`applicationsService.apply`):
 

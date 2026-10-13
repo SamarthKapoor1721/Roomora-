@@ -58,6 +58,8 @@ export const applicationsService = {
         roomId: room.id,
         tenantId,
         status: 'DOCS_PENDING',
+        applicantName: input.applicantName as string,
+        dateOfBirth: input.dateOfBirth as string,
         monthlyIncome: (input.monthlyIncome as number) ?? null,
         employmentStatus: (input.employmentStatus as string) ?? null,
         employerName: (input.employerName as string) ?? null,
@@ -355,7 +357,8 @@ export async function runAiScreening(applicationId: string): Promise<void> {
   // 1. Document verification (content extraction + applicant consistency)
   const docVerify = await aiClient.verifyDocuments({
     applicant: {
-      fullName: app.tenant.fullName,
+      fullName: app.applicantName ?? app.tenant.fullName,
+      dateOfBirth: app.dateOfBirth,
       currentAddress: app.currentAddress,
       monthlyIncome: app.monthlyIncome ? Number(app.monthlyIncome) : null,
     },
@@ -410,7 +413,11 @@ export async function runAiScreening(applicationId: string): Promise<void> {
       where: { id: document.id },
       data: {
         verification: result?.status ?? 'PENDING',
-        extractedData: result ? { ...result.extractedFields, reviewReason: result.reason } as Prisma.InputJsonValue : {},
+        extractedData: result ? {
+          ...result.extractedFields,
+          ...(result.fieldChecks ? { fieldChecks: result.fieldChecks } : {}),
+          reviewReason: result.reason,
+        } as Prisma.InputJsonValue : {},
       },
     });
   }
@@ -452,7 +459,9 @@ export async function runAiScreening(applicationId: string): Promise<void> {
   // 3. Application summary
   const summary = await aiClient.summarizeApplication({
     applicant: {
-      fullName: app.tenant.fullName,
+      fullName: app.applicantName ?? app.tenant.fullName,
+      dateOfBirth: app.dateOfBirth,
+      currentAddress: app.currentAddress,
       email: app.tenant.email,
       monthlyIncome: app.monthlyIncome ? Number(app.monthlyIncome) : null,
       employmentStatus: app.employmentStatus,
@@ -495,8 +504,10 @@ export async function runAiScreening(applicationId: string): Promise<void> {
   await notify({
     userId: room.property.ownerId,
     type: 'APPLICATION_UPDATE',
-    title: 'AI screening complete',
-    body: `AI screening finished for an application on ${room.name}. Review and make your decision.`,
+    title: eligibility.recommendation === 'REVIEW' ? 'Manual application review needed' : 'AI screening complete',
+    body: eligibility.recommendation === 'REVIEW'
+      ? `Document or applicant details need manual review for an application on ${room.name}.`
+      : `AI screening finished for an application on ${room.name}. Review and make your decision.`,
     relatedType: 'APPLICATION',
     relatedId: applicationId,
   });

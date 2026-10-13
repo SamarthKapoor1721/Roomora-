@@ -7,6 +7,7 @@ import json
 import math
 import re
 import unicodedata
+from datetime import datetime
 
 from .config import settings
 from .nvidia_client import NvidiaUnavailable, chat_json
@@ -25,6 +26,10 @@ A bank balance alone is not monthly income. Compare the visible name, address,
 and monthly income against the applicant. Compare address ONLY for ADDRESS_PROOF;
 an income proof or identity proof does not need to contain an address. Compare
 income ONLY for INCOME_PROOF; an address or identity proof does not need income.
+For ID_PROOF, extract the date of birth and transcribe the exact date text as
+dobEvidence. Missing or unclear date of birth needs manual review. Check all
+names and addresses against the supplied applicant details. Base every extracted
+field on the PDF text, including identifiers and income values.
 Allow sensible name order, abbreviation
 and address formatting differences, but flag material mismatches. Do not invent
 monthly income or convert annual income without a visible period.
@@ -32,7 +37,8 @@ Return ONLY JSON: {"readable": boolean, "matchesType": boolean,
 "nameMatches": boolean, "addressMatches": boolean|null, "reason": string,
 "extractedFields": {"fullName": string|null, "identifier": string|null,
 "address": string|null, "monthlyIncome": number|null, "currency": string|null,
-"incomePeriod": string|null}, "evidence": string}.
+"incomePeriod": string|null, "dateOfBirth": string|null},
+"dobEvidence": string|null, "evidence": string}.
 Evidence must be a short transcription of the relevant extracted text. Never approve
 or reject the applicant. Report uncertainty rather than guessing."""
 
@@ -83,54 +89,123 @@ def _supported(value: object, source_words: set[str]) -> bool:
     return bool(words) and all(word in source_words for word in words)
 
 
+def _date(value: object) -> str | None:
+    for pattern in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y", "%d.%m.%Y",
+                    "%d %B %Y", "%d %b %Y", "%B %d %Y", "%b %d %Y"):
+        try:
+            return datetime.strptime(str(value or "").strip(), pattern).date().isoformat()
+        except ValueError:
+            pass
+    return None
+
+
+def _date_evidence(value: object) -> str | None:
+    text = re.sub(r"^(?:dob|date of birth)\s*:?\s*", "", str(value or "").strip(), flags=re.I)
+    return _date(text)
+
+
+def _amount_supported(value: object, pdf_text: str) -> bool:
+    try:
+        amount = float(value)
+        return any(float(candidate.replace(",", "")) == amount
+                   for candidate in re.findall(r"\d[\d,]*(?:\.\d+)?", pdf_text))
+    except (ValueError, TypeError):
+        return False
+
+
+def _address_matches(expected: str, actual: str) -> bool:
+    expected_words, actual_words = set(_words(expected)), set(_words(actual))
+    if not expected_words or not actual_words:
+        return False
+    numbers = {word for word in expected_words if word.isdigit()}
+    return numbers.issubset(actual_words) and len(expected_words & actual_words) / len(expected_words) >= 0.8
+
+
 def _assess(data: dict, doc: DocInput, applicant: dict, pdf_text: str | None = None) -> dict:
     fields = data.get("extractedFields")
     fields = fields if isinstance(fields, dict) else {}
-    reason = str(data.get("reason") or "Document needs manual review")[:1000]
-    name_matches = data.get("nameMatches", data.get("matchesApplicant"))
-    address_matches = data.get("addressMatches", data.get("matchesApplicant"))
-    applicant_matches = name_matches is True and (doc.type != "ADDRESS_PROOF" or address_matches is True)
+    source_words = set(_words(pdf_text)) if pdf_text is not None else None
+    checks: dict[str, str] = {}
+    issues: list[str] = []
+    expected_name, extracted_name = applicant.get("fullName"), fields.get("fullName")
+    if not expected_name or not extracted_name or (source_words is not None and not _supported(extracted_name, source_words)):
+        checks["name"] = "MISSING"
+        issues.append("Name could not be confirmed from the PDF text")
+    elif not _supported(expected_name, set(_words(extracted_name))) or data.get("nameMatches", data.get("matchesApplicant")) is False:
+        checks["name"] = "MISMATCH"
+        issues.append("Document name differs from the application name")
+    else:
+        checks["name"] = "MATCH"
+
+    if doc.type == "ADDRESS_PROOF":
+        expected_address, extracted_address = applicant.get("currentAddress"), fields.get("address")
+        if not expected_address or not extracted_address or (source_words is not None and not _supported(extracted_address, source_words)):
+            checks["address"] = "MISSING"
+            issues.append("Address could not be confirmed from the PDF text")
+        elif not _address_matches(str(expected_address), str(extracted_address)) or data.get("addressMatches") is False:
+            checks["address"] = "MISMATCH"
+            issues.append("Document address differs from the application address")
+        else:
+            checks["address"] = "MATCH"
+
+    if doc.type == "ID_PROOF":
+        expected_dob = _date(applicant.get("dateOfBirth"))
+        extracted_dob = _date(fields.get("dateOfBirth"))
+        dob_evidence = data.get("dobEvidence")
+        if not expected_dob or not extracted_dob or (source_words is not None and (
+            not _supported(dob_evidence, source_words) or _date_evidence(dob_evidence) != extracted_dob
+        )):
+            checks["dateOfBirth"] = "MISSING"
+            issues.append("Date of birth could not be confirmed from the PDF text")
+        elif expected_dob != extracted_dob:
+            checks["dateOfBirth"] = "MISMATCH"
+            issues.append("Document date of birth differs from the application date of birth")
+        else:
+            checks["dateOfBirth"] = "MATCH"
+
     status = "PENDING"
     if data.get("readable") is False:
         status = "UNREADABLE"
-    elif data.get("matchesType") is False or name_matches is False or (doc.type == "ADDRESS_PROOF" and address_matches is False):
+    elif data.get("matchesType") is False or "MISMATCH" in checks.values():
         status = "INCONSISTENT"
-    elif pdf_text is not None and not _supported(applicant.get("fullName"), set(_words(pdf_text))):
-        status = "INCONSISTENT"
-        reason = "Applicant name is not present in the extracted PDF text"
-    elif data.get("readable") is True and data.get("matchesType") is True and applicant_matches:
+        if data.get("matchesType") is False:
+            issues.insert(0, "PDF content does not match the selected proof type")
+    elif data.get("readable") is True and data.get("matchesType") is True and all(value == "MATCH" for value in checks.values()):
         required = {"ID_PROOF": ["fullName", "identifier"],
                     "ADDRESS_PROOF": ["fullName", "address"],
                     "INCOME_PROOF": ["fullName", "monthlyIncome", "currency", "incomePeriod"]}
         keys = required.get(doc.type, ["fullName"])
-        source_words = set(_words(pdf_text)) if pdf_text is not None else None
         if not data.get("evidence") or not all(fields.get(key) for key in keys):
-            reason = "Required visible evidence is missing; manual review required"
+            issues.append("Required proof details are missing from the PDF text")
         elif source_words is not None and not all(
             _supported(value, source_words) for value in (data.get("evidence"), fields.get("fullName"))
         ):
-            reason = "AI evidence is not supported by the extracted PDF text; manual review required"
-        elif doc.type == "ADDRESS_PROOF" and not applicant.get("currentAddress"):
-            reason = "Applicant address is missing; cannot compare the address proof"
+            issues.append("AI evidence is not supported by the extracted PDF text")
+        elif doc.type == "ID_PROOF" and source_words is not None and not _supported(fields.get("identifier"), source_words):
+            issues.append("Identity number is not supported by the PDF text")
         elif doc.type == "INCOME_PROOF":
             try:
                 income = float(fields["monthlyIncome"])
                 claimed = float(applicant.get("monthlyIncome") or 0)
-                if not math.isfinite(income) or income <= 0 or claimed <= 0:
-                    reason = "Monthly income is missing or invalid"
+                if pdf_text is not None and not _amount_supported(income, pdf_text):
+                    issues.append("Income amount is not supported by the PDF text")
+                elif not math.isfinite(income) or income <= 0 or claimed <= 0:
+                    issues.append("Monthly income is missing or invalid")
                 elif str(fields["currency"]).upper() not in {"INR", "₹", "RS", "RS."}:
-                    reason = "Income currency requires manual comparison with INR rent"
+                    issues.append("Income currency requires manual comparison with INR rent")
                 elif abs(income - claimed) > max(1, claimed * 0.05):
                     status = "INCONSISTENT"
-                    reason = "Visible monthly income differs from the applicant's declared income"
+                    issues.append("Document monthly income differs from the declared income")
                 else:
                     status = "VERIFIED"
             except (ValueError, TypeError):
-                reason = "Monthly income could not be extracted reliably"
+                issues.append("Monthly income could not be extracted reliably")
         else:
             status = "VERIFIED"
+    reason = "; ".join(issues) if issues else str(data.get("reason") or "Document needs manual review")
     return {"id": doc.id, "type": doc.type, "status": status, "reason": reason,
-            "extractedFields": fields, "evidence": str(data.get("evidence") or "")[:1000]}
+            "extractedFields": fields, "fieldChecks": checks,
+            "evidence": str(data.get("evidence") or "")[:1000]}
 
 
 async def verify_documents(req: DocVerificationRequest) -> DocVerificationResponse:
@@ -185,9 +260,10 @@ async def verify_documents(req: DocVerificationRequest) -> DocVerificationRespon
         overallStatus=status,
         consistencyScore=round(100 * len(verified.intersection(req.requiredDocuments)) / len(req.requiredDocuments)) if req.requiredDocuments else 0,
         extractedFields={item["id"]: item["extractedFields"] for item in results},
-        inconsistencies=[f'{item["type"]}: {item["reason"]}' for item in invalid],
+        inconsistencies=[f'{item["type"]}: {item["reason"]}' for item in results if item["status"] != "VERIFIED"],
         missingDocuments=missing,
-        notes="Content and applicant consistency checks only; document authenticity is not established.",
+        notes=("Manual review required for unconfirmed or conflicting details. " if status != "VERIFIED" else "")
+              + "Text and applicant consistency checks cannot establish document authenticity.",
         model=settings.nvidia_model if any(item.get("inspected") for item in results) else None,
         documentResults=results,
     )

@@ -11,24 +11,29 @@ function review(status: 'VERIFIED' | 'INCONSISTENT' | 'PENDING'): DocVerificatio
     documentResults: ['ID_PROOF', 'ADDRESS_PROOF', 'INCOME_PROOF'].map((type) => ({
       id: type, type, status, reason: status === 'INCONSISTENT' ? 'Random photo, not proof' : 'Content reviewed',
       extractedFields: status === 'VERIFIED' ? { monthlyIncome: 45000 } : {},
+      fieldChecks: status === 'VERIFIED' ? {
+        name: 'MATCH',
+        ...(type === 'ID_PROOF' ? { dateOfBirth: 'MATCH' } : {}),
+        ...(type === 'ADDRESS_PROOF' ? { address: 'MATCH' } : {}),
+      } : {},
     })),
   };
 }
 describe('document-supported eligibility', () => {
   it('gives random photos no document or income credit despite high declared income', () => {
     const result = assessEligibility(applicant, room, review('INCONSISTENT'));
-    expect(result.score).toBe(20);
+    expect(result.score).toBe(10);
     expect(result.recommendation).toBe('REVIEW');
     expect(result.missingRequirements).toHaveLength(3);
   });
   it('requires review when the AI service cannot inspect the files', () => {
     const result = assessEligibility(applicant, room, review('PENDING'));
-    expect(result.score).toBe(20);
+    expect(result.score).toBe(10);
     expect(result.recommendation).toBe('REVIEW');
   });
   it('uses extracted income instead of the self-reported amount', () => {
     const result = assessEligibility(applicant, { ...room, monthlyRent: 30000 }, review('VERIFIED'));
-    expect(result.score).toBe(65);
+    expect(result.score).toBe(86);
     expect(result.recommendation).toBe('MODERATE');
   });
   it('cannot give a strong score when any required proof is invalid', () => {
@@ -40,7 +45,15 @@ describe('document-supported eligibility', () => {
   });
   it('checks the roommate limit as well as capacity', () => {
     const result = assessEligibility({ ...applicant, occupants: 2 }, { ...room, roommatesLimit: 1 }, review('VERIFIED'));
-    expect(result.score).toBe(80);
+    expect(result.score).toBe(69);
     expect(result.warnings.join(' ')).toContain('occupancy limit');
+  });
+  it('requires manual review when DOB is unconfirmed', () => {
+    const docs = review('VERIFIED');
+    docs.documentResults![0].fieldChecks!.dateOfBirth = 'MISSING';
+    const result = assessEligibility(applicant, room, docs);
+    expect(result.score).toBeLessThanOrEqual(54);
+    expect(result.recommendation).toBe('REVIEW');
+    expect(result.warnings.join(' ')).toContain('date of birth');
   });
 });

@@ -2,19 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { api, apiErrorMessage } from '../../lib/api';
-import { Icon } from '../../components/Icon';
+import { Icon, type IconName } from '../../components/Icon';
 import ModalOverlay from '../../components/ModalOverlay';
-import {
-  Card,
-  EmptyState,
-  ErrorBanner,
-  MetricCard,
-  PageHeader,
-  Section,
-  Skeleton,
-  StatLine,
-  money,
-} from '../../components/ui';
+import { EmptyState, ErrorBanner, Skeleton, money } from '../../components/ui';
 import './OwnerDashboard.css';
 
 interface Dashboard {
@@ -92,152 +82,155 @@ export default function OwnerDashboard() {
   if (error) return <ErrorBanner message={apiErrorMessage(error)} />;
 
   return (
-    <div>
-      <PageHeader
-        title="Dashboard"
-        description="What needs your attention today, and how the portfolio is doing."
-      />
+    <div className="owner-dashboard">
+      <header className="dashboard-heading">
+        <div>
+          <p className="dashboard-eyebrow">OWNER WORKSPACE</p>
+          <h1>Dashboard</h1>
+          <p className="dashboard-intro">A clear view of your properties and what needs action.</p>
+        </div>
+        <span className="dashboard-date">{new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date())}</span>
+      </header>
 
       {isLoading || !data ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-32" />
+            <Skeleton key={i} className="h-44" />
           ))}
         </div>
       ) : (
         <>
-          {/* PRIORITY ROW: the few things a person acts on */}
-          <Section title="Needs attention">
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <MetricCard
-                label="Pending approvals"
-                value={data.applications.pendingApprovals}
-                hint={data.applications.pendingApprovals ? 'Applications awaiting your decision' : 'All caught up'}
-                tone={data.applications.pendingApprovals ? 'warning' : 'positive'}
-                icon="inbox"
-                to="/owner/applications"
-              />
-              <MetricCard
-                label="Overdue rent"
-                value={money(data.revenue.outstanding)}
-                hint={`${data.payments.overduePayments} payment${data.payments.overduePayments === 1 ? '' : 's'} overdue`}
-                tone={data.revenue.outstanding ? 'critical' : 'positive'}
-                icon="wallet"
-                to="/owner/payments"
-              />
-              <MetricCard
-                label="Active warnings"
-                value={data.warnings.active}
-                hint={
-                  data.warnings.active
-                    ? `${data.warnings.bySeverity.HIGH ?? 0} high · ${data.warnings.bySeverity.CRITICAL ?? 0} critical`
-                    : 'No open warnings'
-                }
-                tone={data.warnings.active ? 'critical' : 'positive'}
-                icon="alert"
-                to="/owner/warnings"
-              />
-              <MetricCard
-                label="Leases expiring"
-                value={data.leases.expiringSoon}
-                hint="Within the next 30 days"
-                tone={data.leases.expiringSoon ? 'warning' : 'default'}
-                icon="file"
-                to="/owner/leases"
-              />
+          <section className="dashboard-section" aria-labelledby="attention-heading">
+            <div className="dashboard-section-head">
+              <div>
+                <p className="dashboard-section-index">YOUR PRIORITIES</p>
+                <h2 id="attention-heading">Needs attention</h2>
+              </div>
+              <p>Start with the items that may need a decision.</p>
             </div>
-          </Section>
+            <div className="dashboard-priority-grid">
+              <Link to="/owner/applications" className="dashboard-focus">
+                <span className="dashboard-focus-top">
+                  <span>APPLICATIONS</span>
+                  <Icon name="inbox" size={21} />
+                </span>
+                <span className="dashboard-focus-main">
+                  <strong>{data.applications.pendingApprovals}</strong>
+                  <span>
+                    <b>Pending approval{data.applications.pendingApprovals === 1 ? '' : 's'}</b>
+                    <small>{data.applications.pendingApprovals ? 'Waiting for your decision' : 'Your application queue is clear'}</small>
+                  </span>
+                </span>
+                <span className="dashboard-focus-action">
+                  Review applications <Icon name="arrowUpRight" size={17} />
+                </span>
+              </Link>
+              <div className="dashboard-signals" aria-label="Other items to review">
+                <SignalRow
+                  icon="wallet"
+                  label="Overdue rent"
+                  value={money(data.revenue.outstanding)}
+                  detail={data.payments.overduePayments + ' payment' + (data.payments.overduePayments === 1 ? '' : 's') + ' overdue'}
+                  to="/owner/payments"
+                  active={data.revenue.outstanding > 0}
+                />
+                <SignalRow
+                  icon="alert"
+                  label="Active warnings"
+                  value={data.warnings.active}
+                  detail={data.warnings.active
+                    ? (data.warnings.bySeverity.HIGH ?? 0) + ' high · ' + (data.warnings.bySeverity.CRITICAL ?? 0) + ' critical'
+                    : 'No open warnings'}
+                  to="/owner/warnings"
+                  active={data.warnings.active > 0}
+                />
+                <SignalRow
+                  icon="file"
+                  label="Leases expiring"
+                  value={data.leases.expiringSoon}
+                  detail="Within the next 30 days"
+                  to="/owner/leases"
+                  active={data.leases.expiringSoon > 0}
+                />
+              </div>
+            </div>
+          </section>
 
-          {/* PORTFOLIO: supporting figures, grouped, not headline-sized */}
-          <Section title="Portfolio">
-            <div className="grid gap-4 lg:grid-cols-3">
-              <Card>
-                <div className="mb-2 flex items-center gap-2">
-                  <Icon name="building" size={16} className="text-ink-400" />
-                  <h3 className="text-sm font-semibold text-ink-900">Occupancy</h3>
+          <section className="dashboard-section" aria-labelledby="portfolio-heading">
+            <div className="dashboard-section-head">
+              <div>
+                <p className="dashboard-section-index">THE BIG PICTURE</p>
+                <h2 id="portfolio-heading">Portfolio overview</h2>
+              </div>
+            </div>
+            <div className="dashboard-portfolio-grid">
+              <div className="dashboard-portfolio-card dashboard-occupancy">
+                <div className="dashboard-card-head">
+                  <h3>Occupancy</h3>
+                  <Icon name="building" size={19} />
                 </div>
-                <p className="font-display text-3xl font-semibold text-ink-900">
-                  {data.occupancy.occupancyRate}%
-                </p>
-                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                  <div
-                    className="h-full rounded-full bg-brand-500"
-                    style={{ width: `${data.occupancy.occupancyRate}%` }}
-                  />
+                <p className="dashboard-card-value">{data.occupancy.occupancyRate}<span>%</span></p>
+                <p className="dashboard-card-caption">of available beds occupied</p>
+                <div className="dashboard-occupancy-track" role="img" aria-label={data.occupancy.occupancyRate + '% of beds occupied'}>
+                  <span style={{ width: Math.max(0, Math.min(100, data.occupancy.occupancyRate)) + '%' }} />
                 </div>
-                <div className="mt-3">
-                  <StatLine label="Beds occupied" value={`${data.occupancy.totalOccupants} / ${data.occupancy.totalCapacity}`} />
-                  <StatLine label="Vacant rooms" value={data.occupancy.vacantRooms} />
-                  <StatLine label="Properties" value={data.properties.total} />
-                </div>
-              </Card>
+                <dl className="dashboard-fact-grid dashboard-occupancy-facts">
+                  <div><dt>Beds occupied</dt><dd>{data.occupancy.totalOccupants} / {data.occupancy.totalCapacity}</dd></div>
+                  <div><dt>Vacant rooms</dt><dd>{data.occupancy.vacantRooms}</dd></div>
+                  <div><dt>Properties</dt><dd>{data.properties.total}</dd></div>
+                </dl>
+              </div>
 
-              <Card>
-                <div className="mb-2 flex items-center gap-2">
-                  <Icon name="wallet" size={16} className="text-ink-400" />
-                  <h3 className="text-sm font-semibold text-ink-900">Revenue</h3>
+              <div className="dashboard-portfolio-card dashboard-revenue">
+                <div className="dashboard-card-head">
+                  <h3>Revenue</h3>
+                  <Icon name="wallet" size={19} />
                 </div>
-                <p className="font-display text-3xl font-semibold text-emerald-600">
-                  {money(data.revenue.collectedThisMonth)}
-                </p>
-                <p className="text-xs text-ink-500">collected this month</p>
-                <div className="mt-3">
-                  <StatLine label="Collected all-time" value={money(data.revenue.collectedAllTime)} />
-                  <StatLine label="Billed all-time" value={money(data.revenue.billedAllTime)} />
-                  <StatLine
-                    label="Outstanding"
-                    value={money(data.revenue.outstanding)}
-                    tone={data.revenue.outstanding ? 'critical' : 'default'}
-                  />
-                  <StatLine label="Late payments (all-time)" value={data.payments.latePayments} />
-                </div>
-              </Card>
+                <p className="dashboard-card-value">{money(data.revenue.collectedThisMonth)}</p>
+                <p className="dashboard-card-caption">collected this month</p>
+                <dl className="dashboard-fact-grid">
+                  <div><dt>Collected all-time</dt><dd>{money(data.revenue.collectedAllTime)}</dd></div>
+                  <div><dt>Billed all-time</dt><dd>{money(data.revenue.billedAllTime)}</dd></div>
+                  <div><dt>Outstanding</dt><dd>{money(data.revenue.outstanding)}</dd></div>
+                  <div><dt>Late payments</dt><dd>{data.payments.latePayments}</dd></div>
+                </dl>
+              </div>
 
-              <Card className="flex flex-col">
-                <div className="mb-2 flex items-center gap-2">
-                  <Icon name="wrench" size={16} className="text-ink-400" />
-                  <h3 className="text-sm font-semibold text-ink-900">Operations</h3>
+              <div className="dashboard-portfolio-card dashboard-operations">
+                <div className="dashboard-card-head">
+                  <h3>Operations</h3>
+                  <Icon name="wrench" size={19} />
                 </div>
-                <p className="font-display text-3xl font-semibold text-ink-900">
-                  {data.maintenance.open + data.cleaning.pending}
-                </p>
-                <p className="text-xs text-ink-500">open tasks</p>
-                <div className="mt-3">
-                  <StatLine
-                    label="Maintenance open"
-                    value={data.maintenance.open}
-                    tone={data.maintenance.open ? 'warning' : 'default'}
-                  />
-                  <StatLine
-                    label="Cleaning pending"
-                    value={data.cleaning.pending}
-                    tone={data.cleaning.pending ? 'warning' : 'default'}
-                  />
-                  <StatLine label="Active leases" value={data.leases.active} />
-                </div>
-                <Link to="/owner/maintenance" className="btn-secondary btn-sm mt-4 self-start">
-                  Manage tasks
-                  <Icon name="chevronRight" size={13} />
+                <p className="dashboard-card-value">{data.maintenance.open + data.cleaning.pending}</p>
+                <p className="dashboard-card-caption">open tasks</p>
+                <dl className="dashboard-fact-grid dashboard-operations-facts">
+                  <div><dt>Maintenance open</dt><dd>{data.maintenance.open}</dd></div>
+                  <div><dt>Cleaning pending</dt><dd>{data.cleaning.pending}</dd></div>
+                  <div><dt>Active leases</dt><dd>{data.leases.active}</dd></div>
+                </dl>
+                <Link to="/owner/maintenance" className="dashboard-manage-link">
+                  Manage tasks <Icon name="arrowUpRight" size={15} />
                 </Link>
-              </Card>
+              </div>
             </div>
-          </Section>
+          </section>
 
-          {/* AI INSIGHTS */}
-          <Section
-            title="AI insights"
-            description="A fresh look at your portfolio, whenever you need it."
-            actions={
+          <section className="dashboard-section" aria-labelledby="insights-heading">
+            <div className="dashboard-section-head dashboard-insights-head">
+              <div>
+                <span className="dashboard-section-index">03 / ANALYSIS</span>
+                <h2 id="insights-heading">AI insights</h2>
+                <p>A fresh look at your portfolio, whenever you need it.</p>
+              </div>
               <button className="insights-trigger" type="button" onClick={generateInsights} disabled={insightsRequest.isPending}>
                 <Icon name="sparkles" size={17} />
                 <span>{insightsRequest.isPending ? 'Analyzing…' : insights ? 'Refresh insights' : 'Generate insights'}</span>
                 <span aria-hidden="true">↗</span>
               </button>
-            }
-          >
+            </div>
             {!insights ? (
               <div className="insights-prompt">
-                <div className="insights-prompt-icon"><Icon name="sparkles" size={25} /></div>
+                <div className="insights-prompt-icon"><Icon name="sparkles" size={22} /></div>
                 <div>
                   <h3>Your portfolio, in perspective.</h3>
                   <p>Generate a current summary of insights, risks and opportunities when you’re ready.</p>
@@ -277,7 +270,7 @@ export default function OwnerDashboard() {
                 />
               </div>
             )}
-          </Section>
+          </section>
         </>
       )}
 
@@ -291,6 +284,31 @@ export default function OwnerDashboard() {
         />
       )}
     </div>
+  );
+}
+
+function SignalRow({
+  label,
+  value,
+  detail,
+  icon,
+  to,
+  active,
+}: {
+  label: string;
+  value: string | number;
+  detail: string;
+  icon: IconName;
+  to: string;
+  active: boolean;
+}) {
+  return (
+    <Link to={to} className={'dashboard-signal' + (active ? ' dashboard-signal-active' : '')}>
+      <span className="dashboard-signal-icon"><Icon name={icon} size={18} /></span>
+      <span className="dashboard-signal-copy"><b>{label}</b><small>{detail}</small></span>
+      <strong className="dashboard-signal-value">{value}</strong>
+      <Icon name="chevronRight" size={17} className="dashboard-signal-arrow" />
+    </Link>
   );
 }
 

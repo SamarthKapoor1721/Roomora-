@@ -38,7 +38,7 @@ export interface EligibilityResponse {
 }
 
 export interface DocVerificationRequest {
-  applicant: { fullName: string; currentAddress?: string | null; monthlyIncome?: number | null };
+  applicant: { fullName: string; dateOfBirth?: string | null; currentAddress?: string | null; monthlyIncome?: number | null };
   documents: Array<{
     id?: string;
     type: string;
@@ -66,6 +66,7 @@ export interface DocVerificationResponse {
     status: DocVerificationResponse['overallStatus'];
     reason: string;
     extractedFields: Record<string, unknown>;
+    fieldChecks?: { name?: string; address?: string; dateOfBirth?: string };
   }>;
 }
 

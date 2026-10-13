@@ -1,11 +1,10 @@
 import { useMemo, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { api } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { useGlobalRipple } from '../lib/ripple';
 import { Icon, type IconName } from './Icon';
 import AssistantWidget from './AssistantWidget';
+import NotificationBell from './NotificationBell';
 import { RouteTransition } from './RouteTransition';
 
 type NavItem = { to: string; label: string; icon: IconName; end?: boolean };
@@ -61,14 +60,6 @@ export default function Layout() {
 
   const featureKey = location.pathname.replace(/^\/+/, '').split('/').slice(0, 2).join('/');
 
-  const { data: unread } = useQuery({
-    queryKey: ['notifications', 'unread'],
-    queryFn: async () =>
-      (await api.get('/notifications?unread=true&pageSize=1')).data.meta.unreadCount as number,
-    refetchInterval: 30_000,
-    enabled: !!user,
-  });
-
   const roleLabel = { SUPER_ADMIN: 'Super admin', OWNER: 'Property owner', TENANT: 'Tenant', STAFF: 'Staff' }[
     user?.role ?? 'TENANT'
   ];
@@ -88,14 +79,7 @@ export default function Layout() {
           <span className="font-wordmark text-3xl font-bold tracking-tight text-ink-900">Roomora</span>
 
           <div className="ml-auto flex items-center gap-2.5">
-            <span className="relative inline-flex" title={`${unread ?? 0} unread notifications`}>
-              <Icon name="bell" size={19} className="text-ink-500" />
-              {!!unread && (
-                <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">
-                  {unread > 9 ? '9+' : unread}
-                </span>
-              )}
-            </span>
+            {user && <NotificationBell userId={user.id} role={user.role} />}
 
             <div className="mx-1 hidden h-6 w-px bg-slate-200 sm:block" />
 

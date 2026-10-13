@@ -94,6 +94,43 @@ class DocumentReviewTests(unittest.IsolatedAsyncioTestCase):
                          self.doc, self.applicant, 'Test Applicant employment certificate')
         self.assertEqual(result['status'], 'PENDING')
 
+    def test_identity_dob_must_match_the_application_and_pdf_text(self):
+        doc = self.doc.model_copy(update={'type': 'ID_PROOF'})
+        applicant = {**self.applicant, 'dateOfBirth': '2000-02-01'}
+        pdf_text = 'Test Applicant ID ABC123 DOB 01/02/2000'
+        data = {'readable': True, 'matchesType': True, 'nameMatches': True,
+                'evidence': pdf_text, 'dobEvidence': '01/02/2000',
+                'extractedFields': {'fullName': 'Test Applicant', 'identifier': 'ABC123',
+                                    'dateOfBirth': '2000-02-01'}}
+        matched = _assess(data, doc, applicant, pdf_text)
+        self.assertEqual(matched['status'], 'VERIFIED')
+        self.assertEqual(matched['fieldChecks']['dateOfBirth'], 'MATCH')
+        different = _assess(data, doc, {**applicant, 'dateOfBirth': '2001-02-01'}, pdf_text)
+        self.assertEqual(different['status'], 'INCONSISTENT')
+        self.assertEqual(different['fieldChecks']['dateOfBirth'], 'MISMATCH')
+        unsupported = _assess({**data, 'dobEvidence': '01/02/1999'}, doc, applicant, pdf_text)
+        self.assertEqual(unsupported['status'], 'PENDING')
+
+    def test_address_difference_requires_manual_review(self):
+        doc = self.doc.model_copy(update={'type': 'ADDRESS_PROOF'})
+        data = {'readable': True, 'matchesType': True, 'nameMatches': True,
+                'addressMatches': True, 'evidence': 'Test Applicant 10 Market Road Delhi',
+                'extractedFields': {'fullName': 'Test Applicant', 'address': '10 Market Road Delhi'}}
+        result = _assess(data, doc, {**self.applicant, 'currentAddress': '10 Market Road Mumbai'},
+                         'Test Applicant 10 Market Road Delhi')
+        self.assertEqual(result['status'], 'INCONSISTENT')
+        self.assertEqual(result['fieldChecks']['address'], 'MISMATCH')
+
+    def test_income_amount_must_appear_in_pdf_text(self):
+        data = {'readable': True, 'matchesType': True, 'nameMatches': True,
+                'evidence': 'Test Applicant monthly salary INR 30000',
+                'extractedFields': {'fullName': 'Test Applicant', 'monthlyIncome': 90000,
+                                    'currency': 'INR', 'incomePeriod': 'monthly'}}
+        result = _assess(data, self.doc, {**self.applicant, 'monthlyIncome': 90000},
+                         'Test Applicant monthly salary INR 30000')
+        self.assertEqual(result['status'], 'PENDING')
+        self.assertIn('Income amount', result['reason'])
+
     def test_income_proof_does_not_require_an_address(self):
         result = _assess({'readable': True, 'matchesType': True, 'nameMatches': True,
                           'addressMatches': False, 'evidence': 'Test Applicant monthly INR 30000',

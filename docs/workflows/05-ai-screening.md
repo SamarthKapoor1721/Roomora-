@@ -15,8 +15,11 @@ or still unreadable PDFs require manual review. Filenames and upload labels
 never count as proof. Text review cannot establish signatures, visual layout,
 or document authenticity.
 
-The model checks whether the visible content matches the requested proof type,
-extracts identity/address/income fields, and compares them with applicant details.
+The model checks whether the text matches the requested proof type and extracts
+identity, address, date of birth, and income fields. The service checks the
+extracted name and evidence against the PDF text, then compares name, address,
+and date of birth with the information supplied on the application. Missing or
+conflicting details are sent to the owner for manual review.
 Income proofs require a visible name, amount, currency, and income period;
 address proofs require a visible name and address; identity proofs require a
 name and identifier. Income mismatches over 5% are flagged independently of the
@@ -36,14 +39,20 @@ The backend computes a transparent score after document inspection:
 
 | Criterion | Maximum points | Evidence |
 | --- | --- | --- |
-| Affordability | 50 | Monthly income extracted from a valid income proof; ≥3× rent: 50, ≥2.5×: 40, ≥2×: 30, ≥1.5×: 15, below: 0 |
-| Required proofs | 30 | 10 each for valid ID, address, and income proofs |
-| Occupancy | 20 | Requested occupants fit both capacity and roommate limit |
+| Matching applicant name | 20 | Up to 20 across the three required proofs |
+| Matching residential address | 20 | Address proof agrees with the application |
+| Matching date of birth | 20 | Identity proof agrees with the application |
+| Affordability | 20 | Document income ≥3× rent: 20, ≥2.5×: 16, ≥2×: 12, ≥1.5×: 6, below: 0 |
+| Required proofs | 10 | Valid ID, address, and income proofs |
+| Occupancy | 10 | Requested occupants fit capacity and roommate limit |
 
 Self-reported income earns no affordability points. Employment claims, pets,
-and smoking do not add or subtract points. Invalid required proofs cap the score
-at 39; incomplete/unverified proofs cap it at 54. Both force `REVIEW`, as does an
-occupancy mismatch. Otherwise ≥78 gives `STRONG`, ≥60 `MODERATE`, below `WEAK`.
+and smoking do not add or subtract points. Any inconsistent proof caps the score
+at 39; incomplete proofs, unconfirmed documents, or unconfirmed applicant
+details cap it at 54. These force `REVIEW`, as does an occupancy mismatch
+(which caps the score at 69).
+Otherwise ≥78 gives `STRONG`, ≥60 `MODERATE`, below `WEAK`; income below twice
+the rent limits the recommendation to `MODERATE`.
 This is an advisory criteria match, never a probability of approval.
 The score uses deterministic rules (`source: RULE_BASED_FALLBACK`) even when the
 underlying document inspection uses NVIDIA AI.

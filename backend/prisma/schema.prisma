@@ -364,6 +364,8 @@ model Application {
   status   ApplicationStatus @default(SUBMITTED)
 
   // Applicant-provided info (used for AI eligibility)
+  applicantName    String?
+  dateOfBirth      String?
   monthlyIncome    Float?
   employmentStatus String?
   employerName     String?

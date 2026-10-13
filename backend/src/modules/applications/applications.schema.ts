@@ -15,10 +15,15 @@ export const REQUIRED_DOCUMENTS = ['ID_PROOF', 'ADDRESS_PROOF', 'INCOME_PROOF'] 
 
 export const applySchema = z.object({
   roomId: z.string().min(1),
+  applicantName: z.string().trim().min(2).max(120),
+  dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Enter a valid date of birth').refine((value) => {
+    const date = new Date(`${value}T00:00:00.000Z`);
+    return !Number.isNaN(date.valueOf()) && date.toISOString().startsWith(value) && value < new Date().toISOString().slice(0, 10);
+  }, 'Enter a valid past date of birth'),
   monthlyIncome: z.number().nonnegative().max(100_000_000).optional(),
   employmentStatus: z.string().max(80).optional(),
   employerName: z.string().max(160).optional(),
-  currentAddress: z.string().max(400).optional(),
+  currentAddress: z.string().trim().min(5).max(400),
   moveInDate: z.coerce.date().optional(),
   occupants: z.number().int().min(1).max(20).default(1),
   hasPets: z.boolean().default(false),

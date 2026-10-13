@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api, apiErrorMessage, assetUrl } from '../../lib/api';
+import { useAuth } from '../../lib/auth';
 import { Icon } from '../../components/Icon';
 import ModalOverlay from '../../components/ModalOverlay';
 import { Chip, EmptyState, ErrorBanner, Field, ImageGallery, NumberInput, PageHeader, Skeleton, money } from '../../components/ui';
@@ -50,10 +51,19 @@ export default function TenantBrowse() {
 
   return (
     <div>
-      <PageHeader
-        title={property ? property.name : 'Explore properties'}
-        description={property ? `${property.addressLine1}, ${property.city} · Choose a room to review` : 'Review a property, then explore its rooms and photos before applying.'}
-      />
+      {property ? (
+        <PageHeader
+          title={property.name}
+          description={`${property.addressLine1}, ${property.city} · Choose a room to review`}
+        />
+      ) : (
+        <header className="mb-7">
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-ink-900">Explore properties</h1>
+          <p className="mt-2 max-w-2xl text-base leading-6 text-ink-700">
+            Review a property, then explore its rooms and photos before applying.
+          </p>
+        </header>
+      )}
       {property && <button type="button" className="btn-secondary mb-5" onClick={() => setSelectedProperty(null)}>← All properties</button>}
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -129,17 +139,32 @@ export default function TenantBrowse() {
             );
           })}
           </div>
-        </> : <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        </> : <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {properties.map((item) => {
             const rooms = (data?.data ?? []).filter((room) => room.property.id === item.id);
             const rents = rooms.map((room) => room.monthlyRent);
-            return <article key={item.id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-card">
-              {item.images.length > 0 ? <img src={assetUrl(item.images[0].url)} alt={item.name} className="aspect-[16/9] w-full bg-slate-50 object-contain" /> : <div className="flex aspect-[16/9] items-center justify-center bg-slate-50 text-ink-300"><Icon name="building" size={32} /></div>}
-              <div className="p-5">
-                <h2 className="text-lg font-semibold text-ink-900">{item.name}</h2>
-                <p className="mt-1 text-sm text-ink-500">{item.addressLine1}, {item.city}</p>
-                <p className="mt-3 text-sm text-ink-700">{rooms.length} room{rooms.length === 1 ? '' : 's'} · From {money(Math.min(...rents))} / month</p>
-                <button type="button" className="btn-primary mt-4 w-full" onClick={() => setSelectedProperty(item.id)}>View property and rooms</button>
+            return <article key={item.id} className="group flex h-full flex-col overflow-hidden rounded-2xl border border-[#d7e0d6] bg-white shadow-[0_8px_24px_rgba(26,49,32,0.08)] transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-[0_16px_32px_rgba(26,49,32,0.12)]">
+              {item.images.length > 0 ? <img src={assetUrl(item.images[0].url)} alt={item.name} loading="lazy" className="aspect-[16/10] w-full bg-slate-100 object-cover" /> : <div className="flex aspect-[16/10] items-center justify-center bg-slate-100 text-ink-400"><Icon name="building" size={36} /></div>}
+              <div className="flex flex-1 flex-col p-5 sm:p-6">
+                <div className="flex items-start justify-between gap-3">
+                  <h2 className="font-display text-2xl font-semibold leading-tight tracking-tight text-ink-900">{item.name}</h2>
+                  <span className="shrink-0 rounded-full border border-brand-200 bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700">
+                    {rooms.length} room{rooms.length === 1 ? '' : 's'}
+                  </span>
+                </div>
+                <p className="mt-3 flex items-start gap-2 text-sm font-medium leading-5 text-ink-700">
+                  <Icon name="mapPin" size={16} className="mt-0.5 shrink-0 text-brand-700" />
+                  <span>{item.addressLine1}, {item.city}</span>
+                </p>
+                <div className="mt-5 border-t border-slate-200 pt-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-ink-500">Monthly rent from</p>
+                  <p className="mt-1 font-display text-2xl font-semibold tabular-nums text-ink-900">
+                    {money(Math.min(...rents))}<span className="ml-1 text-sm font-medium text-ink-600">/ month</span>
+                  </p>
+                </div>
+                <button type="button" className="btn-primary mt-5 flex w-full items-center justify-center gap-2 !bg-brand-700 !py-3 !text-sm hover:!bg-[#315d27]" onClick={() => setSelectedProperty(item.id)}>
+                  View property and rooms <Icon name="arrowUpRight" size={16} />
+                </button>
               </div>
             </article>;
           })}
@@ -181,7 +206,10 @@ function PhotoViewer({ title, images, onClose }: { title: string; images: Img[];
 }
 
 function ApplyModal({ room, onClose, onApplied }: { room: Room; onClose: () => void; onApplied: (id: string) => void }) {
+  const { user } = useAuth();
   const [f, setF] = useState({
+    applicantName: user?.fullName ?? '',
+    dateOfBirth: '',
     monthlyIncome: 0,
     employmentStatus: '',
     employerName: '',
@@ -227,6 +255,24 @@ function ApplyModal({ room, onClose, onApplied }: { room: Room; onClose: () => v
           </p>
           {m.error && <ErrorBanner message={apiErrorMessage(m.error)} />}
 
+          <div className="rounded-xl border border-[#dce8d7] bg-[#f7faf5] p-4">
+            <p className="text-sm font-semibold text-[#264632]">Applicant details</p>
+            <p className="mt-1 text-xs leading-relaxed text-ink-500">Enter the details shown on your proof documents. The owner will review any differences.</p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <Field label="Full legal name">
+                <input className="input" autoComplete="name" value={f.applicantName} onChange={(e) => setF({ ...f, applicantName: e.target.value })} minLength={2} maxLength={120} required />
+              </Field>
+              <Field label="Date of birth">
+                <input className="input" type="date" autoComplete="bday" max={new Date().toISOString().slice(0, 10)} value={f.dateOfBirth} onChange={(e) => setF({ ...f, dateOfBirth: e.target.value })} required />
+              </Field>
+            </div>
+            <div className="mt-4">
+              <Field label="Current residential address">
+                <input className="input" autoComplete="street-address" value={f.currentAddress} onChange={(e) => setF({ ...f, currentAddress: e.target.value })} minLength={5} maxLength={400} required />
+              </Field>
+            </div>
+          </div>
+
           <Field label="Monthly income (₹)">
             <NumberInput
               value={f.monthlyIncome}
@@ -252,13 +298,6 @@ function ApplyModal({ room, onClose, onApplied }: { room: Room; onClose: () => v
               />
             </Field>
           </div>
-          <Field label="Current address">
-            <input
-              className="input"
-              value={f.currentAddress}
-              onChange={(e) => setF({ ...f, currentAddress: e.target.value })}
-            />
-          </Field>
           <Field label="Number of occupants" className="w-40">
             <NumberInput value={f.occupants} onChange={(occupants) => setF({ ...f, occupants })} min={1} />
           </Field>

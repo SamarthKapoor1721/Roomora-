@@ -8,7 +8,7 @@ import { authorize } from '../../middleware/authorize';
 import { validate } from '../../middleware/validate';
 
 const updateMeSchema = z.object({
-  fullName: z.string().min(2).max(120).optional(),
+  fullName: z.string().trim().min(2).max(120).optional(),
   phone: z.string().min(6).max(20).optional(),
 });
 

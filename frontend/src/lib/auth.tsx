@@ -22,6 +22,7 @@ interface AuthContextValue {
   register: (input: { email: string; password: string; fullName: string; role: 'OWNER' | 'TENANT' }) => Promise<User>;
   logout: () => Promise<void>;
   setPassword: (password: string) => Promise<User>;
+  updateProfile: (fullName: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -92,6 +93,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return res.data.data as User;
   }, []);
 
+  const updateProfile = useCallback(async (fullName: string) => {
+    const res = await api.patch('/users/me', { fullName });
+    setUser((current) => current ? { ...current, ...res.data.data } : current);
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       if (tokenStore.refresh) await api.post('/auth/logout', { refreshToken: tokenStore.refresh });
@@ -103,8 +109,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ user, loading, login, googleLogin, register, logout, setPassword }),
-    [user, loading, login, googleLogin, register, logout, setPassword],
+    () => ({ user, loading, login, googleLogin, register, logout, setPassword, updateProfile }),
+    [user, loading, login, googleLogin, register, logout, setPassword, updateProfile],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
