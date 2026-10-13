@@ -25,7 +25,7 @@ const REQUIRED_DETAILS = [
   { type: 'ADDRESS_PROOF', label: 'Address proof', detail: 'Utility bill, bank statement or rental agreement', number: '02' },
   { type: 'INCOME_PROOF', label: 'Income proof', detail: 'Payslip, tax return or proof of employment', number: '03' },
 ];
-type ApplicationDocument = { id: string; type: string; originalName: string; path: string; verification: string; extractedData?: { reviewReason?: string } };
+type ApplicationDocument = { id: string; type: string; originalName: string; path: string; mimeType: string; verification: string; extractedData?: { reviewReason?: string } };
 
 export default function TenantApplicationDetail() {
   const { id } = useParams();
@@ -74,7 +74,7 @@ export default function TenantApplicationDetail() {
   if (error) return <ErrorBanner message={apiErrorMessage(error)} />;
   if (!data) return null;
 
-  const provided: string[] = data.documents.map((d: { type: string }) => d.type);
+  const provided: string[] = data.documents.filter((d: ApplicationDocument) => d.mimeType === 'application/pdf').map((d: ApplicationDocument) => d.type);
   const missing = REQUIRED.filter((r) => !provided.includes(r));
   const canEdit = ['DOCS_PENDING', 'SUBMITTED'].includes(data.status);
   const elig = data.eligibility;
@@ -154,7 +154,7 @@ export default function TenantApplicationDetail() {
 
           <div className="overflow-hidden rounded-[22px] border border-[#e0e8dc] bg-white shadow-[0_12px_34px_-26px_rgba(31,56,39,.5)]">
             {REQUIRED_DETAILS.map(({ type, label, detail, number }) => {
-              const uploaded = documents.filter((d) => d.type === type);
+              const uploaded = documents.filter((d) => d.type === type && d.mimeType === 'application/pdf');
               return (
                 <div key={type} className="flex flex-wrap items-center gap-3 border-b border-[#edf1eb] px-5 py-5 sm:flex-nowrap sm:gap-4 sm:px-6">
                   <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${uploaded.length ? 'bg-[#e9f4e5] text-[#477d42]' : 'bg-[#f4f5f0] text-[#a0aa9a]'}`}>
@@ -212,7 +212,7 @@ export default function TenantApplicationDetail() {
               <div className="border-b border-[#e9eee5] bg-[#f1f7ed] px-6 py-5">
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#4b7f45] shadow-sm"><Icon name="plus" size={20} /></span>
                 <h2 className="mt-4 font-display text-xl font-semibold text-[#203d2c]">Add a document</h2>
-                <p className="mt-1 text-sm leading-relaxed text-ink-500">Upload a clear photo or PDF of your proof.</p>
+                <p className="mt-1 text-sm leading-relaxed text-ink-500">Upload a clear PDF of your proof for screening.</p>
               </div>
               <div className="space-y-4 p-6">
                 <label className="block text-xs font-semibold text-[#425747]" htmlFor="application-document-type">Document type</label>
@@ -222,9 +222,9 @@ export default function TenantApplicationDetail() {
                 <label htmlFor="application-document-file" className="flex min-h-[116px] cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#a8c3a0] bg-[#fafcf8] px-4 py-4 text-center transition-colors hover:bg-[#f0f7eb]">
                   <Icon name="file" size={23} className="mb-2 text-[#648c5d]" />
                   <span className="max-w-full truncate text-sm font-semibold text-[#365d3c]">{selectedFile || 'Choose a file to upload'}</span>
-                  <span className="mt-1 text-xs text-ink-400">Images or PDF</span>
+                  <span className="mt-1 text-xs text-ink-400">PDF only · scanned pages are read with OCR</span>
                 </label>
-                <input id="application-document-file" ref={fileRef} type="file" accept="image/*,application/pdf" className="sr-only" onChange={(e) => setSelectedFile(e.target.files?.[0]?.name ?? '')} />
+                <input id="application-document-file" ref={fileRef} type="file" accept="application/pdf,.pdf" className="sr-only" onChange={(e) => setSelectedFile(e.target.files?.[0]?.name ?? '')} />
                 <button type="button" className="btn-primary w-full justify-center" onClick={() => upload.mutate()} disabled={upload.isPending || !selectedFile}>
                   {upload.isPending ? 'Uploading…' : 'Upload document'} <Icon name="arrowUpRight" size={16} />
                 </button>

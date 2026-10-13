@@ -81,11 +81,11 @@ Audit: `application.create`.
 
 | Field | Value |
 | --- | --- |
-| `file` | the document (image/jpeg, png, webp, heic, or application/pdf; ≤ `MAX_UPLOAD_MB`) |
+| `file` | a clear PDF (`application/pdf`; ≤ `MAX_UPLOAD_MB`); scanned pages use OCR |
 | `type` | one of `ID_PROOF`, `ADDRESS_PROOF`, `INCOME_PROOF`, `EMPLOYMENT_LETTER`, `BANK_STATEMENT`, `PHOTO`, `OTHER` |
 
-Upload security (`middleware/upload.ts`): MIME allow-list, size cap, random stored
-filename, client filename checked for `..` / `/`. Stored under
+Upload security (`middleware/upload.ts`): PDF MIME, `.pdf` extension and file header
+checks, size cap, random stored filename, client filename checked for `..` / `/`. Stored under
 `uploads/application-documents/`, served read-only from `/uploads/<path>`.
 
 Guards: cannot add documents once the application is finalised (`APPROVED` /

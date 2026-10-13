@@ -5,12 +5,15 @@ The owner always makes the final decision.
 
 ## Document inspection comes first
 
-The backend reads each uploaded file from private storage and sends its bytes,
+The backend reads each uploaded PDF from private storage and sends its bytes,
 document ID, declared type, MIME type, and applicant details to the AI service.
-Images and PDF pages are rendered as bounded JPEG images and inspected by the
-configured NVIDIA vision model (`NVIDIA_NIM_VISION_MODEL`). PDF files with more
-than six pages, encrypted PDFs, unsupported images, or unreadable files require
-manual review. Filenames and upload labels never count as proof.
+PyMuPDF extracts embedded text from up to six pages. Image pages with little or
+no embedded text are transcribed with the configured NVIDIA vision model
+(`NVIDIA_NIM_VISION_MODEL`). The extracted or transcribed text is then sent to
+the language model (`NVIDIA_NIM_MODEL`) for review. Encrypted, oversized, blank,
+or still unreadable PDFs require manual review. Filenames and upload labels
+never count as proof. Text review cannot establish signatures, visual layout,
+or document authenticity.
 
 The model checks whether the visible content matches the requested proof type,
 extracts identity/address/income fields, and compares them with applicant details.

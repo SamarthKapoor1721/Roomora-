@@ -29,6 +29,7 @@ function ensureDir(dir: string) {
 /** Builds a multer instance that writes into `<UPLOAD_DIR>/<subdir>`. */
 export function makeUploader(subdir: string) {
   const dest = path.join(env.upload.dir, subdir);
+  const applicationDocument = subdir === 'application-documents';
   ensureDir(dest);
 
   const storage = multer.diskStorage({
@@ -47,6 +48,9 @@ export function makeUploader(subdir: string) {
       files: 10,
     },
     fileFilter: (_req: Request, file, cb) => {
+      if (applicationDocument && (file.mimetype !== 'application/pdf' || path.extname(file.originalname).toLowerCase() !== '.pdf')) {
+        return cb(badRequest('Application documents must be PDF files'));
+      }
       if (!ALLOWED_MIME.has(file.mimetype)) {
         return cb(badRequest(`Unsupported file type: ${file.mimetype}`));
       }

@@ -113,6 +113,21 @@ export const applicationsService = {
       fs.promises.unlink(file.path).catch(() => undefined);
       throw conflict('Documents are locked once screening has started');
     }
+    try {
+      const handle = await fs.promises.open(file.path, 'r');
+      try {
+        const header = Buffer.alloc(5);
+        const { bytesRead } = await handle.read(header, 0, header.length, 0);
+        if (file.mimetype !== 'application/pdf' || bytesRead !== 5 || header.toString() !== '%PDF-') {
+          throw badRequest('Application documents must contain a valid PDF file');
+        }
+      } finally {
+        await handle.close();
+      }
+    } catch (error) {
+      await fs.promises.unlink(file.path).catch(() => undefined);
+      throw error;
+    }
     return prisma.applicationDocument.create({
       data: {
         applicationId: id,
@@ -146,7 +161,7 @@ export const applicationsService = {
     if (!['DOCS_PENDING', 'SUBMITTED'].includes(app.status)) {
       throw conflict(`Application cannot be screened from status ${app.status}`);
     }
-    const providedTypes = new Set(app.documents.map((d) => d.type));
+    const providedTypes = new Set(app.documents.filter((d) => d.mimeType === 'application/pdf').map((d) => d.type));
     const missing = REQUIRED_DOCUMENTS.filter((r) => !providedTypes.has(r as never));
     if (missing.length > 0) {
       throw badRequest(`Upload all required documents before screening. Missing: ${missing.join(', ')}`);

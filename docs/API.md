@@ -113,7 +113,7 @@ Answers only from real DB data retrieved by deterministic tools.
 | `GET /tenant/applications` · `GET /tenant/applications/:id` | |
 | `PATCH /tenant/applications/:id` | edit while `DOCS_PENDING` |
 | `POST /tenant/applications/:id/withdraw` | |
-| `POST /tenant/applications/:id/documents` | multipart `file` + `type` |
+| `POST /tenant/applications/:id/documents` | multipart PDF `file` + `type` |
 | `DELETE /tenant/applications/:id/documents/:docId` | before screening |
 | `POST /tenant/applications/:id/submit` | runs AI screening → `OWNER_REVIEW` |
 | `GET /tenant/roommates` | |
