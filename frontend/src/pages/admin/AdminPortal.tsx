@@ -22,7 +22,7 @@ export default function AdminPortal() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [error, setError] = useState('');
-  const [dialog, setDialog] = useState<{ mode: 'create' | 'edit' | 'delete'; user?: AdminUser } | null>(null);
+  const [dialog, setDialog] = useState<{ mode: 'create' | 'edit' | 'delete' | 'reset'; user?: AdminUser } | null>(null);
   const overview = useQuery({ queryKey: ['admin', 'overview'], queryFn: async () => (await api.get('/admin/overview')).data.data as Overview });
   const people = useQuery({ queryKey: ['admin', 'users', role, search, page], queryFn: async () => (await api.get('/admin/users', { params: { role: role || undefined, q: search || undefined, page } })).data.data as UserList });
   const status = useMutation({ mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => api.patch(`/admin/users/${id}/status`, { isActive }), onSuccess: () => { setError(''); void client.invalidateQueries({ queryKey: ['admin'] }); }, onError: (err) => setError(apiErrorMessage(err)) });
@@ -75,8 +75,10 @@ export default function AdminPortal() {
               <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-ink-900">{person.fullName}</p><p className="truncate text-xs text-ink-500">{person.email}</p></div>
               <div className="hidden text-right xl:block"><p className="text-xs font-medium text-ink-700">{person.role === 'OWNER' ? `${person._count.properties} properties` : person.role === 'TENANT' ? `${person._count.applications} applications` : person.signInMethod}</p><p className="mt-1 text-xs text-ink-400">Joined {new Date(person.createdAt).toLocaleDateString()}</p></div>
               <span className="rounded-full bg-[#eff3ec] px-2.5 py-1 font-mono text-[.65rem] font-semibold uppercase tracking-wider text-[#47624c]">{person.role.replace('_', ' ')}</span>
+              {person.role === 'TENANT' && <span className="text-xs font-medium text-ink-500">{person._count.tenancies ? 'Allocated' : 'Fresh tenant'}</span>}
               {person.role !== 'SUPER_ADMIN' && <div className="flex w-full flex-wrap gap-2 sm:w-auto">
                 <button type="button" className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-ink-700 hover:bg-slate-50" onClick={() => setDialog({ mode: 'edit', user: person })}>Edit</button>
+                {person.role === 'TENANT' && person._count.tenancies > 0 && <button type="button" className="rounded-lg border border-amber-300 px-3 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-50" onClick={() => setDialog({ mode: 'reset', user: person })}>Make fresh</button>}
                 <button type="button" disabled={status.isPending} onClick={() => status.mutate({ id: person.id, isActive: !person.isActive })} className={`min-w-[86px] rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${person.isActive ? 'border-slate-200 text-ink-600 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-700' : 'border-[#b6df9a] bg-[#eff8e9] text-[#28543a] hover:bg-[#dff0d3]'}`}>{person.isActive ? 'Deactivate' : 'Reactivate'}</button>
                 <button type="button" className="rounded-lg border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-50" onClick={() => setDialog({ mode: 'delete', user: person })}>Delete</button>
               </div>}

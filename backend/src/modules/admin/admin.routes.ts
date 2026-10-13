@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import type { Request } from 'express';
 import { z } from 'zod';
 import { env } from '../../config/env';
 import { audit } from '../../lib/audit';
@@ -10,6 +11,7 @@ import { authenticate } from '../../middleware/authenticate';
 import { authorize } from '../../middleware/authorize';
 import { validate } from '../../middleware/validate';
 import { registerSchema } from '../auth/auth.schema';
+import { resetTenantForAllocation } from './admin.service';
 
 export const adminRoutes = Router();
 adminRoutes.use(authenticate, authorize('SUPER_ADMIN'));
@@ -47,10 +49,16 @@ adminRoutes.get('/users', validate({ query: listSchema }), asyncHandler(async (r
     prisma.user.count({ where }),
     prisma.user.findMany({ where, skip: (page - 1) * pageSize, take: pageSize, orderBy: { createdAt: 'desc' }, select: {
       id: true, email: true, fullName: true, phone: true, role: true, isActive: true, createdAt: true, googleId: true,
-      _count: { select: { properties: true, applications: true, ownedStaff: true } },
+      _count: { select: { properties: true, applications: true, ownedStaff: true, tenancies: { where: { isActive: true } } } },
     } }),
   ]);
   ok(res, { users: users.map(({ googleId, ...user }) => ({ ...user, signInMethod: googleId ? 'Google' : 'Password' })), total, page, pageSize });
+}));
+
+adminRoutes.post('/users/:id/reset-tenant', asyncHandler(async (req, res) => {
+  const result = await resetTenantForAllocation(req.params.id);
+  await audit({ action: 'admin.tenant.reset_for_allocation', entityType: 'User', entityId: req.params.id, metadata: { endedAssignments: result.endedAssignments }, req: req as Request });
+  ok(res, result);
 }));
 
 const createUserSchema = registerSchema.extend({ role: z.enum(['OWNER', 'TENANT']) });

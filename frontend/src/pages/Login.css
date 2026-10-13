@@ -44,6 +44,12 @@
 .login-role-option.is-selected { border-color: #82a97b; background: #eaf3e7; color: #244b32; box-shadow: inset 0 0 0 1px rgba(130, 169, 123, .25); }
 .login-role-option:disabled { cursor: wait; opacity: .65; }
 .login-role-hint { margin-top: 9px; color: #79877b; font-size: 11px; line-height: 1.5; text-align: center; }
+.login-new-tenant { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; border: 1px solid #a9c5a2; border-radius: 10px; background: #f1f8ed; padding: 13px 16px; color: #244431; text-decoration: none; }
+.login-new-tenant:hover { border-color: #658a62; background: #e8f3e3; }
+.login-new-tenant strong, .login-new-tenant small { display: block; }
+.login-new-tenant strong { font-size: 13px; }
+.login-new-tenant small { margin-top: 3px; color: #55725b; font-size: 11px; line-height: 1.4; }
+.login-new-tenant > span:last-child { font-size: 20px; }
 .login-error { margin-top: 24px; }
 .login-connection-note { margin-top: 20px; border: 1px solid #dce6d4; border-radius: 9px; background: #f3f8ef; padding: 11px 13px; color: #49684d; font-size: 12px; line-height: 1.5; text-align: center; }
 .login-google { margin-top: 24px; }

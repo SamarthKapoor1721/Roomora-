@@ -223,7 +223,7 @@ function AddPersonForm({ room, onDone }: { room: RoomBrief; onDone: () => void }
     >
       {Boolean(assign.error) && <ErrorBanner message={apiErrorMessage(assign.error)} />}
 
-      <Field label="Tenant" hint="Search by name or email: only tenants already connected to your properties appear here.">
+      <Field label="Tenant" hint="Search connected tenants by name or email, or enter a fresh tenant’s full email address.">
         {tenantId ? (
           <div className="flex items-center justify-between rounded-lg border border-brand-300 bg-brand-50 px-3 py-2 text-sm">
             <span className="font-medium text-ink-900">{tenantLabel}</span>

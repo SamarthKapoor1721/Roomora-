@@ -58,9 +58,9 @@ export const assignmentsService = {
       }
 
       const dupe = await tx.roomAssignment.findFirst({
-        where: { roomId: room.id, tenantId: app.tenantId, isActive: true },
+        where: { tenantId: app.tenantId, isActive: true },
       });
-      if (dupe) throw conflict('Tenant is already assigned to this room');
+      if (dupe) throw conflict('Tenant already has an active room assignment');
 
       const food = effectiveFood(room, room.property);
       const foodOptIn = food.foodEnabled ? (input.lease.foodOptIn ?? app.foodOptIn) : false;
@@ -133,8 +133,8 @@ export const assignmentsService = {
       const activeCount = await tx.roomAssignment.count({ where: { roomId, isActive: true } });
       if (activeCount >= room.capacity) throw conflict('Room is at full capacity');
       if (activeCount >= room.roommatesLimit) throw conflict(`Roommate limit reached (${room.roommatesLimit})`);
-      const dupe = await tx.roomAssignment.findFirst({ where: { roomId, tenantId: input.tenantId, isActive: true } });
-      if (dupe) throw conflict('Tenant already assigned to this room');
+      const dupe = await tx.roomAssignment.findFirst({ where: { tenantId: input.tenantId, isActive: true } });
+      if (dupe) throw conflict('Tenant already has an active room assignment');
 
       const fullRoom = await tx.room.findUnique({ where: { id: roomId }, include: { property: true } });
       const food = effectiveFood(fullRoom!, fullRoom!.property);

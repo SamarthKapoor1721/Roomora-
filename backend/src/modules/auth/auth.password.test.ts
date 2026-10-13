@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { authService } from './auth.service';
 import { prisma } from '../../lib/prisma';
 import { env } from '../../config/env';
-import { setPasswordSchema } from './auth.schema';
+import { registerSchema, setPasswordSchema } from './auth.schema';
 
 vi.mock('../../lib/prisma', () => ({ prisma: {
   user: { findUnique: vi.fn(), updateMany: vi.fn(), findFirst: vi.fn(), create: vi.fn() },
@@ -20,6 +20,27 @@ const googleUser = {
   phone: null, staffType: null, googleId: 'verified-google-id', passwordHash: null, isActive: true,
 };
 beforeEach(() => vi.clearAllMocks());
+
+describe('new tenant registration', () => {
+  it('allows a tenant to create an account without a room assignment', async () => {
+    const input = registerSchema.parse({ email: 'fresh@example.com', password: 'StrongPass123', fullName: 'Fresh Tenant', role: 'TENANT' });
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(null);
+    vi.mocked(prisma.user.create).mockResolvedValue({ ...googleUser, id: 'fresh-tenant', email: input.email, fullName: input.fullName, googleId: null, passwordHash: 'hashed-password' } as never);
+
+    const result = await authService.register(input, {});
+
+    expect(result.user.role).toBe('TENANT');
+    expect(prisma.user.create).toHaveBeenCalledWith({ data: { email: input.email, passwordHash: 'hashed-password', fullName: input.fullName, phone: undefined, role: 'TENANT' } });
+    expect(prisma.refreshToken.create).toHaveBeenCalled();
+  });
+  it('does not create a second account for an existing tenant email', async () => {
+    const input = registerSchema.parse({ email: 'person@example.com', password: 'StrongPass123', fullName: 'Test Person', role: 'TENANT' });
+    vi.mocked(prisma.user.findUnique).mockResolvedValue(googleUser as never);
+
+    await expect(authService.register(input, {})).rejects.toThrow('already exists');
+    expect(prisma.user.create).not.toHaveBeenCalled();
+  });
+});
 
 describe('Google backup password setup', () => {
   it('sets a password on an authenticated Google account and returns no hash', async () => {

@@ -73,6 +73,8 @@ usersRoutes.get(
             OR: [
               { tenancies: { some: { room: { property: { ownerId: req.user!.id } } } } },
               { applications: { some: { room: { property: { ownerId: req.user!.id } } } } },
+              // A fresh tenant can be found by their exact email for a new owner's allocation.
+              ...(search.includes('@') ? [{ email: { equals: search.toLowerCase() }, tenancies: { none: { isActive: true } } }] : []),
             ],
           },
           ...(search

@@ -104,6 +104,11 @@ export default function Login() {
             <p className="login-role-hint">New Google accounts use this role. Existing accounts keep their assigned workspace.</p>
           </div>
 
+          <Link className="login-new-tenant" to="/register?role=TENANT">
+            <span><strong>New tenant?</strong><small>Create an account to explore properties and rooms.</small></span>
+            <span aria-hidden="true">↗</span>
+          </Link>
+
           {error && <div className="login-error"><ErrorBanner message={error} /></div>}
           {slowConnection && <p className="login-connection-note" role="status">Still connecting to the server. Your sign-in is in progress.</p>}
           <div className="login-google"><GoogleSignIn onCredential={signInWithGoogle} disabled={busy} /></div>
