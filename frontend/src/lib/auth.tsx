@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { AUTH_TIMEOUT_MS, api, tokenStore } from './api';
+import { AUTH_TIMEOUT_MS, api, tokenStore, warmAi } from './api';
 
 export type Role = 'SUPER_ADMIN' | 'OWNER' | 'TENANT' | 'STAFF';
 
@@ -39,7 +39,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     api
       .get('/auth/me', { timeout: AUTH_TIMEOUT_MS })
       .then((res) => {
-        if (!cancelled) setUser(res.data.data);
+        if (!cancelled) {
+          setUser(res.data.data);
+          warmAi();
+        }
       })
       .catch(() => {
         tokenStore.clear();
@@ -58,6 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { accessToken, refreshToken, user: u } = res.data.data;
     tokenStore.set(accessToken, refreshToken);
     setUser(u);
+    warmAi();
     return u as User;
   }, []);
 
@@ -66,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { accessToken, refreshToken, user: u } = res.data.data;
     tokenStore.set(accessToken, refreshToken);
     setUser(u);
+    warmAi();
     return u as User;
   }, []);
 
@@ -75,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { accessToken, refreshToken, user: u } = res.data.data;
       tokenStore.set(accessToken, refreshToken);
       setUser(u);
+      warmAi();
       return u as User;
     },
     [],

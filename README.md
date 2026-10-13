@@ -63,7 +63,7 @@ The API is served under `/api/v1`. Both server services expose `/health` for hea
 
 ### Waking the API and AI service together
 
-The frontend requests the API's `/health` on welcome, login, and registration pages. The backend wakes the configured AI service in the background on startup, health requests, sign-in attempts, and authenticated activity. Concurrent wake requests are combined; a successful check is reused for one minute. If the AI is still starting, the backend retries up to three health checks without delaying sign-in.
+The frontend requests the API's `/health` on welcome, login, and registration pages, and requests the public AI `/health` after successful authentication. The backend also wakes the configured AI service in the background on startup, health requests, sign-in attempts, and authenticated activity. Concurrent wake requests are combined; a successful check is reused for one minute. If the AI is still starting, the backend retries up to three health checks without delaying sign-in.
 
 For the separately hosted Render services, set `AI_SERVICE_URL=https://roomora-9wyb.onrender.com` on **the backend**, then redeploy it. The API `/health` response includes `ai.status` (`warming`, `ready`, or `unavailable`) so you can check the connection. This starts waking AI as you enter the app; it does not guarantee an instant response after inactivity or remove AI provider delays.
 
@@ -124,7 +124,7 @@ The templates are [backend/.env.example](backend/.env.example), [frontend/.env.e
 | Service | Key settings |
 | --- | --- |
 | API | `DATABASE_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `CORS_ORIGIN`, `GOOGLE_CLIENT_ID`, `SUPER_ADMIN_EMAILS`, `UPLOAD_DIR`, `AI_SERVICE_URL` or `AI_SERVICE_HOSTPORT` |
-| Frontend | `VITE_API_ORIGIN` for hosted API access; `VITE_GOOGLE_CLIENT_ID` for Google sign-in |
+| Frontend | `VITE_API_ORIGIN` for hosted API access; optional `VITE_AI_SERVICE_ORIGIN` for the public AI wake URL; `VITE_GOOGLE_CLIENT_ID` for Google sign-in |
 | AI | Optional `NVIDIA_NIM_API_KEY`; model and timeout settings in its example environment file |
 
 ## Deployment

@@ -21,6 +21,7 @@ export const tokenStore = {
 };
 
 const apiOrigin = (import.meta.env.VITE_API_ORIGIN ?? '').replace(/\/$/, '');
+const aiOrigin = (import.meta.env.VITE_AI_SERVICE_ORIGIN ?? 'https://roomora-9wyb.onrender.com').replace(/\/$/, '');
 export const AUTH_TIMEOUT_MS = 90_000;
 
 /** Local Vite proxy in development; an explicit API origin in production. */
@@ -35,6 +36,19 @@ export function warmApi(): void {
     .then(() => undefined)
     .catch(() => undefined)
     .finally(() => { warming = null; });
+}
+
+let warmingAi: Promise<void> | null = null;
+
+/** Wake the public Render AI service after authentication without delaying navigation. */
+export function warmAi(): void {
+  if (!import.meta.env.PROD || !aiOrigin || warmingAi) return;
+  // A cross-origin opaque request is sufficient to wake Render. The browser
+  // does not need to read the health response or expose the AI service to CORS.
+  warmingAi = fetch(`${aiOrigin}/health`, { mode: 'no-cors', cache: 'no-store' })
+    .then(() => undefined)
+    .catch(() => undefined)
+    .finally(() => { warmingAi = null; });
 }
 
 export function assetUrl(relativeUrl: string): string {
