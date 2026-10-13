@@ -38,6 +38,11 @@ export function warmApi(): void {
 }
 
 export function assetUrl(relativeUrl: string): string {
+  // Older API deployments wrapped hosted listing URLs in the local uploads path.
+  // Accept those records while the API is being redeployed.
+  if (relativeUrl.startsWith('/uploads/https://res.cloudinary.com/')) {
+    return relativeUrl.slice('/uploads/'.length);
+  }
   if (/^https:\/\//i.test(relativeUrl)) return relativeUrl;
   return `${apiOrigin}${relativeUrl}`;
 }
