@@ -10,8 +10,10 @@ async function inspect(kind: 'property' | 'room', root: string) {
     ? await prisma.propertyImage.findMany({ select: { path: true } })
     : await prisma.roomImage.findMany({ select: { path: true } });
   let missing = 0;
+  let hosted = 0;
   for (const row of rows) {
     const relative = row.path;
+    if (relative.startsWith('https://res.cloudinary.com/')) { hosted++; continue; }
     const expectedPrefix = kind === 'property' ? 'property-images/' : 'room-images/';
     const file = path.resolve(root, relative);
     if (!relative.startsWith(expectedPrefix) || !file.startsWith(root + path.sep)) {
@@ -22,7 +24,7 @@ async function inspect(kind: 'property' | 'room', root: string) {
     try { await access(file); }
     catch { console.error(`Missing ${kind} image: ${relative}`); missing++; }
   }
-  console.log(`${kind} images: ${rows.length} database record(s), ${missing} missing file(s)`);
+  console.log(`${kind} images: ${rows.length} database record(s), ${hosted} hosted, ${missing} missing local file(s)`);
   return missing;
 }
 

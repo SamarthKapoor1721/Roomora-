@@ -6,6 +6,16 @@ import { prisma } from './prisma';
 
 type UploadedFile = Express.Multer.File;
 
+/** Listing images can live on the API disk or at a hosted HTTPS URL. */
+export function isHostedImage(imagePath: string): boolean {
+  try {
+    const url = new URL(imagePath);
+    return url.protocol === 'https:' && url.hostname === 'res.cloudinary.com';
+  } catch {
+    return false;
+  }
+}
+
 /** Only real images belong in a listing gallery — reject a stray PDF. */
 export function assertImages(files: UploadedFile[]): void {
   for (const f of files) {
@@ -31,13 +41,14 @@ export function imageRows(files: UploadedFile[], startFrom = 0) {
 
 /** Delete the file backing an image row from disk (best-effort). */
 export function unlinkImage(relPath: string): void {
+  if (isHostedImage(relPath)) return;
   const abs = path.join(env.upload.dir, relPath);
   fs.rm(abs, { force: true }, () => undefined);
 }
 
 /** Shape an image row for API responses. */
 export function publicImage(img: { id: string; path: string; originalName: string; sortOrder: number }) {
-  return { id: img.id, url: `/uploads/${img.path}`, name: img.originalName, sortOrder: img.sortOrder };
+  return { id: img.id, url: isHostedImage(img.path) ? img.path : `/uploads/${img.path}`, name: img.originalName, sortOrder: img.sortOrder };
 }
 
 export const propertyImages = {

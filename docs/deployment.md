@@ -41,6 +41,8 @@ When the final Vercel domain is known, update `CORS_ORIGIN` on Render if it diff
 
 The database stores image paths, while the image bytes live in `UPLOAD_DIR`. A push can redeploy the API and erase those bytes if the running service has no persistent disk or uses a different mount path. From the **API service's Shell page** in Render, run `npm --workspace backend run images:check` to show the active upload directory and count missing property and room image files. Running the check on a laptop checks the laptop's files, not Render's disk.
 
+Listing records that use Cloudinary HTTPS URLs are served directly from Cloudinary and do not need a local file. `images:check` reports them as hosted. New owner uploads still use `UPLOAD_DIR` until the upload flow itself is moved to hosted storage.
+
 Fix the disk and `UPLOAD_DIR` first, then restore missing files. If an older API instance still serves the images, `npm --workspace backend run images:sync -- https://OLD-API-ORIGIN` can copy public listing images to the current upload directory, using the same database; run it from the API service's Shell page with the persistent disk mounted. If the old files are gone, the database paths alone cannot reconstruct them. Remove the broken photos in the owner workspace and upload the originals again, or restore a Render disk snapshot if one exists. Re-run `images:check`, then redeploy once and verify the photos still load. Private documents require their own backup; `images:sync` only handles public listing photos.
 
 Roomora includes its public Google OAuth web client ID in the frontend and API as a

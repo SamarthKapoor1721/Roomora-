@@ -14,6 +14,7 @@ async function main() {
   let copied = 0;
   let failed = 0;
   for (const rel of new Set(rows.map((r) => r.path))) {
+    if (rel.startsWith('https://res.cloudinary.com/')) continue;
     const destination = path.resolve(root, rel);
     if (!destination.startsWith(root + path.sep) || !/^(property-images|room-images)\//.test(rel)) throw new Error('Invalid listing image path');
     try { await access(destination); continue; } catch { /* Missing locally. */ }

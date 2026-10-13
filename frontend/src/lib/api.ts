@@ -38,6 +38,7 @@ export function warmApi(): void {
 }
 
 export function assetUrl(relativeUrl: string): string {
+  if (/^https:\/\//i.test(relativeUrl)) return relativeUrl;
   return `${apiOrigin}${relativeUrl}`;
 }
 
