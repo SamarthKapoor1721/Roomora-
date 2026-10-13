@@ -37,6 +37,8 @@ export default function TenantApplicationDetail() {
   const { data, isLoading, error } = useQuery({
     queryKey: ['tenant', 'application', id],
     queryFn: async () => (await api.get(`/tenant/applications/${id}`)).data.data,
+    refetchOnWindowFocus: true,
+    refetchInterval: (query) => query.state.data?.status === 'UNDER_AI_REVIEW' ? 5_000 : false,
   });
 
   const upload = useMutation({
@@ -60,7 +62,8 @@ export default function TenantApplicationDetail() {
   });
   const submit = useMutation({
     mutationFn: async () => (await api.post(`/tenant/applications/${id}/submit`)).data,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['tenant', 'application', id] }),
+    // Screening may continue on the server after the HTTP request times out.
+    onSettled: () => qc.invalidateQueries({ queryKey: ['tenant', 'application', id] }),
   });
   const withdraw = useMutation({
     mutationFn: async () => (await api.post(`/tenant/applications/${id}/withdraw`)).data,
