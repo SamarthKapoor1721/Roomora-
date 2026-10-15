@@ -36,6 +36,9 @@ APP_SUMMARY_SYSTEM = (
     "Uploaded does not mean verified. Label declared income as self-reported unless "
     "INCOME_PROOF passed content inspection. Include invalid or unreadable proofs and "
     "unavailable inspection in concerns; never describe such an application as fully verified. "
+    "If familyDetails are provided, summarize which family members or relatives will move in, "
+    "compare the description with the declared occupant count, and flag unclear or conflicting details. "
+    "Treat household details as self-reported, never verified. "
     'Return JSON: {"summary": string, "highlights": string[], "concerns": string[]}.'
 )
 

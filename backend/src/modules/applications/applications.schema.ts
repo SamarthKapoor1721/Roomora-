@@ -13,7 +13,7 @@ export const DOCUMENT_TYPES = [
 /** Documents an applicant is expected to provide for a standard application. */
 export const REQUIRED_DOCUMENTS = ['ID_PROOF', 'ADDRESS_PROOF', 'INCOME_PROOF'] as const;
 
-export const applySchema = z.object({
+const applicationFields = z.object({
   roomId: z.string().min(1),
   applicantName: z.string().trim().min(2).max(120),
   dateOfBirth: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Enter a valid date of birth').refine((value) => {
@@ -26,13 +26,27 @@ export const applySchema = z.object({
   currentAddress: z.string().trim().min(5).max(400),
   moveInDate: z.coerce.date().optional(),
   occupants: z.number().int().min(1).max(20).default(1),
+  hasFamilyMembers: z.boolean().default(false),
+  familyDetails: z.string().trim().max(2000).optional(),
   hasPets: z.boolean().default(false),
   smoker: z.boolean().default(false),
   notes: z.string().max(2000).optional(),
   foodOptIn: z.boolean().default(false),
 });
 
-export const updateApplicationSchema = applySchema.omit({ roomId: true }).partial();
+export const applySchema = applicationFields.superRefine((input, ctx) => {
+  if (input.hasFamilyMembers && (!input.familyDetails || input.familyDetails.length < 10)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['familyDetails'], message: 'Describe who will live with you (at least 10 characters)' });
+  }
+  if (input.hasFamilyMembers && input.occupants < 2) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['occupants'], message: 'Include family members in the number of occupants' });
+  }
+  if (!input.hasFamilyMembers && input.familyDetails) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['familyDetails'], message: 'Select the family members checkbox to add these details' });
+  }
+});
+
+export const updateApplicationSchema = applicationFields.omit({ roomId: true }).partial();
 
 export const uploadDocMetaSchema = z.object({
   type: z.enum(DOCUMENT_TYPES),

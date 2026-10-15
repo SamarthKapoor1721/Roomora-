@@ -66,6 +66,8 @@ export const applicationsService = {
         currentAddress: (input.currentAddress as string) ?? null,
         moveInDate: (input.moveInDate as Date) ?? null,
         occupants: (input.occupants as number) ?? 1,
+        hasFamilyMembers: Boolean(input.hasFamilyMembers),
+        familyDetails: input.hasFamilyMembers ? (input.familyDetails as string) : null,
         hasPets: Boolean(input.hasPets),
         smoker: Boolean(input.smoker),
         notes: (input.notes as string) ?? null,
@@ -91,7 +93,14 @@ export const applicationsService = {
     if (!['DOCS_PENDING', 'SUBMITTED'].includes(app.status)) {
       throw conflict('Application can no longer be edited');
     }
-    return prisma.application.update({ where: { id }, data: input as never });
+    const hasFamilyMembers = (input.hasFamilyMembers as boolean | undefined) ?? app.hasFamilyMembers;
+    const familyDetails = (input.familyDetails as string | undefined) ?? app.familyDetails;
+    const occupants = (input.occupants as number | undefined) ?? app.occupants;
+    if (hasFamilyMembers && (!familyDetails || familyDetails.trim().length < 10 || occupants < 2)) {
+      throw badRequest('Describe the family members moving in and include them in the occupant count');
+    }
+    if (!hasFamilyMembers && input.familyDetails) throw badRequest('Select the family members checkbox to add these details');
+    return prisma.application.update({ where: { id }, data: { ...input, ...(hasFamilyMembers ? {} : { familyDetails: null }) } as never });
   },
 
   async withdraw(tenantId: string, id: string) {
@@ -424,7 +433,7 @@ export async function runAiScreening(applicationId: string): Promise<void> {
 
   // 2. Eligibility is calculated only after inspecting actual document content.
   const eligibility = assessEligibility(
-    { monthlyIncome: app.monthlyIncome ? Number(app.monthlyIncome) : null, occupants: app.occupants },
+    { monthlyIncome: app.monthlyIncome ? Number(app.monthlyIncome) : null, occupants: app.occupants, hasFamilyMembers: app.hasFamilyMembers, familyDetails: app.familyDetails },
     { monthlyRent: Number(room.monthlyRent), capacity: room.capacity, roommatesLimit: room.roommatesLimit },
     docVerify,
   );
@@ -467,6 +476,8 @@ export async function runAiScreening(applicationId: string): Promise<void> {
       employmentStatus: app.employmentStatus,
       employerName: app.employerName,
       occupants: app.occupants,
+      hasFamilyMembers: app.hasFamilyMembers,
+      familyDetails: app.familyDetails,
       hasPets: app.hasPets,
       smoker: app.smoker,
       notes: app.notes,

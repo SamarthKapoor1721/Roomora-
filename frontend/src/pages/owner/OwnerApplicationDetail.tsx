@@ -246,10 +246,17 @@ export default function OwnerApplicationDetail() {
             <ReportField label="Employment" value={data.employmentStatus ?? 'Not supplied'} />
             <ReportField label="Employer" value={data.employerName ?? 'Not supplied'} />
             <ReportField label="Occupants" value={String(data.occupants)} />
+            <ReportField label="Family or relatives moving in" value={data.hasFamilyMembers ? 'Yes' : 'No'} />
             <ReportField label="Pets" value={data.hasPets ? 'Yes' : 'No'} />
             <ReportField label="Smoking" value={data.smoker ? 'Yes' : 'No'} />
             <ReportField label="Food opt-in" value={data.foodOptIn ? 'Yes' : 'No'} />
           </dl>
+          {data.hasFamilyMembers && data.familyDetails && (
+            <div className="mt-5 border-l-2 border-brand-300 pl-4 text-sm leading-6 text-ink-600">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-500">Family or relative details · self-reported</p>
+              <p className="mt-1 whitespace-pre-wrap">{data.familyDetails}</p>
+            </div>
+          )}
           {data.notes && (
             <div className="mt-5 border-l-2 border-slate-300 pl-4 text-sm leading-6 text-ink-600">
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-500">Applicant notes</p>

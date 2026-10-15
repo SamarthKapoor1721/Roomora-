@@ -56,4 +56,16 @@ describe('document-supported eligibility', () => {
     expect(result.recommendation).toBe('REVIEW');
     expect(result.warnings.join(' ')).toContain('date of birth');
   });
+  it('awards a small disclosure bonus for described family members who fit the room', () => {
+    const baseline = assessEligibility({ ...applicant, occupants: 2 }, { ...room, monthlyRent: 30000 }, review('VERIFIED'));
+    const family = assessEligibility({ ...applicant, occupants: 2, hasFamilyMembers: true, familyDetails: 'My spouse will live with me' }, { ...room, monthlyRent: 30000 }, review('VERIFIED'));
+    expect(family.score).toBe(baseline.score + 5);
+    expect(family.reasons.join(' ')).toContain('self-reported');
+  });
+  it('does not award the bonus for unclear details or too many occupants', () => {
+    const unclear = assessEligibility({ ...applicant, occupants: 2, hasFamilyMembers: true, familyDetails: 'Someone will join me' }, room, review('VERIFIED'));
+    expect(unclear.reasons.join(' ')).not.toContain('disclosure points');
+    const overLimit = assessEligibility({ ...applicant, occupants: 3, hasFamilyMembers: true, familyDetails: 'My spouse and child will join me' }, room, review('VERIFIED'));
+    expect(overLimit.reasons.join(' ')).not.toContain('disclosure points');
+  });
 });

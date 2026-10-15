@@ -3,7 +3,7 @@ import { REQUIRED_DOCUMENTS } from './applications.schema';
 
 /** Transparent evidence-based criteria; an upload label never earns points. */
 export function assessEligibility(
-  applicant: { monthlyIncome: number | null; occupants: number },
+  applicant: { monthlyIncome: number | null; occupants: number; hasFamilyMembers?: boolean; familyDetails?: string | null },
   room: { monthlyRent: number; capacity: number; roommatesLimit: number },
   review: DocVerificationResponse,
 ): EligibilityResponse {
@@ -40,6 +40,15 @@ export function assessEligibility(
     score += 10;
     reasons.push(`Requested occupants fit the room capacity and roommate limit (${limit}; 10 points).`);
   } else warnings.push(`Requested occupants exceed the room's occupancy limit (${limit}).`);
+
+  const familyDescription = applicant.familyDetails?.trim() ?? '';
+  const identifiesRelation = /\b(spouse|wife|husband|partner|son|daughter|child|children|mother|mum|mom|father|dad|parent|parents|sister|brother|grandparent|grandmother|grandfather|aunt|uncle|cousin|niece|nephew|relative|relatives|family)\b/i.test(familyDescription);
+  if (applicant.hasFamilyMembers && applicant.occupants > 1 && applicant.occupants <= limit && familyDescription.length >= 10 && identifiesRelation && missing.length === 0) {
+    score += 5;
+    reasons.push('Family or relative household members were described and included in the room occupancy count (5 disclosure points; details are self-reported).');
+  } else if (applicant.hasFamilyMembers && !identifiesRelation) {
+    warnings.push('Family details do not clearly identify who else will live in the room; owner review recommended.');
+  }
 
   if (missing.length) warnings.push(`Valid proofs still needed: ${missing.join(', ')}. Manual review required.`);
   const invalid = results.some((doc) => doc.status === 'INCONSISTENT');

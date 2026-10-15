@@ -45,6 +45,7 @@ The backend computes a transparent score after document inspection:
 | Affordability | 20 | Document income ≥3× rent: 20, ≥2.5×: 16, ≥2×: 12, ≥1.5×: 6, below: 0 |
 | Required proofs | 10 | Valid ID, address, and income proofs |
 | Occupancy | 10 | Requested occupants fit capacity and roommate limit |
+| Family household disclosure | Bonus up to 5, capped at 100 overall | Family or relatives are described, counted as occupants, fit the room, and required proofs passed |
 
 Self-reported income earns no affordability points. Employment claims, pets,
 and smoking do not add or subtract points. Any inconsistent proof caps the score
@@ -56,6 +57,8 @@ the rent limits the recommendation to `MODERATE`.
 This is an advisory criteria match, never a probability of approval.
 The score uses deterministic rules (`source: RULE_BASED_FALLBACK`) even when the
 underlying document inspection uses NVIDIA AI.
+Family details remain self-reported. The summary describes them and flags unclear
+or conflicting occupancy for the owner to review.
 
 ## Summary and handoff
 

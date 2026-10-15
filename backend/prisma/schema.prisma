@@ -372,6 +372,8 @@ model Application {
   currentAddress   String?
   moveInDate       DateTime?
   occupants        Int       @default(1)
+  hasFamilyMembers Boolean   @default(false)
+  familyDetails    String?
   hasPets          Boolean   @default(false)
   smoker           Boolean   @default(false)
   notes            String?

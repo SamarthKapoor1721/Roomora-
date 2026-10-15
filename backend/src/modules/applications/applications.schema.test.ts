@@ -20,4 +20,10 @@ describe('application applicant details', () => {
     expect(applySchema.safeParse({ ...details, dateOfBirth: '2001-02-29' }).success).toBe(false);
     expect(applySchema.safeParse({ ...details, dateOfBirth: '2999-01-01' }).success).toBe(false);
   });
+
+  it('requires a description and occupant count when family will move in', () => {
+    expect(applySchema.safeParse({ ...details, hasFamilyMembers: true, occupants: 1, familyDetails: 'My wife' }).success).toBe(false);
+    expect(applySchema.safeParse({ ...details, hasFamilyMembers: true, occupants: 2, familyDetails: 'My spouse will live with me' }).success).toBe(true);
+    expect(applySchema.safeParse({ ...details, hasFamilyMembers: false, familyDetails: 'My spouse will live with me' }).success).toBe(false);
+  });
 });

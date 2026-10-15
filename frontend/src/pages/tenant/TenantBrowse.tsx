@@ -215,6 +215,8 @@ function ApplyModal({ room, onClose, onApplied }: { room: Room; onClose: () => v
     employerName: '',
     currentAddress: '',
     occupants: 1,
+    hasFamilyMembers: false,
+    familyDetails: '',
     hasPets: false,
     smoker: false,
     notes: '',
@@ -301,6 +303,29 @@ function ApplyModal({ room, onClose, onApplied }: { room: Room; onClose: () => v
           <Field label="Number of occupants" className="w-40">
             <NumberInput value={f.occupants} onChange={(occupants) => setF({ ...f, occupants })} min={1} />
           </Field>
+          <div className="rounded-lg border border-slate-200 p-3">
+            <label className="flex items-start gap-2 text-sm text-ink-700">
+              <input type="checkbox" className="mt-0.5" checked={f.hasFamilyMembers} onChange={(e) => setF({ ...f, hasFamilyMembers: e.target.checked, familyDetails: e.target.checked ? f.familyDetails : '', occupants: e.target.checked ? Math.max(2, f.occupants) : f.occupants })} />
+              <span>Will any family members or relatives live with you?</span>
+            </label>
+            {f.hasFamilyMembers && (
+              <div className="mt-3">
+                <Field label="Family or relative details">
+                  <textarea
+                    className="input"
+                    rows={3}
+                    value={f.familyDetails}
+                    onChange={(e) => setF({ ...f, familyDetails: e.target.value })}
+                    placeholder="For example: my spouse and our child will live with me"
+                    minLength={10}
+                    maxLength={2000}
+                    required
+                  />
+                </Field>
+                <p className="mt-1 text-xs text-ink-500">Describe who will move in with you, and include everyone in the number of occupants above. These details are reviewed during screening.</p>
+              </div>
+            )}
+          </div>
           <div className="flex gap-5 text-sm text-ink-700">
             <label className="flex items-center gap-2">
               <input type="checkbox" checked={f.hasPets} onChange={(e) => setF({ ...f, hasPets: e.target.checked })} /> Has pets

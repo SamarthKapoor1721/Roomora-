@@ -10,6 +10,8 @@ export interface EligibilityRequest {
     employmentStatus?: string | null;
     employerName?: string | null;
     occupants: number;
+    hasFamilyMembers?: boolean;
+    familyDetails?: string | null;
     hasPets: boolean;
     smoker: boolean;
     notes?: string | null;

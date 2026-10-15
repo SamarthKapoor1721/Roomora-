@@ -200,6 +200,8 @@ def summarize_application(payload: dict) -> SummaryResponse:
     summary = ", ".join(parts) + "."
     if elig.get("score") is not None:
         summary += f" Criteria match: {elig['score']}% ({elig.get('recommendation', 'REVIEW')})."
+    if a.get("hasFamilyMembers") and a.get("familyDetails"):
+        summary += f" Applicant reports {a.get('occupants', 1)} occupants, including family or relatives: {a['familyDetails']}. These household details are self-reported."
 
     highlights: list[str] = []
     concerns: list[str] = list(elig.get("warnings", []))
