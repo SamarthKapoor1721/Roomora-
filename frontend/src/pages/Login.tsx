@@ -12,7 +12,7 @@ export default function Login() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const selectedRole = searchParams.get('role') === 'OWNER' ? 'OWNER' : 'TENANT';
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -41,7 +41,7 @@ export default function Login() {
     setBusy(true);
     setError('');
     try {
-      const signedIn = await login(email, password);
+      const signedIn = await login(identifier, password);
       navigate(`/${signedIn.role.toLowerCase()}`);
     } catch (err) {
       setError(apiErrorMessage(err));
@@ -92,7 +92,7 @@ export default function Login() {
           </div>
 
           <div className="login-role-section">
-            <p className="login-role-label">I’m signing in as</p>
+            <p className="login-role-label">For new Google accounts</p>
             <div className="login-role-options" role="group" aria-label="Choose account type">
               <button type="button" className={`login-role-option ${selectedRole === 'TENANT' ? 'is-selected' : ''}`} aria-pressed={selectedRole === 'TENANT'} onClick={() => chooseRole('TENANT')} disabled={busy}>
                 <Icon name="home" size={18} /><span>Tenant</span>
@@ -101,7 +101,7 @@ export default function Login() {
                 <Icon name="building" size={18} /><span>Property owner</span>
               </button>
             </div>
-            <p className="login-role-hint">New Google accounts use this role. Existing accounts keep their assigned workspace.</p>
+            <p className="login-role-hint">Existing accounts keep their assigned workspace. Staff can sign in below with a phone number or worker ID.</p>
           </div>
 
           <Link className="login-new-tenant" to="/register?role=TENANT">
@@ -112,11 +112,11 @@ export default function Login() {
           {error && <div className="login-error"><ErrorBanner message={error} /></div>}
           {slowConnection && <p className="login-connection-note" role="status">Still connecting to the server. Your sign-in is in progress.</p>}
           <div className="login-google"><GoogleSignIn onCredential={signInWithGoogle} disabled={busy} /></div>
-          <div className="login-divider"><span />or sign in with email<span /></div>
+          <div className="login-divider"><span />or sign in with a password<span /></div>
 
           <form onSubmit={submit} className="login-form">
-            <label className="login-label" htmlFor="login-email">Email address</label>
-            <input id="login-email" className="login-input" type="email" autoComplete="username" placeholder="you@example.com" value={email} onChange={(event) => setEmail(event.target.value)} required />
+            <label className="login-label" htmlFor="login-email">Email, staff phone or worker ID</label>
+            <input id="login-email" className="login-input" type="text" autoComplete="username" placeholder="Email, phone or worker ID" value={identifier} onChange={(event) => setIdentifier(event.target.value)} required />
             <label className="login-label login-password-label" htmlFor="login-password">Password</label>
             <div className="login-password-wrap">
               <input id="login-password" className="login-input" type={showPassword ? 'text' : 'password'} autoComplete="current-password" placeholder="Enter your password" value={password} onChange={(event) => setPassword(event.target.value)} required />

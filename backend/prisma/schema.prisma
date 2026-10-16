@@ -226,12 +226,14 @@ model StaffProfile {
   ownerId   String
   owner     User      @relation("StaffOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   staffType StaffType
+  workerId  String?
   skills    String[]  @default([])
   isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
   @@index([ownerId])
+  @@index([workerId])
 }
 
 // ---------------------------------------------------------------------------

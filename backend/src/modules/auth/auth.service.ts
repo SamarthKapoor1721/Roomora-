@@ -32,7 +32,7 @@ function toPublicUser(u: {
 }) {
   return {
     id: u.id,
-    email: u.email,
+    email: u.role === 'STAFF' && u.email.endsWith('@accounts.roomora.invalid') ? '' : u.email,
     fullName: u.fullName,
     role: u.role,
     phone: u.phone,
@@ -84,10 +84,13 @@ export const authService = {
   },
 
   async login(input: LoginInput, meta: SessionMeta) {
-    const user = await prisma.user.findUnique({ where: { email: input.email } });
-    if (!user || !user.isActive || !user.passwordHash || (user.role === 'SUPER_ADMIN' && !env.superAdminEmails.includes(user.email))) throw unauthorized('Invalid email or password');
+    const identifier = input.email.trim();
+    const user = identifier.includes('@')
+      ? await prisma.user.findUnique({ where: { email: identifier.toLowerCase() } })
+      : await prisma.user.findFirst({ where: { role: 'STAFF', OR: [{ phone: identifier }, { staffProfile: { is: { workerId: identifier } } }] } });
+    if (!user || !user.isActive || !user.passwordHash || (user.role === 'SUPER_ADMIN' && !env.superAdminEmails.includes(user.email))) throw unauthorized('Invalid credentials');
     const valid = await verifyPassword(input.password, user.passwordHash);
-    if (!valid) throw unauthorized('Invalid email or password');
+    if (!valid) throw unauthorized('Invalid credentials');
 
     const session = await issueSession(user, meta);
     return { user: toPublicUser(user), ...session };

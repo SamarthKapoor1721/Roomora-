@@ -6,7 +6,7 @@ import { Badge, Chip, EmptyState, ErrorBanner, PageHeader, Spinner } from '../..
 
 interface Staff {
   id: string;
-  email: string;
+  workerId: string | null;
   fullName: string;
   phone: string | null;
   staffType: string;
@@ -19,6 +19,7 @@ interface Staff {
 export default function OwnerStaff() {
   const qc = useQueryClient();
   const [showForm, setShowForm] = useState(false);
+  const [createdWorker, setCreatedWorker] = useState<{ name: string; id: string } | null>(null);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['owner', 'staff', 'all'],
@@ -26,9 +27,10 @@ export default function OwnerStaff() {
   });
 
   const create = useMutation({
-    mutationFn: async (b: unknown) => (await api.post('/owner/staff', b)).data,
-    onSuccess: () => {
+    mutationFn: async (b: unknown) => (await api.post('/owner/staff', b)).data.data as Staff,
+    onSuccess: (staff) => {
       setShowForm(false);
+      setCreatedWorker({ name: staff.fullName, id: staff.workerId! });
       qc.invalidateQueries({ queryKey: ['owner', 'staff'] });
     },
   });
@@ -52,6 +54,12 @@ export default function OwnerStaff() {
           </button>
         }
       />
+
+      {createdWorker && (
+        <div className="card mb-4 text-sm text-ink-700" role="status">
+          Worker ID for {createdWorker.name}: <strong className="text-ink-900">{createdWorker.id}</strong>. Share it with the worker for sign-in.
+        </div>
+      )}
 
       {showForm && (
         <div className="mb-4">
@@ -77,7 +85,7 @@ export default function OwnerStaff() {
                   <div>
                     <p className="text-sm font-semibold text-ink-900">{s.fullName}</p>
                     <p className="text-xs text-ink-500">
-                      {s.email} · {s.phone ?? 'no phone'}
+                      {s.phone ?? 'No phone'}{s.workerId ? ` · ID: ${s.workerId}` : ''}
                     </p>
                   </div>
                 </div>
@@ -128,7 +136,6 @@ export default function OwnerStaff() {
 function StaffForm({ onSubmit, pending, error }: { onSubmit: (b: unknown) => void; pending: boolean; error: unknown }) {
   const [f, setF] = useState({
     fullName: '',
-    email: '',
     password: '',
     phone: '',
     staffType: 'MAINTENANCE',
@@ -148,14 +155,14 @@ function StaffForm({ onSubmit, pending, error }: { onSubmit: (b: unknown) => voi
       {error != null && <ErrorBanner message={apiErrorMessage(error)} />}
       <div className="grid gap-3 md:grid-cols-2">
         <input className="input" placeholder="Full name" value={f.fullName} onChange={(e) => setF({ ...f, fullName: e.target.value })} required />
-        <input className="input" placeholder="Email" type="email" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} required />
+        <input className="input" placeholder="Phone number" type="tel" minLength={6} maxLength={20} autoComplete="tel" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} required />
         <input className="input" placeholder="Temporary password" type="password" minLength={8} autoComplete="new-password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} required />
-        <input className="input" placeholder="Phone" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} />
         <select className="input" value={f.staffType} onChange={(e) => setF({ ...f, staffType: e.target.value })}>
           {['MAINTENANCE', 'CLEANING', 'GENERAL'].map((x) => <option key={x}>{x}</option>)}
         </select>
         <input className="input" placeholder="Skills (comma-separated)" value={f.skills} onChange={(e) => setF({ ...f, skills: e.target.value })} />
       </div>
+      <p className="text-xs text-ink-500">A numeric worker ID is generated automatically. Staff can sign in with it or their phone number and the temporary password.</p>
       <button className="btn-primary" disabled={pending}>Create staff account</button>
     </form>
   );

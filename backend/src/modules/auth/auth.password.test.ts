@@ -104,7 +104,24 @@ describe('super admin email/password login', () => {
   it('denies a super admin removed from configuration', async () => {
     const email = 'removed-admin@example.com';
     vi.mocked(prisma.user.findUnique).mockResolvedValue({ ...googleUser, email, role: 'SUPER_ADMIN', passwordHash: 'existing-hash' } as never);
-    await expect(authService.login({ email, password: 'StrongPass123' }, {})).rejects.toThrow('Invalid email or password');
+    await expect(authService.login({ email, password: 'StrongPass123' }, {})).rejects.toThrow('Invalid credentials');
     expect(prisma.refreshToken.create).not.toHaveBeenCalled();
+  });
+});
+
+describe('staff password login', () => {
+  it.each(['9876543210', 'CLEANER_12'])('signs in with %s without an email address', async (identifier) => {
+    vi.mocked(prisma.user.findFirst).mockResolvedValue({
+      ...googleUser, id: 'staff-user', email: 'staff-random@accounts.roomora.invalid',
+      role: 'STAFF', phone: '9876543210', passwordHash: 'existing-hash',
+    } as never);
+
+    const result = await authService.login({ email: identifier, password: 'StrongPass123' }, {});
+
+    expect(prisma.user.findFirst).toHaveBeenCalledWith({ where: {
+      role: 'STAFF', OR: [{ phone: identifier }, { staffProfile: { is: { workerId: identifier } } }],
+    } });
+    expect(result.user.email).toBe('');
+    expect(result.user.role).toBe('STAFF');
   });
 });

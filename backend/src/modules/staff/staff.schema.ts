@@ -1,10 +1,9 @@
 import { z } from 'zod';
 
 export const createStaffSchema = z.object({
-  email: z.string().email().toLowerCase().trim(),
   password: z.string().min(8).max(128).regex(/[a-z]/).regex(/[A-Z]/).regex(/[0-9]/),
   fullName: z.string().min(2).max(120).trim(),
-  phone: z.string().min(6).max(20).optional(),
+  phone: z.string().trim().min(6).max(20),
   staffType: z.enum(['MAINTENANCE', 'CLEANING', 'GENERAL']),
   skills: z.array(z.string().max(60)).max(40).optional(),
 });
