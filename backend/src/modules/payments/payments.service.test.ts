@@ -1,5 +1,13 @@
-import { describe, expect, it } from 'vitest';
-import { derivePaymentState } from './payments.service';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const prismaMock = vi.hoisted(() => ({
+  lease: { findMany: vi.fn() },
+  payment: { upsert: vi.fn() },
+}));
+
+vi.mock('../../lib/prisma', () => ({ prisma: prismaMock }));
+
+import { derivePaymentState, ensureCurrentMonthInvoiceForTenant } from './payments.service';
 
 const base = {
   totalAmount: 10000,
@@ -8,6 +16,29 @@ const base = {
   paidDate: null as Date | null,
   status: 'PENDING',
 };
+
+beforeEach(() => {
+  vi.resetAllMocks();
+  prismaMock.lease.findMany.mockResolvedValue([{ id: 'lease-1', monthlyRent: 15000, foodCharge: 300, rentDueDay: 5, startDate: new Date('2026-10-01') }]);
+  prismaMock.payment.upsert.mockResolvedValue({ id: 'payment-1' });
+});
+
+describe('ensureCurrentMonthInvoiceForTenant', () => {
+  it('creates the current month invoice for every active lease', async () => {
+    await ensureCurrentMonthInvoiceForTenant('tenant-1');
+
+    expect(prismaMock.lease.findMany).toHaveBeenCalledWith({
+      where: { tenantId: 'tenant-1', status: 'ACTIVE' },
+      select: { id: true, monthlyRent: true, foodCharge: true, rentDueDay: true, startDate: true },
+    });
+    expect(prismaMock.payment.upsert).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        leaseId_periodYear_periodMonth: expect.objectContaining({ leaseId: 'lease-1' }),
+      }),
+      create: expect.objectContaining({ tenantId: 'tenant-1', rentAmount: 15000, foodAmount: 300 }),
+    }));
+  });
+});
 
 describe('derivePaymentState', () => {
   it('marks fully-paid on-time payments PAID with 0 days late', () => {

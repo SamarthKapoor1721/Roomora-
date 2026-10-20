@@ -47,14 +47,64 @@ async function ownerPaymentOrThrow(ownerId: string, id: string) {
   return payment;
 }
 
+export async function ensureCurrentMonthInvoiceForTenant(tenantId: string, year?: number, month?: number) {
+  const now = new Date();
+  const currentYear = year ?? now.getUTCFullYear();
+  const currentMonth = month ?? now.getUTCMonth() + 1;
+
+  const activeLeases = await prisma.lease.findMany({
+    where: { tenantId, status: 'ACTIVE' },
+    select: { id: true, monthlyRent: true, foodCharge: true, rentDueDay: true, startDate: true },
+  });
+
+  if (!activeLeases.length) return [];
+
+  const results = await Promise.allSettled(
+    activeLeases.map(async (lease) => {
+      const dueDay = Math.min(lease.rentDueDay, 28);
+      const dueDate = new Date(Date.UTC(currentYear, currentMonth - 1, dueDay, 0, 0, 0));
+      const totalAmount = roundMoney(Number(lease.monthlyRent) + Number(lease.foodCharge ?? 0));
+      return prisma.payment.upsert({
+        where: {
+          leaseId_periodYear_periodMonth: {
+            leaseId: lease.id,
+            periodYear: currentYear,
+            periodMonth: currentMonth,
+          },
+        },
+        update: {},
+        create: {
+          leaseId: lease.id,
+          tenantId,
+          periodMonth: currentMonth,
+          periodYear: currentYear,
+          rentAmount: Number(lease.monthlyRent),
+          foodAmount: Number(lease.foodCharge ?? 0),
+          otherAmount: 0,
+          totalAmount,
+          dueDate,
+          status: 'PENDING',
+        },
+      });
+    }),
+  );
+
+  return results.filter((result) => result.status === 'fulfilled').map((result) => (result as PromiseFulfilledResult<unknown>).value);
+}
+
 export const paymentsService = {
   /**
    * Generate the invoice for a lease for a given month/year.
    * Idempotent thanks to the (leaseId, year, month) unique constraint.
+   * Verifies the lease belongs to ownerId before generating.
    */
-  async generateForPeriod(leaseId: string, year: number, month: number) {
-    const lease = await prisma.lease.findUnique({ where: { id: leaseId } });
+  async generateForPeriod(ownerId: string, leaseId: string, year: number, month: number) {
+    const lease = await prisma.lease.findUnique({
+      where: { id: leaseId },
+      include: { room: { include: { property: true } } },
+    });
     if (!lease) throw notFound('Lease not found');
+    if (lease.room.property.ownerId !== ownerId) throw forbidden('Not your lease');
     if (lease.status !== 'ACTIVE') throw conflict('Lease is not active');
 
     const existing = await prisma.payment.findUnique({
@@ -93,7 +143,7 @@ export const paymentsService = {
       select: { id: true },
     });
     const results = await Promise.allSettled(
-      leases.map((l) => this.generateForPeriod(l.id, y, m)),
+      leases.map((l) => this.generateForPeriod(ownerId, l.id, y, m)),
     );
     const created = results.filter((r) => r.status === 'fulfilled').length;
     return { period: { year: y, month: m }, leases: leases.length, processed: created };
@@ -211,6 +261,7 @@ export const paymentsService = {
   },
 
   async listForTenant(tenantId: string, query: Record<string, unknown>) {
+    await ensureCurrentMonthInvoiceForTenant(tenantId);
     const { skip, take, page, pageSize } = parsePage(query);
     const where: Prisma.PaymentWhereInput = { tenantId };
     if (query.status) where.status = query.status as never;

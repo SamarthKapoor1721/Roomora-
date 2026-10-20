@@ -5,6 +5,51 @@ import { notify } from '../../lib/notify';
 import { prisma } from '../../lib/prisma';
 import { effectiveFood } from '../rooms/rooms.service';
 
+function roundMoney(amount: number): number {
+  return Math.round((amount + Number.EPSILON) * 100) / 100;
+}
+
+async function ensureLeaseInvoice(
+  tx: Prisma.TransactionClient,
+  lease: { id: string; tenantId: string; startDate: Date; monthlyRent: number; foodCharge?: number; rentDueDay: number },
+) {
+  const periodDate = new Date(lease.startDate);
+  const periodMonth = periodDate.getUTCMonth() + 1;
+  const periodYear = periodDate.getUTCFullYear();
+  const dueDay = Math.min(lease.rentDueDay, 28);
+  const dueDate = new Date(Date.UTC(periodYear, periodMonth - 1, dueDay, 0, 0, 0));
+  const rentAmount = Number(lease.monthlyRent);
+  const foodAmount = Number(lease.foodCharge ?? 0);
+  const totalAmount = roundMoney(rentAmount + foodAmount);
+
+  const existing = await tx.payment.findUnique({
+    where: {
+      leaseId_periodYear_periodMonth: {
+        leaseId: lease.id,
+        periodYear,
+        periodMonth,
+      },
+    },
+  });
+
+  if (existing) return existing;
+
+  return tx.payment.create({
+    data: {
+      leaseId: lease.id,
+      tenantId: lease.tenantId,
+      periodMonth,
+      periodYear,
+      rentAmount,
+      foodAmount,
+      otherAmount: 0,
+      totalAmount,
+      dueDate,
+      status: 'PENDING',
+    },
+  });
+}
+
 interface LeaseTerms {
   startDate: Date;
   endDate: Date;
@@ -92,6 +137,15 @@ export const assignmentsService = {
         },
       });
 
+      await ensureLeaseInvoice(tx, {
+        id: lease.id,
+        tenantId: app.tenantId,
+        startDate: input.lease.startDate,
+        monthlyRent,
+        foodCharge: foodOptIn ? food.foodCharge : 0,
+        rentDueDay: input.lease.rentDueDay,
+      });
+
       await tx.application.update({
         where: { id: app.id },
         data: {
@@ -162,6 +216,14 @@ export const assignmentsService = {
           status: 'ACTIVE',
           terms: input.lease.terms,
         },
+      });
+      await ensureLeaseInvoice(tx, {
+        id: lease.id,
+        tenantId: input.tenantId,
+        startDate: input.lease.startDate,
+        monthlyRent: input.lease.monthlyRent ?? Number(room.monthlyRent),
+        foodCharge: foodOptIn ? food.foodCharge : 0,
+        rentDueDay: input.lease.rentDueDay,
       });
       await recomputeRoomOccupancy(tx, roomId);
       await notify({

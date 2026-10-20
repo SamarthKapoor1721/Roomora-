@@ -5,6 +5,7 @@ const db = vi.hoisted(() => ({
   tenancyRequest: { findFirst: vi.fn(), create: vi.fn(), updateMany: vi.fn() },
   room: { findFirst: vi.fn(), findUniqueOrThrow: vi.fn(), update: vi.fn() },
   lease: { findMany: vi.fn(), create: vi.fn(), updateMany: vi.fn() },
+  payment: { findUnique: vi.fn(), create: vi.fn() },
   notification: { create: vi.fn() },
 }));
 vi.mock('../../lib/prisma', () => ({ prisma: { ...db, $transaction: (fn: (tx: typeof db) => unknown) => fn(db) } }));
@@ -20,6 +21,8 @@ beforeEach(() => {
   db.room.findUniqueOrThrow.mockResolvedValue({ capacity: 2, roommatesLimit: 2, status: 'OCCUPIED', applicationsOpen: true });
   db.roomAssignment.count.mockResolvedValue(0);
   db.lease.findMany.mockResolvedValue([]);
+  db.payment.findUnique.mockResolvedValue(null);
+  db.lease.create.mockResolvedValue({ id: 'next-lease', tenantId: 'tenant', roomId: 'target', monthlyRent: 12000, foodCharge: 0, rentDueDay: 5 });
 });
 
 describe('tenancy requests', () => {

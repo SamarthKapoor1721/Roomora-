@@ -3,6 +3,45 @@ import { badRequest, conflict, notFound } from '../../lib/errors';
 import { prisma } from '../../lib/prisma';
 import { effectiveFood } from '../rooms/rooms.service';
 
+function roundMoney(amount: number): number {
+  return Math.round((amount + Number.EPSILON) * 100) / 100;
+}
+
+async function ensureLeaseInvoice(
+  tx: Prisma.TransactionClient,
+  lease: { id: string; tenantId: string; startDate: Date; monthlyRent: number; foodCharge?: number; rentDueDay: number },
+) {
+  const periodDate = new Date(lease.startDate);
+  const periodMonth = periodDate.getUTCMonth() + 1;
+  const periodYear = periodDate.getUTCFullYear();
+  const dueDay = Math.min(lease.rentDueDay, 28);
+  const dueDate = new Date(Date.UTC(periodYear, periodMonth - 1, dueDay, 0, 0, 0));
+  const existing = await tx.payment.findUnique({
+    where: {
+      leaseId_periodYear_periodMonth: {
+        leaseId: lease.id,
+        periodYear,
+        periodMonth,
+      },
+    },
+  });
+  if (existing) return existing;
+  return tx.payment.create({
+    data: {
+      leaseId: lease.id,
+      tenantId: lease.tenantId,
+      periodMonth,
+      periodYear,
+      rentAmount: Number(lease.monthlyRent),
+      foodAmount: Number(lease.foodCharge ?? 0),
+      otherAmount: 0,
+      totalAmount: roundMoney(Number(lease.monthlyRent) + Number(lease.foodCharge ?? 0)),
+      dueDate,
+      status: 'PENDING',
+    },
+  });
+}
+
 const include = {
   tenant: { select: { fullName: true } },
   assignment: { include: { room: { include: { property: { select: { name: true } } } } } },
@@ -80,7 +119,8 @@ export const tenancyService = {
           const food = effectiveFood(target, target.property);
           const foodOptIn = assignment.foodOptIn && food.foodEnabled;
           await tx.roomAssignment.create({ data: { tenantId: request.tenantId, roomId: target.id, startDate: now, endDate: lease.endDate, foodOptIn } });
-          await tx.lease.create({ data: { tenantId: request.tenantId, roomId: target.id, startDate: now, endDate: lease.endDate, monthlyRent: target.monthlyRent, securityDeposit: target.securityDeposit, rentDueDay: lease.rentDueDay, foodCharge: foodOptIn ? food.foodCharge : 0, terms: lease.terms } });
+          const nextLease = await tx.lease.create({ data: { tenantId: request.tenantId, roomId: target.id, startDate: now, endDate: lease.endDate, monthlyRent: target.monthlyRent, securityDeposit: target.securityDeposit, rentDueDay: lease.rentDueDay, foodCharge: foodOptIn ? food.foodCharge : 0, terms: lease.terms } });
+          await ensureLeaseInvoice(tx, { id: nextLease.id, tenantId: request.tenantId, startDate: now, monthlyRent: target.monthlyRent, foodCharge: foodOptIn ? food.foodCharge : 0, rentDueDay: lease.rentDueDay });
           await refreshRoom(tx, target.id);
         }
         await tx.roomAssignment.update({ where: { id: assignment.id }, data: { isActive: false, endDate: now } });
