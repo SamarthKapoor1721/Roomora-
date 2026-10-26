@@ -1,42 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon, type IconName } from '../components/Icon';
-import FeatureShowcase from '../components/FeatureShowcase';
+import FeatureJourney from '../components/FeatureJourney';
 import { warmApi } from '../lib/api';
 import './Landing.css';
-
-const features: { icon: IconName; title: string; desc: string }[] = [
-  {
-    icon: 'sparkles',
-    title: 'AI-assisted screening',
-    desc: 'Intelligent eligibility assessment and document verification. You always make the final decision.',
-  },
-  {
-    icon: 'building',
-    title: 'Properties & rooms',
-    desc: 'Manage multiple properties, define rooms, set rent, upload images, and control application windows.',
-  },
-  {
-    icon: 'file',
-    title: 'Leases & payments',
-    desc: 'Automatic lease creation on approval, monthly invoices, payment tracking with overdue alerts.',
-  },
-  {
-    icon: 'wrench',
-    title: 'Maintenance & cleaning',
-    desc: 'Tenants raise requests with photos. Staff assigned, progress tracked, before/after proof.',
-  },
-  {
-    icon: 'alert',
-    title: 'Automatic warnings',
-    desc: 'Hourly scan for overdue rent, lease expiry, repeated late payments, and task delays.',
-  },
-  {
-    icon: 'bot',
-    title: 'AI assistant',
-    desc: 'Natural-language queries across your properties: occupancy, arrears, maintenance trends.',
-  },
-];
 
 const roles: { icon: IconName; title: string; action: string; description: string; screen: string; subject: string; status: string; details: [string, string][]; menu: string[]; highlight: string }[] = [
   {
@@ -170,11 +137,8 @@ export default function Landing() {
   }, [introActive]);
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  const featureSectionRef = useRef<HTMLElement>(null);
-  const mobileFeaturesRef = useRef<HTMLDivElement>(null);
   const aiSectionRef = useRef<HTMLElement>(null);
   const [aiVisible, setAiVisible] = useState(false);
-  const [activeFeature, setActiveFeature] = useState(0);
   const [activeRole, setActiveRole] = useState(0);
   // The extra copies let the deck wrap without jumping back across the screen.
   const [deckSlot, setDeckSlot] = useState(workflowSteps.length);
@@ -214,32 +178,6 @@ export default function Landing() {
   }, []);
 
   useEffect(() => {
-    let frame = 0;
-    const updateFeature = () => {
-      const section = featureSectionRef.current;
-      if (!section || window.matchMedia('(max-width: 767px)').matches) return;
-      const scrollRange = Math.max(1, section.offsetHeight - window.innerHeight);
-      const progress = Math.min(1, Math.max(0, -section.getBoundingClientRect().top / scrollRange));
-      setActiveFeature(Math.min(features.length - 1, Math.floor(progress * features.length)));
-    };
-    const onScroll = () => {
-      if (frame) return;
-      frame = window.requestAnimationFrame(() => {
-        frame = 0;
-        updateFeature();
-      });
-    };
-    updateFeature();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-      if (frame) window.cancelAnimationFrame(frame);
-    };
-  }, []);
-
-  useEffect(() => {
     const section = aiSectionRef.current;
     if (!section) return;
     if (!('IntersectionObserver' in window)) {
@@ -255,17 +193,6 @@ export default function Landing() {
     observer.observe(section);
     return () => observer.disconnect();
   }, []);
-
-  const scrollToFeature = (index: number) => {
-    const section = featureSectionRef.current;
-    if (!section) return;
-    const scrollRange = Math.max(0, section.offsetHeight - window.innerHeight);
-    const top = window.scrollY + section.getBoundingClientRect().top;
-    window.scrollTo({
-      top: top + scrollRange * ((index + 0.5) / features.length),
-      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
-    });
-  };
 
   return (
     <div ref={landingRef} className={`landing-page min-h-screen bg-[#f7f7f2] ${introActive ? 'roomora-intro-active' : ''}`}>
@@ -463,92 +390,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── Scroll-driven features ─────────────────────────────── */}
-      <div id="features">
-      <section
-        id="desktop-features"
-        ref={featureSectionRef}
-        className="hidden relative border-b border-slate-200 bg-[#f7f7f2] md:block"
-        style={{ height: `${features.length * 45 + 65}svh` }}
-      >
-        <svg
-          className="pointer-events-none absolute inset-x-0 top-0 h-12 w-full text-white sm:h-20"
-          viewBox="0 0 1440 80"
-          preserveAspectRatio="none"
-          fill="currentColor"
-          aria-hidden="true"
-        >
-          <path d="M0 0 H1440 Q720 120 0 0 Z" />
-        </svg>
-        <div className="sticky top-0 flex h-[100svh] items-center px-4 sm:px-6 lg:top-[7svh] lg:h-[86svh] lg:px-10">
-          <div className="mx-auto grid w-full max-w-[1400px] gap-6 py-4 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-12">
-            <div>
-              <p className="text-base font-semibold uppercase tracking-[0.2em] text-brand-700 sm:text-xl">Features</p>
-              <h2 className="mt-3 max-w-xl font-display text-3xl font-semibold leading-tight text-ink-900 sm:text-5xl">
-                Everything you need to manage rentals
-              </h2>
-              <p className="mt-4 hidden max-w-md text-base text-ink-500 sm:block">
-                Follow each part of your rental workflow in one place.
-              </p>
-              <ul className="mt-7 grid grid-cols-2 gap-2 lg:mt-9 lg:grid-cols-1 lg:gap-1.5" aria-label="Explore Roomora features">
-                {features.map((feature, index) => (
-                  <li key={feature.title}>
-                    <button
-                      type="button"
-                      onClick={() => scrollToFeature(index)}
-                      aria-current={activeFeature === index ? 'true' : undefined}
-                      className={`group flex min-h-[62px] w-full items-center gap-2.5 rounded-xl border px-3 py-3 text-left transition-[background,border-color,box-shadow,transform] duration-200 sm:gap-3 lg:min-h-[54px] lg:px-4 lg:py-2.5 ${activeFeature === index ? 'border-[#bfd8b9] bg-[#e8f3e4] text-[#245a37] shadow-[0_4px_14px_rgba(55,104,58,0.08)]' : 'border-transparent bg-white/55 text-[#5d7265] hover:-translate-y-0.5 hover:border-[#dce8d9] hover:bg-white hover:text-[#234e34]'}`}
-                    >
-                      <span className={`shrink-0 text-[10px] font-bold tracking-[.08em] sm:text-xs ${activeFeature === index ? 'text-[#397d45]' : 'text-[#9aaa9e]'}`}>
-                        {String(index + 1).padStart(2, '0')}
-                      </span>
-                      <span className="min-w-0 flex-1 text-xs font-semibold leading-snug sm:text-sm lg:text-[15px]">{feature.title}</span>
-                      <span className={`hidden h-7 w-7 shrink-0 items-center justify-center rounded-full transition-colors lg:flex ${activeFeature === index ? 'bg-white text-[#397d45]' : 'text-[#97aa9a] group-hover:bg-[#f0f6ed] group-hover:text-[#397d45]'}`} aria-hidden="true">
-                        <Icon name="arrowUpRight" size={15} />
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="min-h-[280px] sm:min-h-[480px]" aria-live="polite">
-              <article key={activeFeature} className="feature-stage-in flex h-full flex-col justify-center">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-700">
-                  {String(activeFeature + 1).padStart(2, '0')} / {String(features.length).padStart(2, '0')}
-                </p>
-                <h3 className="mt-3 font-display text-3xl font-semibold leading-tight text-ink-900 sm:text-4xl">
-                  {features[activeFeature].title}
-                </h3>
-                <p className="mt-3 max-w-xl text-sm leading-relaxed text-ink-600 sm:text-base">{features[activeFeature].desc}</p>
-                <FeatureShowcase index={activeFeature} />
-              </article>
-              <div className="mt-4 h-0.5 w-full bg-slate-200" aria-hidden="true">
-                <div className="h-full bg-brand-600 transition-[width] duration-500" style={{ width: `${((activeFeature + 1) / features.length) * 100}%` }} />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="mobile-features md:hidden" aria-label="Roomora features">
-        <div className="mobile-features-heading">
-          <h2>Features</h2>
-          <div className="mobile-feature-controls">
-            <button type="button" aria-label="Previous feature" onClick={() => mobileFeaturesRef.current?.scrollBy({ left: -mobileFeaturesRef.current.clientWidth, behavior: 'smooth' })}>←</button>
-            <button type="button" aria-label="Next feature" onClick={() => mobileFeaturesRef.current?.scrollBy({ left: mobileFeaturesRef.current.clientWidth, behavior: 'smooth' })}>→</button>
-          </div>
-        </div>
-        <div ref={mobileFeaturesRef} className="mobile-feature-gallery" tabIndex={0} aria-label="Swipe to explore features">
-          {features.map((feature, index) => (
-            <figure key={feature.title} className="mobile-feature-slide">
-              <FeatureShowcase index={index} />
-              <figcaption className="sr-only">{feature.title}: {feature.desc}</figcaption>
-            </figure>
-          ))}
-        </div>
-      </section>
-      </div>
+      <FeatureJourney />
 
       {/* ── Roles ──────────────────────────────────────────────────── */}
       <section className="landing-roles border-t-[10px] border-[#a8db8b] bg-[#123d31] px-4 py-16 sm:px-6 sm:py-20">

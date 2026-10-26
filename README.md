@@ -117,6 +117,37 @@ The frontend uses a Vite proxy for local API requests. `VITE_API_ORIGIN` is only
 
 There are no SQL migrations for the current MongoDB setup. Historical SQL migration files do not run during `db:push`.
 
+## Testing guide for AI agents
+
+Use this section as the starting brief when asking an AI agent to test Roomora. The goal is to check both the existing automated tests and the real, role-based rental journey, then report reproducible failures with evidence.
+
+### Test environment and commands
+
+- Use a **separate development MongoDB database**. `npm start` and `npm run db:push` synchronize its schema and indexes; do not point either command at production data. The current Prisma datasource is MongoDB in [`backend/prisma/schema.prisma`](backend/prisma/schema.prisma). `docker-compose.yml` and some older architecture text still refer to PostgreSQL and are not the local database setup.
+- Follow [Run locally](#run-locally) to configure secrets and start the three services. Check the API and AI `/health` URLs in the service table above before browser or API testing. An AI provider key is optional; fallback behavior should still work.
+- Create fresh owner and tenant accounts through registration. There are **no seeded demo users**. Create staff through the owner workspace. Google sign-in and super admin flows require their separate OAuth and `SUPER_ADMIN_EMAILS` configuration.
+- Run the existing automated checks from the repository root:
+
+```bash
+npm test
+npm run build
+cd ai-service && .venv/bin/python -m unittest app.test_document_review
+```
+
+`npm test` runs backend Vitest tests, largely with mocked dependencies; it does not replace an end-to-end check against MongoDB. The Python command runs the AI document-review unit tests after `npm start` has created the virtual environment and installed its requirements. There is currently no frontend test script, so use the build plus browser checks for the UI.
+
+### Manual end-to-end checks
+
+Use distinct test accounts and disposable records. For each step, verify the visible result **and** the persisted state or API response when available. The [workflow index](docs/workflows/README.md) describes expected state transitions; use the [API reference](docs/API.md) for routes and payloads.
+
+1. **Access and isolation:** Register an owner and tenant, sign in and out, refresh each workspace, and verify role restrictions. Confirm that one owner cannot access another owner's records and that a tenant or staff member cannot use owner-only actions.
+2. **Listing to decision:** Create a property and room, open applications, browse as a tenant, apply, upload the required documents, and submit for screening. Check missing or invalid document handling. Confirm screening is advisory and only the owner can approve or reject; approval creates an assignment and lease and updates room occupancy.
+3. **Tenancy and money records:** Generate a rent invoice, record a partial and a full payment, and inspect balance and status. Payments are in-app records, not transfers. Test a tenant leave or room-change request, including owner review and capacity checks. See [tenancy requests](docs/workflows/22-tenancy-requests.md).
+4. **Daily operations:** Submit a maintenance request as a tenant, assign it as an owner, and complete it as staff. Check cleaning tasks, warnings, notifications, and access to private documents and work photos.
+5. **AI availability:** With and without a working AI provider, check that screening and assistant responses identify their source, uncertain documents require manual review, and unavailable analysis is not presented as a successful insight. The owner must still make the application decision.
+
+When reporting results, include the command or UI steps, account role, expected versus actual behavior, relevant response or screenshot, and any required environment conditions. Distinguish an application defect from unavailable external services or missing credentials. Do not include passwords, tokens, document contents, or database connection strings in the report.
+
 ## Environment variables
 
 The templates are [backend/.env.example](backend/.env.example), [frontend/.env.example](frontend/.env.example) and [ai-service/.env.example](ai-service/.env.example). Keep credentials out of Git.
