@@ -8,6 +8,7 @@ export const paymentsController = {
     const { year, month } = req.body;
     const now = new Date();
     const payment = await paymentsService.generateForPeriod(
+      req.user!.id,
       req.params.leaseId,
       year ?? now.getUTCFullYear(),
       month ?? now.getUTCMonth() + 1,

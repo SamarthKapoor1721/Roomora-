@@ -31,6 +31,11 @@ export function RouteTransition({ nav }: { nav: NavLookup }) {
     const key = featureKey(pathname);
     if (key === prev.current) return;
     prev.current = key;
+    if (document.documentElement.hasAttribute('data-tutorial-active')) {
+      setBurst(null);
+      document.documentElement.removeAttribute('data-routing');
+      return;
+    }
     if (REDUCED) return;
 
     const hit = nav[key] ?? nav[key.split('/')[0]];

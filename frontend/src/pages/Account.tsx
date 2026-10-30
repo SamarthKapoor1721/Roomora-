@@ -43,7 +43,7 @@ export default function Account() {
   };
   return <div className="mx-auto max-w-2xl space-y-6 pb-12">
     <div><p className="font-mono text-xs font-semibold uppercase tracking-[.2em] text-brand-700">Your account</p><h1 className="mt-2 font-display text-4xl font-semibold text-ink-900">Sign-in & profile</h1><p className="mt-2 text-sm text-ink-500">Manage how you access your Roomora workspace.</p></div>
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section data-tour="account-profile" className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
       <h2 className="font-display text-xl font-semibold text-ink-900">Profile</h2>
       <form onSubmit={saveName} className="mt-5 border-b border-slate-100 pb-5">
         <label htmlFor="account-full-name" className="block text-sm font-semibold text-[#425747]">Full name</label>

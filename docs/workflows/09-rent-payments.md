@@ -60,7 +60,9 @@ warnings ([13](13-warnings.md)).
 ```
 
 - `amount` must be `> 0` → `400`.
-- Waived payments reject with `409`.
+- Paid or waived invoices reject additional payments with `409`.
+- Amounts above the remaining balance reject with `400`; excess payments are not treated as tenant credit.
+- Balance and status are updated together using an atomic conditional write. If another request changes the invoice first, the service rereads and retries (up to five attempts), then returns `409` if contention continues. Successful concurrent installments are preserved.
 - `amountPaid += amount`; `paidDate` set if now fully paid; `status` + `daysLate` recomputed via `derivePaymentState`.
 - Notification → tenant ("Payment recorded … Outstanding: X").
 - Audit: `payment.record`.
@@ -85,7 +87,7 @@ Supports partial payments — call it multiple times; status walks `PENDING → 
 `POST /tenant/payments/:id/pay` — body `{ amount, method, reference? }`
 
 - `404` if not the tenant's, `403` mismatch, `409` if already `PAID` / `WAIVED`, `400` if `amount <= 0`.
-- Same cumulative logic as owner-record; `paidDate` set when fully paid.
+- Same cumulative logic and concurrent-write protection as owner-record; amounts above the remaining balance reject with `400`. `paidDate` is set when fully paid.
 - Notification → **owner** ("Tenant made a payment …").
 - Audit: `payment.tenant_pay`.
 
@@ -118,7 +120,9 @@ Rent warnings auto-resolve once the payment becomes `PAID` / `WAIVED`.
 | --- | --- |
 | Generate the same month twice | second call is a no-op, returns the existing row |
 | Generate for a terminated/expired lease | per-lease endpoint → `409`; bulk skips non-active leases |
-| Record ₹0 or negative | `400` |
+| Record ₹0, negative or less than one paise after rounding | `400` |
+| Record more than the remaining balance | `400`; no change to the invoice |
+| Two simultaneous installments | Both count if within the balance; otherwise the extra payment fails explicitly |
 | Record against a waived invoice | `409` |
 | Partial payment before due date | `PARTIAL`, `daysLate 0` |
 | Partial payment after due date | `OVERDUE`, `daysLate` counting |

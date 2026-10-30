@@ -60,7 +60,7 @@ export default function TenantMaintenance() {
         title="Maintenance"
         description="Report anything that needs fixing in your room. AI tags it, and staff handle it with before/after photos."
         actions={
-          <button className="btn-primary" onClick={() => setShowForm((v) => !v)}>
+          <button data-tour="raise-request" className="btn-primary" onClick={() => setShowForm((v) => !v)}>
             {!showForm && <Icon name="plus" size={16} />}
             {showForm ? 'Cancel' : 'Raise request'}
           </button>

@@ -2,7 +2,7 @@ import { useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
 /** Render outside page transforms and stacking contexts so dialogs cover the navbar. */
-export default function ModalOverlay({ children, onClose, labelledBy }: { children: ReactNode; onClose: () => void; labelledBy: string }) {
+export default function ModalOverlay({ children, onClose, labelledBy, className }: { children: ReactNode; onClose: () => void; labelledBy: string; className?: string }) {
   const root = useRef<HTMLDivElement>(null);
   const close = useRef(onClose);
   close.current = onClose;
@@ -26,5 +26,5 @@ export default function ModalOverlay({ children, onClose, labelledBy }: { childr
     return () => { document.body.style.overflow = previousOverflow; document.removeEventListener('keydown', handleKey); previousFocus?.focus(); };
   }, []);
 
-  return createPortal(<div ref={root} tabIndex={-1} className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-white/60 p-4 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby={labelledBy}>{children}</div>, document.body);
+  return createPortal(<div ref={root} tabIndex={-1} className={className ?? 'fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-white/60 p-4 backdrop-blur-md'} role="dialog" aria-modal="true" aria-labelledby={labelledBy}>{children}</div>, document.body);
 }

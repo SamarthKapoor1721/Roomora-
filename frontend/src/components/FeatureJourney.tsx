@@ -5,27 +5,27 @@ import './FeatureJourney.css';
 const chapters: { title: string; short: string; eyebrow: string; description: string; icon: IconName }[] = [
   {
     title: 'A better first impression.', short: 'Applications', eyebrow: '01 / THE ARRIVAL', icon: 'sparkles',
-    description: 'An application arrives. Documents and eligibility are brought together for a clearer, faster owner review.',
+    description: 'Documents and verified KYC unified for faster, clearer reviews.',
   },
   {
     title: 'Every room has a story.', short: 'Rooms', eyebrow: '02 / THE PLACE', icon: 'building',
-    description: 'Availability, occupancy, rent and room details stay connected across every property you manage.',
+    description: 'Live occupancy, rent, and unit details across all properties.',
   },
   {
     title: 'The paperwork falls into place.', short: 'Rent & leases', eyebrow: '03 / THE AGREEMENT', icon: 'file',
-    description: 'Move from approval to lease, then keep monthly rent and payment status in view.',
+    description: 'Instant lease signing and automated rent reconciliation.',
   },
   {
     title: 'Help is already on its way.', short: 'Repairs', eyebrow: '04 / THE EVERYDAY', icon: 'wrench',
-    description: 'A tenant reports a problem with a photo. The right staff member picks it up and everyone sees the progress.',
+    description: 'Photo issue reports and live technician dispatch tracking.',
   },
   {
     title: 'The little things don’t slip.', short: 'Warnings', eyebrow: '05 / THE HEADS-UP', icon: 'bell',
-    description: 'Upcoming rent, expiring leases and delayed tasks surface before they become bigger problems.',
+    description: 'Proactive alerts for upcoming rent and expiring leases.',
   },
   {
     title: 'Answers, when you need them.', short: 'Assistant', eyebrow: '06 / THE BIG PICTURE', icon: 'bot',
-    description: 'Ask what is happening across your properties and get a useful starting point from your workspace.',
+    description: 'Instant AI insights across your entire rental portfolio.',
   },
 ];
 

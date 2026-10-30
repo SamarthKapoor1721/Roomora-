@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '../../lib/api';
-import { Badge, EmptyState, ErrorBanner, NumberInput, PageHeader, Skeleton, money, date } from '../../components/ui';
+import { Badge, EmptyState, ErrorBanner, Field, NumberInput, PageHeader, Skeleton, money, date } from '../../components/ui';
 
 interface PaymentRow {
   id: string;
@@ -72,7 +72,7 @@ export default function TenantPayments() {
               <div className="flex items-center gap-2">
                 <Badge>{p.status}</Badge>
                 {outstanding > 0 && p.status !== 'WAIVED' && (
-                  <button className="btn-primary" onClick={() => setPayFor(payFor === p.id ? null : p.id)}>
+                  <button data-tour="pay-invoice" className="btn-primary" onClick={() => setPayFor(payFor === p.id ? null : p.id)}>
                     Pay {money(outstanding)}
                   </button>
                 )}
@@ -106,17 +106,15 @@ function PayForm({ outstanding, onSubmit, pending }: { outstanding: number; onSu
         onSubmit(amount, method);
       }}
     >
-      <div>
-        <label className="label">Amount</label>
-        <NumberInput className="w-40" value={amount} onChange={setAmount} min={0} />
-      </div>
-      <div>
-        <label className="label">Method</label>
+      <Field label="Amount" hint={`Up to ${money(outstanding)}`}>
+        <NumberInput className="w-40" value={amount} onChange={setAmount} min={0} max={outstanding} allowDecimal />
+      </Field>
+      <Field label="Method">
         <select className="input w-40" value={method} onChange={(e) => setMethod(e.target.value)}>
           {['UPI', 'BANK_TRANSFER', 'CARD', 'CASH', 'OTHER'].map((m) => <option key={m}>{m}</option>)}
         </select>
-      </div>
-      <button className="btn-primary" disabled={pending}>Confirm payment</button>
+      </Field>
+      <button className="btn-primary" disabled={pending || amount <= 0 || amount > outstanding}>Confirm payment</button>
     </form>
   );
 }

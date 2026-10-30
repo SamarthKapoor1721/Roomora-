@@ -48,7 +48,7 @@ export default function OwnerStaff() {
         title="Staff"
         description="Your maintenance and cleaning team. Staff sign in to see only the tasks assigned to them."
         actions={
-          <button className="btn-primary" onClick={() => setShowForm((v) => !v)}>
+          <button data-tour="add-staff" className="btn-primary" onClick={() => setShowForm((v) => !v)}>
             {!showForm && <Icon name="plus" size={16} />}
             {showForm ? 'Cancel' : 'Add staff'}
           </button>

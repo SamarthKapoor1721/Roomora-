@@ -7,6 +7,7 @@ import {
   ConfirmDialog,
   EmptyState,
   ErrorBanner,
+  Field,
   ImagePicker,
   NumberInput,
   PageHeader,
@@ -117,7 +118,7 @@ export default function OwnerProperties() {
         title="Properties & rooms"
         description="Select a property to manage its rooms: set rent, capacity, food, and open or close applications."
         actions={
-          <button className="btn-primary" onClick={() => setShowPropForm((v) => !v)}>
+          <button data-tour="new-property" className="btn-primary" onClick={() => setShowPropForm((v) => !v)}>
             {!showPropForm && <Icon name="plus" size={16} />}
             {showPropForm ? 'Cancel' : 'New property'}
           </button>
@@ -139,6 +140,7 @@ export default function OwnerProperties() {
         )}
         {props.data?.map((p) => (
           <button
+            data-tour="owner-property"
             key={p.id}
             type="button"
             onClick={() => setSelected(selected === p.id ? null : p.id)}
@@ -204,7 +206,7 @@ export default function OwnerProperties() {
             </h2>
             <div className="flex flex-wrap items-center gap-2">
               <button className="btn-secondary btn-sm" onClick={() => setEditingProperty(selected)}>Edit property</button>
-              <button className="btn-secondary btn-sm" onClick={() => setShowRoomForm((v) => !v)}>
+              <button data-tour="add-room" className="btn-secondary btn-sm" onClick={() => setShowRoomForm((v) => !v)}>
                 {showRoomForm ? 'Cancel' : 'Add room'}
               </button>
               <button
@@ -454,26 +456,21 @@ function RoomForm({ propertyId, onDone }: { propertyId: string; onDone: () => vo
     >
       {Boolean(m.error) && <ErrorBanner message={apiErrorMessage(m.error)} />}
       <div className="grid gap-3 md:grid-cols-3">
-        <div>
-          <label className="label">Room name</label>
+        <Field label="Room name">
           <input className="input" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} required />
-        </div>
-        <div>
-          <label className="label">Monthly rent</label>
+        </Field>
+        <Field label="Monthly rent">
           <NumberInput value={f.monthlyRent} onChange={(monthlyRent) => setF({ ...f, monthlyRent })} min={0} />
-        </div>
-        <div>
-          <label className="label">Security deposit</label>
+        </Field>
+        <Field label="Security deposit">
           <NumberInput value={f.securityDeposit} onChange={(securityDeposit) => setF({ ...f, securityDeposit })} min={0} />
-        </div>
-        <div>
-          <label className="label">Capacity (beds)</label>
+        </Field>
+        <Field label="Capacity (beds)">
           <NumberInput value={f.capacity} onChange={(capacity) => setF({ ...f, capacity })} min={1} />
-        </div>
-        <div>
-          <label className="label">Roommates limit</label>
+        </Field>
+        <Field label="Roommates limit">
           <NumberInput value={f.roommatesLimit} onChange={(roommatesLimit) => setF({ ...f, roommatesLimit })} min={1} />
-        </div>
+        </Field>
       </div>
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={f.foodEnabled} onChange={(e) => setF({ ...f, foodEnabled: e.target.checked })} />

@@ -63,7 +63,7 @@ export default function OwnerCleaning() {
         title="Cleaning"
         description="Schedule cleaning for a property or room, assign staff, and check the before/after proof photos."
         actions={
-          <button className="btn-primary" onClick={() => setShowForm((v) => !v)}>
+          <button data-tour="new-cleaning" className="btn-primary" onClick={() => setShowForm((v) => !v)}>
             {!showForm && <Icon name="plus" size={16} />}
             {showForm ? 'Cancel' : 'New task'}
           </button>

@@ -40,7 +40,7 @@ export default function OwnerWarnings() {
         title="Warnings"
         description="Automatic alerts for overdue rent, expiring leases, missing documents, and delayed tasks. Scanned hourly."
         actions={
-          <button className="btn-secondary" onClick={() => scan.mutate()} disabled={scan.isPending}>
+          <button data-tour="scan-warnings" className="btn-secondary" onClick={() => scan.mutate()} disabled={scan.isPending}>
             {scan.isPending ? 'Scanning…' : 'Run scan now'}
           </button>
         }

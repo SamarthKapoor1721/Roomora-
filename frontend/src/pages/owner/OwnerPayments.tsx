@@ -78,7 +78,7 @@ export default function OwnerPayments() {
         title="Payments"
         description="Monthly rent invoices, what's been collected, and what's outstanding."
         actions={
-          <button className="btn-primary" onClick={() => generate.mutate()} disabled={generate.isPending}>
+          <button data-tour="generate-invoices" className="btn-primary" onClick={() => generate.mutate()} disabled={generate.isPending}>
             <Icon name="plus" size={16} />
             {generate.isPending ? 'Generating…' : "Generate this month"}
           </button>
@@ -181,6 +181,7 @@ export default function OwnerPayments() {
                           <td className="td text-right">
                             {!['PAID', 'WAIVED'].includes(p.status) && (
                               <button
+                                data-tour="record-payment"
                                 className="btn-secondary btn-sm"
                                 onClick={() => setRecordFor(recordFor === p.id ? null : p.id)}
                               >
@@ -237,8 +238,8 @@ function RecordForm({
         onSubmit(amount, method);
       }}
     >
-      <Field label="Amount" className="w-40">
-        <NumberInput value={amount} onChange={setAmount} min={0} />
+      <Field label="Amount" hint={`Up to ${money(outstanding)}`} className="w-40">
+        <NumberInput value={amount} onChange={setAmount} min={0} max={outstanding} allowDecimal />
       </Field>
       <Field label="Method" className="w-44">
         <select className="input" value={method} onChange={(e) => setMethod(e.target.value)}>
@@ -247,7 +248,7 @@ function RecordForm({
           ))}
         </select>
       </Field>
-      <button className="btn-primary" disabled={pending}>
+      <button className="btn-primary" disabled={pending || amount <= 0 || amount > outstanding}>
         {pending ? 'Saving…' : 'Save payment'}
       </button>
     </form>

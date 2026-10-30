@@ -131,7 +131,7 @@ export default function TenantBrowse() {
                   ))}
                 </div>
               )}
-              <button className="btn-primary mt-4 w-full" disabled={!r.applicationsOpen || r.spotsAvailable <= 0} onClick={() => setApplyFor(r)}>
+              <button data-tour="apply-room" className="btn-primary mt-4 w-full" disabled={!r.applicationsOpen || r.spotsAvailable <= 0} onClick={() => setApplyFor(r)}>
                 {r.spotsAvailable <= 0 ? 'Room full' : !r.applicationsOpen ? 'Applications closed' : 'Apply for this room'}
               </button>
               </div>
@@ -162,7 +162,7 @@ export default function TenantBrowse() {
                     {money(Math.min(...rents))}<span className="ml-1 text-sm font-medium text-ink-600">/ month</span>
                   </p>
                 </div>
-                <button type="button" className="btn-primary mt-5 flex w-full items-center justify-center gap-2 !bg-brand-700 !py-3 !text-sm hover:!bg-[#315d27]" onClick={() => setSelectedProperty(item.id)}>
+                <button data-tour="explore-property" type="button" className="btn-primary mt-5 flex w-full items-center justify-center gap-2 !bg-brand-700 !py-3 !text-sm hover:!bg-[#315d27]" onClick={() => setSelectedProperty(item.id)}>
                   View property and rooms <Icon name="arrowUpRight" size={16} />
                 </button>
               </div>

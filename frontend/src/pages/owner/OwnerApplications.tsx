@@ -88,7 +88,7 @@ export default function OwnerApplications() {
           <ul className="owner-applications-list">
             {rows.map((a) => (
               <li key={a.id}>
-                <Link to={'/owner/applications/' + a.id} className="owner-application-row">
+                <Link data-tour="owner-application" to={'/owner/applications/' + a.id} className="owner-application-row">
                   <span className="owner-application-applicant">
                     <strong>{a.tenant.fullName}</strong>
                     <small>{a.tenant.email}</small>

@@ -6,6 +6,7 @@ import { Icon, type IconName } from './Icon';
 import AssistantWidget from './AssistantWidget';
 import NotificationBell from './NotificationBell';
 import { RouteTransition } from './RouteTransition';
+import Tutorial from './tutorial/Tutorial';
 
 type NavItem = { to: string; label: string; icon: IconName; end?: boolean };
 
@@ -75,20 +76,22 @@ export default function Layout() {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-lg">
-        <div className="mx-auto flex h-16 max-w-[1500px] items-center gap-3 px-4 sm:px-6 lg:px-8">
-          <span className="font-wordmark text-3xl font-bold tracking-tight text-ink-900">Roomora</span>
+        <div className="mx-auto flex h-16 max-w-[1500px] items-center gap-2 px-4 sm:gap-3 sm:px-6 lg:px-8">
+          <span className="shrink-0 font-wordmark text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">Roomora</span>
 
-          <div className="ml-auto flex items-center gap-2.5">
+          <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2.5">
+            {user && (user.role === 'OWNER' || user.role === 'TENANT') && !(user.googleConnected && user.hasPassword === false) && <Tutorial key={`${user.id}:${user.role}`} userId={user.id} role={user.role} />}
             {user && <NotificationBell userId={user.id} role={user.role} />}
 
             <div className="mx-1 hidden h-6 w-px bg-slate-200 sm:block" />
 
-            <div className="hidden text-right sm:block">
-              <p className="text-sm font-medium leading-tight text-ink-900">{user?.fullName}</p>
+            <div className="hidden max-w-48 text-right lg:block">
+              <p className="truncate text-sm font-medium leading-tight text-ink-900">{user?.fullName}</p>
               <p className="text-2xs uppercase tracking-wide text-ink-400">{roleLabel}</p>
             </div>
             <button
-              className="btn-secondary btn-sm"
+              className="btn-secondary btn-sm !h-9 !w-9 !p-0 sm:!h-auto sm:!w-auto sm:!px-3 sm:!py-1.5"
+              aria-label="Sign out"
               onClick={async () => {
                 await logout();
                 navigate('/login');
@@ -100,7 +103,7 @@ export default function Layout() {
 
             {/* mobile nav toggle */}
             <button
-              className="btn-ghost btn-sm -mr-2 xl:hidden"
+              className="btn-ghost btn-sm !h-9 !w-9 !p-0 xl:hidden"
               onClick={() => setMobileNav((v) => !v)}
               aria-label="Toggle navigation"
               aria-expanded={mobileNav}
@@ -165,7 +168,7 @@ export default function Layout() {
           </nav>
         </aside>
 
-        <main className="min-w-0">
+        <main className="min-w-0" data-tour-page>
           <div key={featureKey} className="route-page-in">
             <Outlet />
           </div>

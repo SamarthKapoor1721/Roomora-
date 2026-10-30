@@ -14,7 +14,6 @@
     "db:migrate": "npm run db:push",
     "db:deploy": "npm run db:push",
     "db:studio": "prisma studio",
-    "test": "vitest run",
     "lint": "eslint src --ext .ts",
     "db:push": "prisma db push && tsx prisma/setup.ts",
     "db:check": "tsx prisma/check.ts"
@@ -41,11 +40,8 @@
     "@types/morgan": "^1.9.9",
     "@types/multer": "^1.4.12",
     "@types/node": "^22.10.2",
-    "@types/supertest": "^6.0.2",
     "prisma": "^6.1.0",
-    "supertest": "^7.0.0",
     "tsx": "^4.19.2",
-    "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "typescript": "^5.7.2"
   }
 }

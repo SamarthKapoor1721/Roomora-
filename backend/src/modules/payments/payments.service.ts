@@ -1,4 +1,4 @@
-import type { Prisma } from '@prisma/client';
+import type { PaymentMethod, PaymentStatus, Prisma } from '@prisma/client';
 import { badRequest, conflict, forbidden, notFound } from '../../lib/errors';
 import { notify } from '../../lib/notify';
 import { parsePage } from '../../lib/pagination';
@@ -19,7 +19,7 @@ export function derivePaymentState(p: {
   dueDate: Date;
   paidDate: Date | null;
   status: string;
-}): { status: Prisma.PaymentUpdateInput['status']; daysLate: number } {
+}): { status: PaymentStatus; daysLate: number } {
   if (p.status === 'WAIVED') return { status: 'WAIVED', daysLate: 0 };
   const now = new Date();
   if (roundMoney(p.amountPaid) >= roundMoney(p.totalAmount) && p.totalAmount > 0) {
@@ -45,6 +45,74 @@ async function ownerPaymentOrThrow(ownerId: string, id: string) {
   if (!payment) throw notFound('Payment not found');
   if (payment.lease.room.property.ownerId !== ownerId) throw forbidden('Not your payment record');
   return payment;
+}
+
+type PaymentInput = { amount: number; method: string; reference?: string; paidDate?: Date; notes?: string };
+
+/** Compare-and-set the balance and status together; retry if another writer wins. */
+async function recordInvoicePayment(actorId: string, role: 'OWNER' | 'TENANT', id: string, input: PaymentInput) {
+  const amount = roundMoney(input.amount);
+  if (!Number.isFinite(amount) || amount <= 0) throw badRequest('Amount must be at least 0.01');
+
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const payment = await prisma.payment.findUnique({
+      where: { id },
+      include: { lease: { include: { room: { include: { property: true } } } } },
+    });
+    if (!payment) throw notFound('Payment not found');
+    if (role === 'OWNER' ? payment.lease.room.property.ownerId !== actorId : payment.tenantId !== actorId) {
+      throw forbidden('Not your payment record');
+    }
+    const outstanding = roundMoney(Number(payment.totalAmount) - Number(payment.amountPaid));
+    if (payment.status === 'WAIVED' || payment.status === 'PAID' || outstanding <= 0) {
+      throw conflict('Nothing to pay for this period');
+    }
+    if (amount > outstanding) throw badRequest(`Amount exceeds the outstanding balance of ${outstanding.toFixed(2)}`);
+
+    const newPaid = roundMoney(Number(payment.amountPaid) + amount);
+    const paidDate = input.paidDate ?? new Date();
+    const state = derivePaymentState({
+      totalAmount: Number(payment.totalAmount),
+      amountPaid: newPaid,
+      dueDate: payment.dueDate,
+      paidDate: newPaid >= Number(payment.totalAmount) ? paidDate : null,
+      status: payment.status,
+    });
+    const data = {
+      amountPaid: newPaid,
+      paidDate: newPaid >= Number(payment.totalAmount) ? paidDate : payment.paidDate,
+      method: input.method as PaymentMethod,
+      reference: input.reference ?? payment.reference,
+      notes: input.notes ?? payment.notes,
+      status: state.status,
+      daysLate: state.daysLate,
+      updatedAt: new Date(),
+    };
+    const result = await prisma.payment.updateMany({
+      where: {
+        id,
+        amountPaid: payment.amountPaid,
+        totalAmount: payment.totalAmount,
+        status: payment.status,
+        dueDate: payment.dueDate,
+      },
+      data,
+    });
+    if (!result.count) continue;
+
+    const { lease, ...invoice } = payment;
+    const updated = { ...invoice, ...data };
+    await notify({
+      userId: role === 'OWNER' ? payment.tenantId : lease.room.property.ownerId,
+      type: 'PAYMENT_REMINDER',
+      title: role === 'OWNER' ? 'Payment recorded' : 'Tenant made a payment',
+      body: `A payment of ${amount.toFixed(2)} was recorded for ${payment.periodMonth}/${payment.periodYear} via ${input.method}. Outstanding: ${roundMoney(outstanding - amount).toFixed(2)}.`,
+      relatedType: 'PAYMENT',
+      relatedId: id,
+    });
+    return updated;
+  }
+  throw conflict('The invoice changed while recording your payment. Please try again.');
 }
 
 export async function ensureCurrentMonthInvoiceForTenant(tenantId: string, year?: number, month?: number) {
@@ -154,42 +222,7 @@ export const paymentsService = {
     id: string,
     input: { amount: number; method: string; reference?: string; paidDate?: Date; notes?: string },
   ) {
-    const payment = await ownerPaymentOrThrow(ownerId, id);
-    if (payment.status === 'WAIVED') throw conflict('Payment is waived');
-    if (input.amount <= 0) throw badRequest('Amount must be positive');
-
-    const newPaid = roundMoney(Number(payment.amountPaid) + input.amount);
-    const paidDate = input.paidDate ?? new Date();
-    const state = derivePaymentState({
-      totalAmount: Number(payment.totalAmount),
-      amountPaid: newPaid,
-      dueDate: payment.dueDate,
-      paidDate: newPaid >= Number(payment.totalAmount) ? paidDate : null,
-      status: payment.status,
-    });
-
-    const updated = await prisma.payment.update({
-      where: { id },
-      data: {
-        amountPaid: newPaid,
-        paidDate: newPaid >= Number(payment.totalAmount) ? paidDate : payment.paidDate,
-        method: input.method as never,
-        reference: input.reference ?? payment.reference,
-        notes: input.notes ?? payment.notes,
-        status: state.status,
-        daysLate: state.daysLate,
-      },
-    });
-
-    await notify({
-      userId: payment.tenantId,
-      type: 'PAYMENT_REMINDER',
-      title: 'Payment recorded',
-      body: `A payment of ${input.amount} was recorded for ${payment.periodMonth}/${payment.periodYear}. Outstanding: ${Math.max(0, Number(payment.totalAmount) - newPaid)}.`,
-      relatedType: 'PAYMENT',
-      relatedId: id,
-    });
-    return updated;
+    return recordInvoicePayment(ownerId, 'OWNER', id, input);
   },
 
   async adjust(
@@ -285,45 +318,6 @@ export const paymentsService = {
     id: string,
     input: { amount: number; method: string; reference?: string },
   ) {
-    const payment = await prisma.payment.findUnique({
-      where: { id },
-      include: { lease: { include: { room: { include: { property: true } } } } },
-    });
-    if (!payment) throw notFound('Payment not found');
-    if (payment.tenantId !== tenantId) throw forbidden('Not your payment');
-    if (payment.status === 'WAIVED' || payment.status === 'PAID') {
-      throw conflict('Nothing to pay for this period');
-    }
-    if (input.amount <= 0) throw badRequest('Amount must be positive');
-
-    const newPaid = roundMoney(Number(payment.amountPaid) + input.amount);
-    const paidDate = new Date();
-    const state = derivePaymentState({
-      totalAmount: Number(payment.totalAmount),
-      amountPaid: newPaid,
-      dueDate: payment.dueDate,
-      paidDate: newPaid >= Number(payment.totalAmount) ? paidDate : null,
-      status: payment.status,
-    });
-    const updated = await prisma.payment.update({
-      where: { id },
-      data: {
-        amountPaid: newPaid,
-        paidDate: newPaid >= Number(payment.totalAmount) ? paidDate : payment.paidDate,
-        method: input.method as never,
-        reference: input.reference ?? payment.reference,
-        status: state.status,
-        daysLate: state.daysLate,
-      },
-    });
-    await notify({
-      userId: payment.lease.room.property.ownerId,
-      type: 'PAYMENT_REMINDER',
-      title: 'Tenant made a payment',
-      body: `A tenant paid ${input.amount} for ${payment.periodMonth}/${payment.periodYear} via ${input.method}.`,
-      relatedType: 'PAYMENT',
-      relatedId: id,
-    });
-    return updated;
+    return recordInvoicePayment(tenantId, 'TENANT', id, input);
   },
 };

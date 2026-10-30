@@ -42,6 +42,7 @@ export default function TenantApplications() {
         <div className="space-y-2.5">
           {data?.map((a) => (
             <Link
+              data-tour="tenant-application"
               key={a.id}
               to={`/tenant/applications/${a.id}`}
               className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white p-4 shadow-card transition-shadow hover:shadow-pop"
